@@ -95,6 +95,21 @@ function parseLooseWriteObject(trimmed: string): Record<string, unknown> | null 
   }
 }
 
+function parseLooseEditObject(trimmed: string): Record<string, unknown> | null {
+  const match = trimmed.match(
+    /^\{\s*(?:"replace_all"\s*:\s*(true|false)\s*,\s*)?"file_path"\s*:\s*"((?:\\.|[^"\\])*)"\s*,\s*"old_string"\s*:\s*"([\s\S]*?)"\s*,\s*"new_string"\s*:\s*"([\s\S]*)"\s*(?:,\s*"replace_all"\s*:\s*(true|false))?\s*\}$/,
+  )
+  if (!match) return null
+  return {
+    file_path: parseJsonishString(match[2] ?? ''),
+    old_string: parseJsonishString(match[3] ?? ''),
+    new_string: parseJsonishString(match[4] ?? ''),
+    ...(match[1] !== undefined || match[5] !== undefined
+      ? { replace_all: (match[1] ?? match[5]) === 'true' }
+      : {}),
+  }
+}
+
 function parseJsonObject(text: string): Record<string, unknown> | null {
   const trimmed = text.trim()
   if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) return null
@@ -104,7 +119,7 @@ function parseJsonObject(text: string): Record<string, unknown> | null {
       ? (value as Record<string, unknown>)
       : null
   } catch {
-    return parseLooseWriteObject(trimmed)
+    return parseLooseWriteObject(trimmed) ?? parseLooseEditObject(trimmed)
   }
 }
 

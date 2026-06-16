@@ -151,12 +151,6 @@ export function stripControlTokens(text: string): string {
   return text.includes('<|') ? text.replace(CONTROL_TOKEN_RE, '') : text
 }
 
-/**
- * When a model emits tool calls as inline text (Kimi/ChatML format) instead of
- * structured calls, convert them into real tool_use blocks on the completed
- * assistant message so the agent actually executes them. No-op for normal
- * messages. Uses loose casts to avoid coupling to the full SDK content union.
- */
 export function synthesizeKimiToolCalls(message: unknown): void {
   const m = (message as { message?: { content?: unknown; stop_reason?: unknown } })?.message
   if (!m || !Array.isArray(m.content)) return
@@ -183,8 +177,6 @@ export function synthesizeKimiToolCalls(message: unknown): void {
     }
   }
   if (!changed) return
-  // Drop emptied text blocks, append the synthesized tool_use blocks, and mark
-  // the turn as tool_use so the agent loop dispatches them instead of stopping.
   const kept = content.filter((b) => !(b.type === 'text' && typeof b.text === 'string' && b.text.trim() === ''))
   m.content = [...kept, ...synthesized]
   m.stop_reason = 'tool_use'
@@ -803,7 +795,6 @@ export class CCRClient {
     await this.eventUploader.enqueue(this.toClientEvent(message))
   }
 
-  /** Wrap a StdoutMessage as a ClientEvent, injecting a UUID if missing. */
   private toClientEvent(message: StdoutMessage): ClientEvent {
     const msg = message as unknown as Record<string, unknown>
     return {

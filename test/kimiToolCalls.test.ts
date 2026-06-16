@@ -123,6 +123,59 @@ test('remote transport synthesizes bare Write JSON into a tool use', () => {
   })
 })
 
+test('loose Edit JSON after prose is recovered', () => {
+  const result = parseTextToolCalls(
+    `I'll fix it now.\n{"replace_all":false,"file_path":"/tmp/index.html","old_string":"const title = "Mario";\\ncoins.push({ x: 1 });","new_string":"const title = "Mario";\\ncoinObjects.push({ x: 1 });"}`,
+    {
+      availableToolNames: new Set(['Edit']),
+      parseBareJsonToolCalls: true,
+    },
+  )
+
+  expect(result.text).toBe("I'll fix it now.\n")
+  expect(result.toolCalls).toHaveLength(1)
+  expect(result.toolCalls[0]!.name).toBe('Edit')
+  expect(result.toolCalls[0]!.input).toEqual({
+    replace_all: false,
+    file_path: '/tmp/index.html',
+    old_string: 'const title = "Mario";\ncoins.push({ x: 1 });',
+    new_string: 'const title = "Mario";\ncoinObjects.push({ x: 1 });',
+  })
+})
+
+test('remote transport synthesizes bare Edit JSON into a tool use', () => {
+  const message = {
+    message: {
+      content: [
+        {
+          type: 'text',
+          text: `I'll fix it now.\n{"replace_all":false,"file_path":"/tmp/index.html","old_string":"let coins = [];\\ncoins.push({ x: 1 });","new_string":"let coinObjects = [];\\ncoinObjects.push({ x: 1 });"}`,
+        },
+      ],
+      stop_reason: 'end_turn',
+    },
+  }
+
+  synthesizeKimiToolCalls(message)
+
+  expect(message.message.stop_reason).toBe('tool_use')
+  expect(message.message.content).toHaveLength(2)
+  expect(message.message.content[0]).toEqual({
+    type: 'text',
+    text: "I'll fix it now.\n",
+  })
+  expect(message.message.content[1]).toMatchObject({
+    type: 'tool_use',
+    name: 'Edit',
+    input: {
+      replace_all: false,
+      file_path: '/tmp/index.html',
+      old_string: 'let coins = [];\ncoins.push({ x: 1 });',
+      new_string: 'let coinObjects = [];\ncoinObjects.push({ x: 1 });',
+    },
+  })
+})
+
 test('bare JSON remains text when the matching tool is unavailable', () => {
   const text =
     '{"file_path":"/tmp/game.js","content":"console.log(1)"}\n'
