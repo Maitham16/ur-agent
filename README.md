@@ -13,6 +13,16 @@ The package installs a global `ur` command from this GitHub repository. The laun
 
 ## Install
 
+### IMPORTANT
+If you have previous version remove it with:
+
+```sh
+npm uninstall -g ur-agent
+  bun remove -g ur-agent
+```
+
+### Then, install:
+
 ```sh
 bun add -g github:Maitham16/ur-agent
 ur --version
