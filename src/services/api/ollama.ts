@@ -479,22 +479,11 @@ async function* streamAnthropicEvents(
 
     while (pendingVisibleText) {
       if (looksLikeBareJsonToolCallPrefix(pendingVisibleText)) {
-        const newlineIdx = pendingVisibleText.indexOf('\n')
-        if (newlineIdx !== -1) {
-          const line = pendingVisibleText.slice(0, newlineIdx + 1)
-          pendingVisibleText = pendingVisibleText.slice(newlineIdx + 1)
-          const parsed = parseBareJsonToolCalls(line, options)
-          textToolCalls.push(...parsed.toolCalls)
-          events.push(...textEvents(parsed.text))
-          continue
-        }
-        if (!final && !pendingVisibleText.trimEnd().endsWith('}')) break
         const parsed = parseBareJsonToolCalls(pendingVisibleText, options)
         if (parsed.toolCalls.length > 0) {
           textToolCalls.push(...parsed.toolCalls)
-          pendingVisibleText = ''
-          events.push(...textEvents(parsed.text))
-          break
+          pendingVisibleText = parsed.text
+          continue
         }
         if (!final) break
       }

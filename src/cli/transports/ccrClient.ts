@@ -3,7 +3,10 @@ import type {
   SDKPartialAssistantMessage,
   StdoutMessage,
 } from 'src/entrypoints/sdk/controlTypes.js'
-import { parseKimiToolCalls } from './kimiToolCalls.js'
+import {
+  looksLikeBareJsonToolCallPrefix,
+  parseTextToolCalls,
+} from './kimiToolCalls.js'
 import { decodeJwtExpiry } from '../../bridge/jwtUtils.js'
 import { logForDebugging } from '../../utils/debug.js'
 import { logForDiagnosticsNoPII } from '../../utils/diagLogs.js'
@@ -161,8 +164,17 @@ export function synthesizeKimiToolCalls(message: unknown): void {
   const synthesized: Array<Record<string, unknown>> = []
   let changed = false
   for (const block of content) {
-    if (block.type === 'text' && typeof block.text === 'string' && block.text.includes('<|tool_call')) {
-      const { text, toolCalls } = parseKimiToolCalls(block.text)
+    if (
+      block.type === 'text' &&
+      typeof block.text === 'string' &&
+      (block.text.includes('<|tool_call') ||
+        looksLikeBareJsonToolCallPrefix(block.text) ||
+        block.text.includes('\n{'))
+    ) {
+      const { text, toolCalls } = parseTextToolCalls(block.text, {
+        availableToolNames: new Set(['TaskCreate', 'Write', 'Edit']),
+        parseBareJsonToolCalls: true,
+      })
       if (toolCalls.length > 0) {
         block.text = text
         for (const tc of toolCalls) synthesized.push({ type: 'tool_use', id: tc.id, name: tc.name, input: tc.input })

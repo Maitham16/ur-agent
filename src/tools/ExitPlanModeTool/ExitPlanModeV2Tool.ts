@@ -72,15 +72,24 @@ const allowedPromptSchema = lazySchema(() =>
   }),
 )
 
+const allowedPromptsSchema = lazySchema(() =>
+  z.preprocess(
+    (value: unknown) =>
+      Array.isArray(value)
+        ? value.map(item =>
+            typeof item === 'string' ? { tool: 'Bash', prompt: item } : item,
+          )
+        : value,
+    z.array(allowedPromptSchema()).optional(),
+  ),
+)
+
 export type AllowedPrompt = z.infer<ReturnType<typeof allowedPromptSchema>>
 
 const inputSchema = lazySchema(() =>
   z
     .strictObject({
-      // Prompt-based permissions requested by the plan
-      allowedPrompts: z
-        .array(allowedPromptSchema())
-        .optional()
+      allowedPrompts: allowedPromptsSchema()
         .describe(
           'Prompt-based permissions needed to implement the plan. These describe categories of actions rather than specific commands.',
         ),
