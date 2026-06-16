@@ -47,6 +47,8 @@ type Props = {
   pauseStartTimeRef: React.RefObject<number | null>;
   spinnerTip?: string;
   responseLengthRef: React.RefObject<number>;
+  /** Latency metrics ref maintained by the REPL turn loop. */
+  apiMetricsRef?: React.MutableRefObject<any>;
   overrideColor?: keyof Theme | null;
   overrideShimmerColor?: keyof Theme | null;
   overrideMessage?: string | null;

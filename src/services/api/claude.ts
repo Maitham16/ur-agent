@@ -1,16 +1,11 @@
-// @ts-nocheck
 import type {
   BetaContentBlock,
   BetaContentBlockParam,
   BetaImageBlockParam,
-  BetaJSONOutputFormat,
   BetaMessage,
   BetaMessageDeltaUsage,
   BetaMessageStreamParams,
-  BetaOutputConfig,
   BetaRawMessageStreamEvent,
-  BetaRequestDocumentBlock,
-  BetaStopReason,
   BetaToolChoiceAuto,
   BetaToolChoiceTool,
   BetaToolResultBlockParam,
@@ -18,6 +13,12 @@ import type {
   BetaUsage,
   BetaMessageParam as MessageParam,
 } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
+
+// Types missing from the installed SDK version — permissive aliases.
+type BetaJSONOutputFormat = any
+type BetaOutputConfig = any
+type BetaRequestDocumentBlock = any
+type BetaStopReason = string
 import type { TextBlockParam } from '@anthropic-ai/sdk/resources/index.mjs'
 import type { Stream } from '@anthropic-ai/sdk/streaming.mjs'
 import { randomUUID } from 'crypto'
@@ -740,7 +741,7 @@ export async function queryModelWithoutStreaming({
     )
   })) {
     if (message.type === 'assistant') {
-      assistantMessage = message
+      assistantMessage = message as AssistantMessage
     }
   }
   if (!assistantMessage) {
@@ -1615,7 +1616,7 @@ async function* queryModel(
         // thinking without a budget.
         thinking = {
           type: 'adaptive',
-        } satisfies BetaMessageStreamParams['thinking']
+        } as unknown as BetaMessageStreamParams['thinking']
       } else {
         // For models that do not support adaptive thinking, use the default
         // thinking budget unless explicitly specified.
@@ -1647,7 +1648,7 @@ async function* queryModel(
     // Fast mode: header is latched session-stable (cache-safe), but
     // `speed='fast'` stays dynamic so cooldown still suppresses the actual
     // fast-mode request without changing the cache key.
-    let speed: BetaMessageStreamParams['speed']
+    let speed: any
     const isFastModeForRetry =
       isFastModeEnabled() &&
       isFastModeAvailable() &&
@@ -1942,7 +1943,8 @@ async function* queryModel(
       let totalStallTime = 0
       let stallCount = 0
 
-      for await (const part of stream) {
+      for await (const _part of stream) {
+        const part = _part as any
         resetStreamIdleTimer()
         const now = Date.now()
 
@@ -2056,8 +2058,8 @@ async function* queryModel(
             }
             break
           case 'content_block_delta': {
-            const contentBlock = contentBlocks[part.index]
-            const delta = part.delta as typeof part.delta | ConnectorTextDelta
+            const contentBlock = contentBlocks[part.index] as any
+            const delta = part.delta as any
             if (!contentBlock) {
               logEvent('tengu_streaming_error', {
                 error_type:
@@ -2624,7 +2626,7 @@ async function* queryModel(
       // and CannotRetryError means every retry failed — so grab the failed
       // request's ID from the error header instead.
       const failedRequestId =
-        (errorFromRetry.originalError as APIError).requestID ?? 'unknown'
+        (errorFromRetry.originalError as APIError).request_id ?? 'unknown'
       logForDebugging(
         'Streaming endpoint returned 404, falling back to non-streaming mode',
         { level: 'warn' },
@@ -2716,7 +2718,7 @@ async function* queryModel(
 
         const requestId =
           streamRequestId ||
-          (error instanceof APIError ? error.requestID : undefined) ||
+          (error instanceof APIError ? error.request_id : undefined) ||
           (error instanceof APIError
             ? (error.error as { request_id?: string })?.request_id
             : undefined)
@@ -2772,7 +2774,7 @@ async function* queryModel(
       // Extract requestId from stream, error header, or error body
       const requestId =
         streamRequestId ||
-        (error instanceof APIError ? error.requestID : undefined) ||
+        (error instanceof APIError ? error.request_id : undefined) ||
         (error instanceof APIError
           ? (error.error as { request_id?: string })?.request_id
           : undefined)
@@ -2927,11 +2929,12 @@ export function cleanupStream(
  */
 export function updateUsage(
   usage: Readonly<NonNullableUsage>,
-  partUsage: BetaMessageDeltaUsage | undefined,
+  partUsageRaw: BetaMessageDeltaUsage | undefined,
 ): NonNullableUsage {
-  if (!partUsage) {
+  if (!partUsageRaw) {
     return { ...usage }
   }
+  const partUsage = partUsageRaw as any
   return {
     input_tokens:
       partUsage.input_tokens !== null && partUsage.input_tokens > 0
@@ -2960,10 +2963,10 @@ export function updateUsage(
     cache_creation: {
       // SDK type BetaMessageDeltaUsage is missing cache_creation, but it's real!
       ephemeral_1h_input_tokens:
-        (partUsage as BetaUsage).cache_creation?.ephemeral_1h_input_tokens ??
+        (partUsage as any).cache_creation?.ephemeral_1h_input_tokens ??
         usage.cache_creation.ephemeral_1h_input_tokens,
       ephemeral_5m_input_tokens:
-        (partUsage as BetaUsage).cache_creation?.ephemeral_5m_input_tokens ??
+        (partUsage as any).cache_creation?.ephemeral_5m_input_tokens ??
         usage.cache_creation.ephemeral_5m_input_tokens,
     },
     // cache_deleted_input_tokens: returned by the API when cache editing
@@ -2986,7 +2989,7 @@ export function updateUsage(
       : {}),
     inference_geo: usage.inference_geo,
     iterations: partUsage.iterations ?? usage.iterations,
-    speed: (partUsage as BetaUsage).speed ?? usage.speed,
+    speed: (partUsage as any).speed ?? (usage as any).speed,
   }
 }
 

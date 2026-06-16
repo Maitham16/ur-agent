@@ -66,7 +66,6 @@ export interface BaseMessage {
   research?: unknown
   compactMetadata?: CompactMetadata
   mcpMeta?: AnyObject
-  imagePasteIds?: string[]
   permissionMode?: string
   planContent?: string
   advisorModel?: string
@@ -75,12 +74,15 @@ export interface BaseMessage {
   model?: string
   usage?: BetaUsage
   content?: string | ContentBlockParam[]
-  attachment?: unknown
-  data?: unknown
+  attachment?: any
+  data?: any
   hookLabel?: string
   relevantMemories?: unknown
   messageCount?: number
-  [key: string]: unknown
+  imagePasteIds?: any
+  sourceToolAssistantUUID?: any
+  summarizeMetadata?: any
+  [key: string]: any
 }
 
 export interface UserMessage extends BaseMessage {
@@ -107,7 +109,7 @@ export interface SystemMessage extends BaseMessage {
 }
 
 export interface SystemAPIErrorMessage extends SystemMessage {
-  subtype?: 'apiError'
+  subtype?: 'apiError' | 'api_error'
 }
 
 export interface SystemAgentsKilledMessage extends SystemMessage {}
@@ -129,10 +131,7 @@ export interface SystemMemorySavedMessage extends SystemMessage {
   teamCount?: number
 }
 
-export interface SystemMessageLevel {
-  level?: string
-  [key: string]: unknown
-}
+export type SystemMessageLevel = string
 
 export interface SystemMicrocompactBoundaryMessage extends SystemMessage {}
 export interface SystemPermissionRetryMessage extends SystemMessage {}
@@ -215,7 +214,7 @@ export interface NormalizedMessage extends BaseMessage {
   sourceToolUseID?: string
 }
 
-export interface NormalizedAssistantMessage extends AssistantMessage {
+export interface NormalizedAssistantMessage<_C = any> extends AssistantMessage {
   mcpMeta?: AnyObject
 }
 
@@ -238,13 +237,11 @@ export interface RequestStartEvent {
 
 export interface StreamEvent {
   type?: string
-  [key: string]: unknown
+  event?: any
+  [key: string]: any
 }
 
-export interface PartialCompactDirection {
-  direction?: 'up_to' | 'from'
-  [key: string]: unknown
-}
+export type PartialCompactDirection = 'up_to' | 'from' | string
 
 // Permissive Message union — accepts any of the concrete variants.
 export interface Message extends BaseMessage {}

@@ -70,7 +70,7 @@ export async function stopTask(
   if (isLocalShellTask(task)) {
     let suppressed = false
     setAppState(prev => {
-      const prevTask = prev.tasks[taskId]
+      const prevTask = prev.tasks[taskId] as any
       if (!prevTask || prevTask.notified) {
         return prev
       }

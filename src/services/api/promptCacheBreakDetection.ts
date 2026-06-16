@@ -237,7 +237,7 @@ export type PromptStateSnapshot = {
   autoModeActive?: boolean
   isUsingOverage?: boolean
   cachedMCEnabled?: boolean
-  effortValue?: string | number
+  effortValue?: any
   extraBodyParams?: unknown
 }
 

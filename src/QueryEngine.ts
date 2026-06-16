@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { feature } from 'bun:bundle'
 import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages.mjs'
 import { randomUUID } from 'crypto'
@@ -635,7 +634,7 @@ export class QueryEngine {
           initialAppState.fastMode,
         ),
         uuid: randomUUID(),
-      }
+      } as unknown as SDKMessage
       return
     }
 
@@ -1065,7 +1064,7 @@ export class QueryEngine {
     const edeResultType = result?.type ?? 'undefined'
     const edeLastContentType =
       result?.type === 'assistant'
-        ? (last(result.message.content)?.type ?? 'none')
+        ? ((last(result.message.content) as { type?: string } | undefined)?.type ?? 'none')
         : 'n/a'
 
     // Flush buffered transcript writes before yielding result.
@@ -1123,9 +1122,10 @@ export class QueryEngine {
     let isApiError = false
 
     if (result.type === 'assistant') {
-      const lastContent = last(result.message.content)
+      const lastContent = last(result.message.content) as { type?: string; text?: string } | undefined
       if (
         lastContent?.type === 'text' &&
+        lastContent.text !== undefined &&
         !SYNTHETIC_MESSAGES.has(lastContent.text)
       ) {
         textResult = lastContent.text
@@ -1153,7 +1153,7 @@ export class QueryEngine {
         initialAppState.fastMode,
       ),
       uuid: randomUUID(),
-    }
+    } as unknown as SDKMessage
   }
 
   interrupt(): void {

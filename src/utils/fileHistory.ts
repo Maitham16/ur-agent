@@ -37,7 +37,7 @@ export type FileHistoryBackup = {
 }
 
 export type FileHistorySnapshot = {
-  messageId: UUID // The associated message ID for this snapshot
+  messageId: UUID | string // The associated message ID for this snapshot
   trackedFileBackups: Record<string, FileHistoryBackup> // Map of file paths to backup versions
   timestamp: Date
 }
@@ -88,7 +88,7 @@ export async function fileHistoryTrackEdit(
     updater: (prev: FileHistoryState) => FileHistoryState,
   ) => void,
   filePath: string,
-  messageId: UUID,
+  messageId: UUID | string,
 ): Promise<void> {
   if (!fileHistoryEnabled()) {
     return
@@ -199,7 +199,7 @@ export async function fileHistoryMakeSnapshot(
   updateFileHistoryState: (
     updater: (prev: FileHistoryState) => FileHistoryState,
   ) => void,
-  messageId: UUID,
+  messageId: UUID | string,
 ): Promise<void> {
   if (!fileHistoryEnabled()) {
     return undefined
@@ -348,7 +348,7 @@ export async function fileHistoryRewind(
   updateFileHistoryState: (
     updater: (prev: FileHistoryState) => FileHistoryState,
   ) => void,
-  messageId: UUID,
+  messageId: UUID | string,
 ): Promise<void> {
   if (!fileHistoryEnabled()) {
     return
@@ -398,7 +398,7 @@ export async function fileHistoryRewind(
 
 export function fileHistoryCanRestore(
   state: FileHistoryState,
-  messageId: UUID,
+  messageId: UUID | string,
 ): boolean {
   if (!fileHistoryEnabled()) {
     return false
@@ -413,7 +413,7 @@ export function fileHistoryCanRestore(
  */
 export async function fileHistoryGetDiffStats(
   state: FileHistoryState,
-  messageId: UUID,
+  messageId: UUID | string,
 ): Promise<DiffStats> {
   if (!fileHistoryEnabled()) {
     return undefined
@@ -493,7 +493,7 @@ export async function fileHistoryGetDiffStats(
  */
 export async function fileHistoryHasAnyChanges(
   state: FileHistoryState,
-  messageId: UUID,
+  messageId: UUID | string,
 ): Promise<boolean> {
   if (!fileHistoryEnabled()) {
     return false

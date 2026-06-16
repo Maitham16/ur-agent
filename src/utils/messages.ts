@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { feature } from 'bun:bundle'
 import type { BetaUsage as Usage } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
 import type {
@@ -374,12 +373,12 @@ function baseCreateAssistantMessage({
     inference_geo: null,
     iterations: null,
     speed: null,
-  },
+  } as Usage,
 }: {
   content: BetaContentBlock[]
   isApiErrorMessage?: boolean
   apiError?: AssistantMessage['apiError']
-  error?: SDKAssistantMessageError
+  error?: SDKAssistantMessageError | string
   errorDetails?: string
   isVirtual?: true
   usage?: Usage
@@ -441,7 +440,7 @@ export function createAssistantAPIErrorMessage({
 }: {
   content: string
   apiError?: AssistantMessage['apiError']
-  error?: SDKAssistantMessageError
+  error?: SDKAssistantMessageError | string
   errorDetails?: string
 }): AssistantMessage {
   return baseCreateAssistantMessage({
@@ -475,10 +474,10 @@ export function createUserMessage({
   origin,
 }: {
   content: string | ContentBlockParam[]
-  isMeta?: true
-  isVisibleInTranscriptOnly?: true
-  isVirtual?: true
-  isCompactSummary?: true
+  isMeta?: boolean
+  isVisibleInTranscriptOnly?: boolean
+  isVirtual?: boolean
+  isCompactSummary?: boolean
   toolUseResult?: unknown // Matches tool's `Output` type
   /** MCP protocol metadata to pass through to SDK consumers (never sent to model) */
   mcpMeta?: {
@@ -486,10 +485,10 @@ export function createUserMessage({
     structuredContent?: Record<string, unknown>
   }
   uuid?: UUID | string
-  timestamp?: string
-  imagePasteIds?: number[]
+  timestamp?: string | number
+  imagePasteIds?: number[] | string[]
   // For tool_result messages: the UUID of the assistant message containing the matching tool_use
-  sourceToolAssistantUUID?: UUID
+  sourceToolAssistantUUID?: UUID | string
   // Permission mode when message was sent (for rewind restoration)
   permissionMode?: PermissionMode
   summarizeMetadata?: {
@@ -498,7 +497,7 @@ export function createUserMessage({
     direction?: PartialCompactDirection
   }
   // Provenance of this message. undefined = human (keyboard).
-  origin?: MessageOrigin
+  origin?: MessageOrigin | string
 }): UserMessage {
   const m: UserMessage = {
     type: 'user',
@@ -723,7 +722,7 @@ export function isNotEmptyMessage(message: Message): boolean {
 // Deterministic UUID derivation. Produces a stable UUID-shaped string from a
 // parent UUID + content block index so that the same input always produces the
 // same key across calls. Used by normalizeMessages and synthetic message creation.
-export function deriveUUID(parentUUID: UUID, index: number): UUID {
+export function deriveUUID(parentUUID: UUID | string, index: number): UUID {
   const hex = index.toString(16).padStart(12, '0')
   return `${parentUUID.slice(0, 24)}${hex}` as UUID
 }
@@ -1146,7 +1145,7 @@ export function getSiblingToolUseIDs(
 
 export type MessageLookups = {
   siblingToolUseIDs: Map<string, Set<string>>
-  progressMessagesByToolUseID: Map<string, ProgressMessage[]>
+  progressMessagesByToolUseID: Map<string, ProgressMessage<unknown>[]>
   inProgressHookCounts: Map<string, Map<HookEvent, number>>
   resolvedHookCounts: Map<string, Map<HookEvent, number>>
   /** Maps tool_use_id to the user message containing its tool_result */
@@ -1201,7 +1200,7 @@ export function buildMessageLookups(
   }
 
   // Single pass over normalizedMessages to build progress, hook, and tool result lookups
-  const progressMessagesByToolUseID = new Map<string, ProgressMessage[]>()
+  const progressMessagesByToolUseID = new Map<string, ProgressMessage<unknown>[]>()
   const inProgressHookCounts = new Map<string, Map<HookEvent, number>>()
   // Track unique hook names per (toolUseID, hookEvent) to match getResolvedHookCount behavior.
   // A single hook can produce multiple attachment messages (e.g., hook_success + hook_additional_context),
@@ -1214,13 +1213,14 @@ export function buildMessageLookups(
 
   for (const msg of normalizedMessages) {
     if (msg.type === 'progress') {
+      const progressMsg = msg as ProgressMessage<unknown>
       // Build progress messages lookup
       const toolUseID = msg.parentToolUseID
       const existing = progressMessagesByToolUseID.get(toolUseID)
       if (existing) {
-        existing.push(msg)
+        existing.push(progressMsg)
       } else {
-        progressMessagesByToolUseID.set(toolUseID, [msg])
+        progressMessagesByToolUseID.set(toolUseID, [progressMsg])
       }
 
       // Count in-progress hooks
@@ -1389,10 +1389,10 @@ export function buildSubagentLookups(
         }
       }
     } else if (msg.type === 'user') {
-      for (const content of msg.message.content) {
+      for (const content of (msg.message.content as any[])) {
         if (content.type === 'tool_result') {
           resolvedToolUseIDs.add(content.tool_use_id)
-          toolResultByToolUseID.set(content.tool_use_id, msg)
+          toolResultByToolUseID.set(content.tool_use_id, msg as any)
         }
       }
     }
@@ -1493,7 +1493,7 @@ export function reorderAttachmentsForAPI(messages: Message[]): Message[] {
 
     if (message.type === 'attachment') {
       // Collect attachment to bubble up
-      pendingAttachments.push(message)
+      pendingAttachments.push(message as AttachmentMessage)
     } else {
       // Check if this is a stopping point
       const isStoppingPoint =
@@ -2560,7 +2560,7 @@ function smooshIntoToolResult(
   // results) and matches the legacy smoosh output shape.
   if (allText && (existing === undefined || typeof existing === 'string')) {
     const joined = [
-      (existing ?? '').trim(),
+      ((existing ?? '') as string).trim(),
       ...blocks.map(b => (b as TextBlockParam).text.trim()),
     ]
       .filter(Boolean)
@@ -2657,7 +2657,8 @@ export function normalizeContentFromAPI(
   if (!contentBlocks) {
     return []
   }
-  return contentBlocks.map(contentBlock => {
+  return contentBlocks.map(_contentBlock => {
+    const contentBlock = _contentBlock as any
     switch (contentBlock.type) {
       case 'tool_use': {
         if (
@@ -3452,7 +3453,7 @@ function getAutoModeSparseInstructions(): UserMessage[] {
 }
 
 export function normalizeAttachmentForAPI(
-  attachment: Attachment,
+  attachment: Attachment | any,
 ): UserMessage[] {
   if (isAgentSwarmsEnabled()) {
     if (attachment.type === 'teammate_mailbox') {
@@ -4531,7 +4532,7 @@ export function createCommandInputMessage(
 export function createCompactBoundaryMessage(
   trigger: 'manual' | 'auto',
   preTokens: number,
-  lastPreCompactMessageUuid?: UUID,
+  lastPreCompactMessageUuid?: UUID | string,
   userContext?: string,
   messagesSummarized?: number,
 ): SystemCompactBoundaryMessage {
@@ -4668,7 +4669,7 @@ export function shouldShowUserMessage(
     // the actual rendering.
     if (
       (feature('KAIROS') || feature('KAIROS_CHANNELS')) &&
-      message.origin?.kind === 'channel'
+      (typeof message.origin === 'object' && message.origin?.kind === 'channel')
     )
       return true
     return false
@@ -4911,7 +4912,7 @@ export function filterWhitespaceOnlyAssistantMessages(
   for (const message of filtered) {
     const prev = merged.at(-1)
     if (message.type === 'user' && prev?.type === 'user') {
-      merged[merged.length - 1] = mergeUserMessages(prev, message) // lvalue
+      merged[merged.length - 1] = mergeUserMessages(prev as UserMessage, message as UserMessage) // lvalue
     } else {
       merged.push(message)
     }

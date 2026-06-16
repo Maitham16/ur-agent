@@ -327,9 +327,9 @@ export async function countTokensViaHaikuFallback(
 
 export function roughTokenCountEstimationForMessages(
   messages: readonly {
-    type: string
+    type?: string
     message?: { content?: unknown }
-    attachment?: Attachment
+    attachment?: Attachment | any
   }[],
 ): number {
   let totalTokens = 0
@@ -340,7 +340,7 @@ export function roughTokenCountEstimationForMessages(
 }
 
 export function roughTokenCountEstimationForMessage(message: {
-  type: string
+  type?: string
   message?: { content?: unknown }
   attachment?: Attachment
 }): number {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type {
   ImageBlockParam,
   TextBlockParam,
@@ -32,9 +31,9 @@ function isLargeOutputs(
   return false
 }
 
-function processOutputText(text: string | string[] | undefined): string {
+function processOutputText(text: unknown): string {
   if (!text) return ''
-  const rawText = Array.isArray(text) ? text.join('') : text
+  const rawText = Array.isArray(text) ? text.join('') : String(text)
   const { truncatedContent } = formatOutput(rawText)
   return truncatedContent
 }
@@ -145,7 +144,7 @@ function cellOutputToToolResult(output: NotebookCellSourceOutput) {
       type: 'image',
       source: {
         data: output.image.image_data,
-        media_type: output.image.media_type,
+        media_type: output.image.media_type as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
         type: 'base64',
       },
     })

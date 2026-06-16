@@ -235,7 +235,7 @@ export function killInProcessTeammate(
   let description: string | undefined
 
   setAppState((prev: AppState) => {
-    const task = prev.tasks[taskId]
+    const task = prev.tasks[taskId] as any
     if (!task || task.type !== 'in_process_teammate') {
       return prev
     }

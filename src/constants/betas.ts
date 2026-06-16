@@ -18,6 +18,7 @@ export const PROMPT_CACHING_SCOPE_BETA_HEADER =
   'prompt-caching-scope-2026-01-05'
 export const FAST_MODE_BETA_HEADER = 'fast-mode-2026-02-01'
 export const REDACT_THINKING_BETA_HEADER = 'redact-thinking-2026-02-12'
+export const CACHE_EDITING_BETA_HEADER = 'cache-editing-2026-04-22'
 export const TOKEN_EFFICIENT_TOOLS_BETA_HEADER =
   'token-efficient-tools-2026-03-28'
 export const SUMMARIZE_CONNECTOR_TEXT_BETA_HEADER = feature('CONNECTOR_TEXT')

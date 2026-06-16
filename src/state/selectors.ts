@@ -66,7 +66,7 @@ export function getActiveAgentForInput(
 
   const { viewingAgentTaskId, tasks } = appState
   if (viewingAgentTaskId) {
-    const task = tasks[viewingAgentTaskId]
+    const task = tasks[viewingAgentTaskId] as any
     if (task?.type === 'local_agent') {
       return { type: 'named_agent', task }
     }

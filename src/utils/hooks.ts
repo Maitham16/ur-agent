@@ -1,4 +1,3 @@
-// @ts-nocheck
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 /**
  * Hooks are user-defined shell commands that can be executed at various points
@@ -2210,7 +2209,7 @@ async function* executeHooks({
             hookName,
             toolUseID,
             hookEvent,
-            content: `Failed to prepare hook input: ${errorMessage(jsonInputRes.error)}`,
+            content: `Failed to prepare hook input: ${errorMessage((jsonInputRes as { ok: false; error: unknown }).error)}`,
             command: hookCommand,
             durationMs: Date.now() - hookStartMs,
           }),
@@ -2240,10 +2239,10 @@ async function* executeHooks({
         )
         // Inject timing fields for hook visibility
         if (promptResult.message?.type === 'attachment') {
-          const att = promptResult.message.attachment
+          const att = promptResult.message.attachment as any
           if (
-            att.type === 'hook_success' ||
-            att.type === 'hook_non_blocking_error'
+            att?.type === 'hook_success' ||
+            att?.type === 'hook_non_blocking_error'
           ) {
             att.command = hookCommand
             att.durationMs = Date.now() - hookStartMs
@@ -2280,10 +2279,10 @@ async function* executeHooks({
         )
         // Inject timing fields for hook visibility
         if (agentResult.message?.type === 'attachment') {
-          const att = agentResult.message.attachment
+          const att = agentResult.message.attachment as any
           if (
-            att.type === 'hook_success' ||
-            att.type === 'hook_non_blocking_error'
+            att?.type === 'hook_success' ||
+            att?.type === 'hook_non_blocking_error'
           ) {
             att.command = hookCommand
             att.durationMs = Date.now() - hookStartMs

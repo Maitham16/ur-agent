@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { feature } from 'bun:bundle'
 import type { UUID } from 'crypto'
 import uniqBy from 'lodash-es/uniqBy.js'
@@ -349,7 +348,7 @@ export function buildPostCompactMessages(result: CompactionResult): Message[] {
  */
 export function annotateBoundaryWithPreservedSegment(
   boundary: SystemCompactBoundaryMessage,
-  anchorUuid: UUID,
+  anchorUuid: UUID | string,
   messagesToKeep: readonly Message[] | undefined,
 ): SystemCompactBoundaryMessage {
   const keep = messagesToKeep ?? []
@@ -1329,7 +1328,11 @@ async function streamCompactSummary({
       let next = await streamIter.next()
 
       while (!next.done) {
-        const event = next.value
+        const event = next.value as Exclude<typeof next.value, void>
+        if (!event) {
+          next = await streamIter.next()
+          continue
+        }
 
         if (
           !hasStartedStreaming &&
@@ -1351,7 +1354,7 @@ async function streamCompactSummary({
         }
 
         if (event.type === 'assistant') {
-          response = event
+          response = event as AssistantMessage
         }
 
         next = await streamIter.next()
@@ -1571,7 +1574,8 @@ export async function createAsyncAgentAttachmentsIfNeeded(
 ): Promise<AttachmentMessage[]> {
   const appState = context.getAppState()
   const asyncAgents = Object.values(appState.tasks).filter(
-    (task): task is LocalAgentTaskState => task.type === 'local_agent',
+    (task): task is LocalAgentTaskState =>
+      (task as { type?: string }).type === 'local_agent',
   )
 
   return asyncAgents.flatMap(agent => {
