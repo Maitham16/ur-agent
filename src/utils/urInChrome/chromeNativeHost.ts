@@ -23,7 +23,7 @@ import { lazySchema } from '../lazySchema.js'
 import { jsonParse, jsonStringify } from '../slowOperations.js'
 import { getSecureSocketPath, getSocketDir } from './common.js'
 
-const VERSION = '1.0.1'
+const VERSION = '1.0.2'
 const MAX_MESSAGE_SIZE = 1024 * 1024 // 1MB - Max message size that can be sent to Chrome
 
 const LOG_FILE =

@@ -15,7 +15,6 @@ import { FILE_WRITE_TOOL_NAME } from '../tools/FileWriteTool/prompt.js'
 import { FILE_READ_TOOL_NAME } from '../tools/FileReadTool/prompt.js'
 import { FILE_EDIT_TOOL_NAME } from '../tools/FileEditTool/constants.js'
 import { TODO_WRITE_TOOL_NAME } from '../tools/TodoWriteTool/constants.js'
-import { TASK_CREATE_TOOL_NAME } from '../tools/TaskCreateTool/constants.js'
 import type { Tools } from '../Tool.js'
 import type { Command } from '../types/command.js'
 import { BASH_TOOL_NAME } from '../tools/BashTool/toolName.js'
@@ -233,6 +232,7 @@ function getSimpleDoingTasksSection(): string {
     `Do not create files unless they're absolutely necessary for achieving your goal. Generally prefer editing an existing file to creating a new one, as this prevents file bloat and builds on existing work more effectively.`,
     `Avoid giving time estimates or predictions for how long tasks will take, whether for your own work or for users planning projects. Focus on what needs to be done, not how long it might take.`,
     `If an approach fails, diagnose why before switching tactics—read the error, check your assumptions, try a focused fix. Don't retry the identical action blindly, but don't abandon a viable approach after a single failure either. Escalate to the user with ${ASK_USER_QUESTION_TOOL_NAME} only when you're genuinely stuck after investigation, not as a first response to friction.`,
+    `Do not say that you created, changed, or fixed files until the relevant tool call has succeeded. If you accidentally print tool arguments as text instead of using the tool, continue by making the actual tool call and verify the requested files or commands before claiming the work is done.`,
     `Be careful not to introduce security vulnerabilities such as command injection, XSS, SQL injection, and other OWASP top 10 vulnerabilities. If you notice that you wrote insecure code, immediately fix it. Prioritize writing safe, secure, and correct code.`,
     ...codeStyleSubitems,
     `Avoid backwards-compatibility hacks like renaming unused _vars, re-exporting types, adding // removed comments for removed code, etc. If you are certain that something is unused, you can delete it completely.`,
@@ -269,9 +269,9 @@ When you encounter an obstacle, do not use destructive actions as a shortcut to 
 }
 
 function getUsingYourToolsSection(enabledTools: Set<string>): string {
-  const taskToolName = [TASK_CREATE_TOOL_NAME, TODO_WRITE_TOOL_NAME].find(n =>
-    enabledTools.has(n),
-  )
+  const taskToolName = enabledTools.has(TODO_WRITE_TOOL_NAME)
+    ? TODO_WRITE_TOOL_NAME
+    : null
 
   // In REPL mode, Read/Write/Edit/Glob/Grep/Bash/Agent are hidden from direct
   // use (REPL_ONLY_TOOLS). The "prefer dedicated tools over Bash" guidance is

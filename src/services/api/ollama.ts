@@ -14,7 +14,13 @@ import type {
 import type { MessageParam } from '@anthropic-ai/sdk/resources/index.mjs'
 import type { Stream } from '@anthropic-ai/sdk/streaming.mjs'
 import { randomUUID } from 'crypto'
-import { parseKimiToolCalls } from '../../cli/transports/kimiToolCalls.js'
+import {
+  looksLikeBareJsonToolCallPrefix,
+  parseBareJsonToolCalls,
+  parseKimiToolCalls,
+  parseTextToolCalls,
+  type ParsedToolCall,
+} from '../../cli/transports/kimiToolCalls.js'
 
 type OllamaMessage = {
   role: 'system' | 'user' | 'assistant'
@@ -356,6 +362,18 @@ function toOllamaTools(tools: BetaMessageStreamParams['tools']): OllamaTool[] {
   return result
 }
 
+function getAvailableToolNames(
+  tools: BetaMessageStreamParams['tools'],
+): Set<string> {
+  const names = new Set<string>()
+  for (const tool of (tools ?? []) as BetaToolUnion[]) {
+    if ('name' in tool && typeof tool.name === 'string') {
+      names.add(tool.name)
+    }
+  }
+  return names
+}
+
 function sanitizeJsonSchema(schema: unknown): Record<string, unknown> {
   if (!schema || typeof schema !== 'object' || Array.isArray(schema)) {
     return { type: 'object', properties: {} }
@@ -427,6 +445,84 @@ async function* streamAnthropicEvents(
   let blockIndex = 0
   let finalChunk: OllamaChatChunk | undefined
   const toolCalls: OllamaToolCall[] = []
+  const availableToolNames = getAvailableToolNames(params.tools)
+  const textToolCalls: ParsedToolCall[] = []
+  let pendingVisibleText = ''
+
+  const textEvents = (value: string): BetaRawMessageStreamEvent[] => {
+    if (!value) return []
+    const events: BetaRawMessageStreamEvent[] = []
+    if (!textStarted) {
+      textStarted = true
+      events.push({
+        type: 'content_block_start',
+        index: blockIndex,
+        content_block: { type: 'text', text: '' },
+      } as BetaRawMessageStreamEvent)
+    }
+    events.push({
+      type: 'content_block_delta',
+      index: blockIndex,
+      delta: { type: 'text_delta', text: value },
+    } as BetaRawMessageStreamEvent)
+    return events
+  }
+
+  const drainPendingVisibleText = (
+    final = false,
+  ): BetaRawMessageStreamEvent[] => {
+    const events: BetaRawMessageStreamEvent[] = []
+    const options = {
+      availableToolNames,
+      parseBareJsonToolCalls: true,
+    }
+
+    while (pendingVisibleText) {
+      if (looksLikeBareJsonToolCallPrefix(pendingVisibleText)) {
+        const newlineIdx = pendingVisibleText.indexOf('\n')
+        if (newlineIdx !== -1) {
+          const line = pendingVisibleText.slice(0, newlineIdx + 1)
+          pendingVisibleText = pendingVisibleText.slice(newlineIdx + 1)
+          const parsed = parseBareJsonToolCalls(line, options)
+          textToolCalls.push(...parsed.toolCalls)
+          events.push(...textEvents(parsed.text))
+          continue
+        }
+        if (!final && !pendingVisibleText.trimEnd().endsWith('}')) break
+        const parsed = parseBareJsonToolCalls(pendingVisibleText, options)
+        if (parsed.toolCalls.length > 0) {
+          textToolCalls.push(...parsed.toolCalls)
+          pendingVisibleText = ''
+          events.push(...textEvents(parsed.text))
+          break
+        }
+        if (!final) break
+      }
+
+      const newlineIdx = pendingVisibleText.indexOf('\n')
+      if (newlineIdx === -1) break
+      const line = pendingVisibleText.slice(0, newlineIdx + 1)
+      pendingVisibleText = pendingVisibleText.slice(newlineIdx + 1)
+      const parsed = parseBareJsonToolCalls(line, options)
+      textToolCalls.push(...parsed.toolCalls)
+      events.push(...textEvents(parsed.text))
+    }
+
+    if (final && pendingVisibleText) {
+      const parsed = parseBareJsonToolCalls(pendingVisibleText, options)
+      textToolCalls.push(...parsed.toolCalls)
+      events.push(...textEvents(parsed.text))
+      pendingVisibleText = ''
+    } else if (
+      pendingVisibleText &&
+      !looksLikeBareJsonToolCallPrefix(pendingVisibleText)
+    ) {
+      events.push(...textEvents(pendingVisibleText))
+      pendingVisibleText = ''
+    }
+
+    return events
+  }
 
   for await (const chunk of readOllamaChunks(response)) {
     if (chunk.error) {
@@ -444,26 +540,21 @@ async function* streamAnthropicEvents(
         const proseEnd = markerIdx === -1 ? text.length : markerIdx
         const toEmit = text.slice(emittedLen, proseEnd)
         if (toEmit) {
-          if (!textStarted) {
-            textStarted = true
-            yield {
-              type: 'content_block_start',
-              index: blockIndex,
-              content_block: { type: 'text', text: '' },
-            } as BetaRawMessageStreamEvent
-          }
           emittedLen += toEmit.length
-          yield {
-            type: 'content_block_delta',
-            index: blockIndex,
-            delta: { type: 'text_delta', text: toEmit },
-          } as BetaRawMessageStreamEvent
+          pendingVisibleText += toEmit
+          for (const event of drainPendingVisibleText()) {
+            yield event
+          }
         }
       }
     }
     if (chunk.done) {
       finalChunk = chunk
     }
+  }
+
+  for (const event of drainPendingVisibleText(true)) {
+    yield event
   }
 
   if (textStarted) {
@@ -477,6 +568,7 @@ async function* streamAnthropicEvents(
   // Convert any Kimi/ChatML text-form tool calls into real tool_use blocks so
   // they execute instead of leaking as text (which makes the agent stop early).
   const kimiParsed = parseKimiToolCalls(text)
+  textToolCalls.push(...kimiParsed.toolCalls)
 
   for (const call of toolCalls) {
     const name = call.function?.name
@@ -508,8 +600,8 @@ async function* streamAnthropicEvents(
     blockIndex++
   }
 
-  // Emit tool_use blocks for the parsed text-form (Kimi/ChatML) tool calls.
-  for (const tc of kimiParsed.toolCalls) {
+  // Emit tool_use blocks for the parsed text-form tool calls.
+  for (const tc of textToolCalls) {
     yield {
       type: 'content_block_start',
       index: blockIndex,
@@ -530,7 +622,7 @@ async function* streamAnthropicEvents(
     blockIndex++
   }
 
-  if (!textStarted && toolCalls.length === 0 && kimiParsed.toolCalls.length === 0) {
+  if (!textStarted && toolCalls.length === 0 && textToolCalls.length === 0) {
     yield {
       type: 'content_block_start',
       index: blockIndex,
@@ -545,7 +637,7 @@ async function* streamAnthropicEvents(
   yield {
     type: 'message_delta',
     delta: {
-      stop_reason: kimiParsed.toolCalls.length > 0 ? 'tool_use' : getStopReason(finalChunk, toolCalls),
+      stop_reason: textToolCalls.length > 0 ? 'tool_use' : getStopReason(finalChunk, toolCalls),
       stop_sequence: null,
     },
     usage: usageFromOllama(finalChunk, text),
@@ -598,8 +690,10 @@ function ollamaResponseToAnthropicMessage(
 ): BetaMessage {
   const content: BetaContentBlock[] = []
   const structured = response.message?.tool_calls ?? []
-  // Parse Kimi/ChatML text-form tool calls out of the content so they execute.
-  const kimi = parseKimiToolCalls(response.message?.content ?? '')
+  const kimi = parseTextToolCalls(response.message?.content ?? '', {
+    availableToolNames: getAvailableToolNames(params.tools),
+    parseBareJsonToolCalls: true,
+  })
   const text = kimi.text
   if (text || (!structured.length && !kimi.toolCalls.length)) {
     content.push({ type: 'text', text } as BetaContentBlock)
