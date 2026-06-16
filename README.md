@@ -99,7 +99,7 @@ The `examples/` directory also contains prompt examples for coding, research, br
 
 ## License And Responsibility
 
-UR Agent is released under the [UR Agent Non-Commercial License](LICENSE). Commercial use is not allowed without written permission from Maitham Al-rubaye.
+UR Agent is released under the [UR Agent Non-Commercial Self-Responsibility License](LICENSE). Commercial use is not allowed without written permission from Maitham Al-rubaye.
 
 The software is provided as-is. Users are responsible for reviewing how they run it, what tools it can access, and any outputs or actions it creates.
 
@@ -145,7 +145,7 @@ bun add -g github:Maitham16/ur-agent
 
 Review `.gitignore` and run a secret scan before the first release. Do not commit `node_modules/`, `.env` files, credentials, local UR memory, generated indexes, logs, or build output.
 
-This package is licensed for non-commercial use only. Get legal review before relying on the license for a public release.
+This package is licensed for non-commercial use only. Users are responsible for their own use, configuration, outputs, actions, and consequences.
 
 ## Designed By
 

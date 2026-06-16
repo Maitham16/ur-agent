@@ -3,9 +3,9 @@
  *
  * Scans content for credentials before upload so secrets never leave the
  * user's machine. Uses a curated subset of high-confidence rules from
- * gitleaks (https://github.com/gitleaks/gitleaks, MIT license) — only
- * rules with distinctive prefixes that have near-zero false-positive
- * rates are included. Generic keyword-context rules are omitted.
+ * gitleaks (https://github.com/gitleaks/gitleaks) — only rules with
+ * distinctive prefixes that have near-zero false-positive rates are included.
+ * Generic keyword-context rules are omitted.
  *
  * Rule IDs and regexes sourced directly from the public gitleaks config:
  * https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml

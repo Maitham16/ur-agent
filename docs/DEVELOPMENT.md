@@ -74,7 +74,7 @@ git push origin v1.0.0
 
 Before making the repository public:
 
-- Add a license if others should be allowed to reuse or modify the code.
+- Confirm `LICENSE` is the non-commercial self-responsibility license.
 - Review `.gitignore` and `git status` before the first commit.
 - Run `bun run secrets:scan` before pushing release commits or tags.
 - Confirm no local credentials or generated runtime state are staged.

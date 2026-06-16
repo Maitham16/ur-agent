@@ -305,7 +305,7 @@ const PluginManifestMetadataSchema = lazySchema(() =>
     license: z
       .string()
       .optional()
-      .describe('SPDX license identifier (e.g., MIT, Apache-2.0)'),
+      .describe('Plugin license identifier or custom license reference'),
     keywords: z
       .array(z.string())
       .optional()
