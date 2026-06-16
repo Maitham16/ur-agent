@@ -1,11 +1,10 @@
 /**
- * inc-5046: fetch the official marketplace from a GCS mirror instead of
- * git-cloning GitHub on every startup.
+ * Optional CDN/GCS mirror path for the official marketplace.
  *
- * Backend (anthropic#317037) publishes a marketplace-only zip alongside the
- * titanium squashfs, keyed by base repo SHA. This module fetches the `latest`
- * pointer, compares against a local sentinel, and downloads+extracts the zip
- * when there's a new SHA. Callers decide fallback behavior on failure.
+ * UR ships the marketplace directly from the agent repo on GitHub; there is
+ * no first-party CDN mirror in this distribution. This module is kept as a
+ * gracefully-skipped no-op so callers can continue to invoke it without
+ * forcing a network round-trip at startup.
  */
 
 import axios from 'axios'
@@ -20,18 +19,14 @@ import { errorMessage, getErrnoCode } from '../errors.js'
 
 type SafeString = AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
 
-// CDN-fronted domain for the public GCS bucket (same bucket the native
-// binary ships from — nativeInstaller/download.ts:24 uses the raw GCS URL).
-// `{sha}.zip` is content-addressed so CDN can cache it indefinitely;
-// `latest` has Cache-Control: max-age=300 so CDN staleness is bounded.
-// Backend (anthropic#317037) populates this prefix.
-const GCS_BASE =
-  'https://downloads.claude.ai/ur-releases/plugins/claude-plugins-official'
+// Optional override for self-hosted CDN mirrors. When unset (the default)
+// the GCS path is skipped and callers fall back to a git clone of the
+// official marketplace repo.
+const GCS_BASE = process.env.UR_PLUGIN_MARKETPLACE_MIRROR
 
-// Zip arc paths are seed-dir-relative (marketplaces/ur-plugins-official/…)
-// so the titanium seed machinery can use the same zip. Strip this prefix when
-// extracting for a laptop install.
-const ARC_PREFIX = 'marketplaces/claude-plugins-official/'
+// Zip arc paths are seed-dir-relative; strip this prefix when extracting
+// for a laptop install so files land at the marketplace root.
+const ARC_PREFIX = 'marketplaces/ur-plugins-official/'
 
 /**
  * Fetch the official marketplace from GCS and extract to installLocation.
@@ -48,12 +43,16 @@ export async function fetchOfficialMarketplaceFromGcs(
   installLocation: string,
   marketplacesCacheDir: string,
 ): Promise<string | null> {
+  // No CDN mirror is configured in this distribution; callers fall back to
+  // git clone of the marketplace repo. Set UR_PLUGIN_MARKETPLACE_MIRROR to
+  // re-enable the zip-mirror path against a self-hosted bucket.
+  if (!GCS_BASE) {
+    return null
+  }
+
   // Defense in depth: this function does `rm(installLocation, {recursive})`
-  // during the atomic swap. A corrupted known_marketplaces.json (gh-32793 —
-  // Windows path read on WSL, literal tilde, manual edit) could point at the
-  // user's project. Refuse any path outside the marketplaces cache dir.
-  // Same guard as refreshMarketplace() at marketplaceManager.ts:~2392 but
-  // inside the function so ALL callers are covered.
+  // during the atomic swap. A corrupted known_marketplaces.json could point
+  // at the user's project. Refuse any path outside the marketplaces cache dir.
   const cacheDir = resolve(marketplacesCacheDir)
   const resolvedLoc = resolve(installLocation)
   if (resolvedLoc !== cacheDir && !resolvedLoc.startsWith(cacheDir + sep)) {
@@ -153,12 +152,16 @@ export async function fetchOfficialMarketplaceFromGcs(
     )
     return null
   } finally {
-    // tengu_plugin_remote_fetch schema shared with the telemetry PR
-    // (.daisy/inc-5046/index.md) — adds source:'marketplace_gcs'. All string
-    // values below are static enums or a git SHA — not code/filepaths/PII.
+    // String values below are static enums or a git SHA — not code/filepaths/PII.
+    let host = 'mirror'
+    try {
+      host = new URL(GCS_BASE).hostname
+    } catch {
+      // GCS_BASE is unparseable — bucket as 'mirror' to keep cardinality bounded.
+    }
     logEvent('tengu_plugin_remote_fetch', {
       source: 'marketplace_gcs' as SafeString,
-      host: 'downloads.claude.ai' as SafeString,
+      host: host as SafeString,
       is_official: true,
       outcome: outcome as SafeString,
       duration_ms: Math.round(performance.now() - start),

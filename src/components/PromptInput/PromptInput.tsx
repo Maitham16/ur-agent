@@ -1628,9 +1628,16 @@ function PromptInput({
           key: 'no-image-in-clipboard',
           text: message,
           priority: 'immediate',
-          timeoutMs: 1000
+          timeoutMs: 1500
         });
       }
+    }).catch(error => {
+      addNotification({
+        key: 'image-paste-error',
+        text: `Image paste failed: ${error instanceof Error ? error.message : String(error)}`,
+        priority: 'immediate',
+        timeoutMs: 3000
+      });
     });
   }, [addNotification, onImagePaste]);
 

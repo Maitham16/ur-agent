@@ -18,6 +18,11 @@ type MessageUpdate = {
 
 type ToolStatus = 'queued' | 'executing' | 'completed' | 'yielded'
 
+// Default cap on concurrently-executing read-safe tools. Matches the
+// "up to 8 parallel calls" guidance in the system prompt. Configurable
+// via UR_MAX_CONCURRENT_TOOLS.
+const MAX_CONCURRENT_TOOLS = 8
+
 type TrackedTool = {
   id: string
   block: ToolUseBlock
@@ -124,14 +129,23 @@ export class StreamingToolExecutor {
   }
 
   /**
-   * Check if a tool can execute based on current concurrency state
+   * Check if a tool can execute based on current concurrency state.
+   *
+   * Caps simultaneous concurrent-safe tools to MAX_CONCURRENT_TOOLS so a
+   * burst of N parallel reads doesn't exhaust FDs / memory. Override via
+   * UR_MAX_CONCURRENT_TOOLS (clamped to [1, 32]).
    */
   private canExecuteTool(isConcurrencySafe: boolean): boolean {
     const executingTools = this.tools.filter(t => t.status === 'executing')
-    return (
-      executingTools.length === 0 ||
-      (isConcurrencySafe && executingTools.every(t => t.isConcurrencySafe))
-    )
+    if (executingTools.length === 0) return true
+    if (!isConcurrencySafe) return false
+    if (!executingTools.every(t => t.isConcurrencySafe)) return false
+    const envCap = Number(process.env.UR_MAX_CONCURRENT_TOOLS)
+    const cap =
+      Number.isFinite(envCap) && envCap >= 1
+        ? Math.min(envCap, 32)
+        : MAX_CONCURRENT_TOOLS
+    return executingTools.length < cap
   }
 
   /**

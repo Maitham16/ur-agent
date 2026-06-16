@@ -213,8 +213,16 @@ export async function getImageFromClipboard(): Promise<ImageWithDimensions | nul
       imageBuffer[0] === 0x42 &&
       imageBuffer[1] === 0x4d
     ) {
-      const sharp = await getImageProcessor()
-      imageBuffer = await sharp(imageBuffer).png().toBuffer()
+      try {
+        const sharp = await getImageProcessor()
+        imageBuffer = await sharp(imageBuffer).png().toBuffer()
+      } catch (e) {
+        // Sharp/native processor missing — log and continue with the raw
+        // BMP buffer. The API will likely reject it, but failing here would
+        // silently swallow the paste; surfacing the buffer lets the caller
+        // show a meaningful error instead of "no image found".
+        logError(e as Error)
+      }
     }
 
     // Resize if needed to stay under 5MB API limit

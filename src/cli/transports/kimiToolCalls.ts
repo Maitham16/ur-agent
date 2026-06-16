@@ -110,8 +110,16 @@ function parseLooseEditObject(trimmed: string): Record<string, unknown> | null {
   }
 }
 
+function stripCodeFences(text: string): string {
+  return text
+    .trim()
+    .replace(/^```(?:json|JSON)?\s*\n?/, '')
+    .replace(/\n?```$/, '')
+    .trim()
+}
+
 function parseJsonObject(text: string): Record<string, unknown> | null {
-  const trimmed = text.trim()
+  const trimmed = stripCodeFences(text)
   if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) return null
   try {
     const value = JSON.parse(trimmed)
@@ -318,6 +326,51 @@ function normalizeReadInput(input: Record<string, unknown>): Record<string, unkn
   return input
 }
 
+function normalizeGlobInput(input: Record<string, unknown>): Record<string, unknown> | null {
+  if (
+    !sameKeys(input, ['pattern'], ['path']) ||
+    typeof input.pattern !== 'string' ||
+    (input.path !== undefined && typeof input.path !== 'string')
+  ) {
+    return null
+  }
+  return input
+}
+
+function normalizeGrepInput(input: Record<string, unknown>): Record<string, unknown> | null {
+  const optional = [
+    'path',
+    'glob',
+    'type',
+    'output_mode',
+    '-i',
+    '-n',
+    '-A',
+    '-B',
+    '-C',
+    'head_limit',
+    'multiline',
+  ]
+  if (
+    !sameKeys(input, ['pattern'], optional) ||
+    typeof input.pattern !== 'string' ||
+    (input.path !== undefined && typeof input.path !== 'string') ||
+    (input.glob !== undefined && typeof input.glob !== 'string') ||
+    (input.type !== undefined && typeof input.type !== 'string') ||
+    (input.output_mode !== undefined && typeof input.output_mode !== 'string') ||
+    (input['-i'] !== undefined && !booleanish(input['-i'])) ||
+    (input['-n'] !== undefined && !booleanish(input['-n'])) ||
+    (input['-A'] !== undefined && !numberish(input['-A'])) ||
+    (input['-B'] !== undefined && !numberish(input['-B'])) ||
+    (input['-C'] !== undefined && !numberish(input['-C'])) ||
+    (input.head_limit !== undefined && !numberish(input.head_limit)) ||
+    (input.multiline !== undefined && !booleanish(input.multiline))
+  ) {
+    return null
+  }
+  return input
+}
+
 function normalizeTaskUpdateInput(input: Record<string, unknown>): Record<string, unknown> | null {
   const updateFields = [
     'subject',
@@ -435,13 +488,36 @@ function maybeBareJsonToolCall(
     }
   }
 
+  if (hasTool(availableToolNames, 'Glob')) {
+    const globInput = normalizeGlobInput(input)
+    if (globInput) {
+      return {
+        id: `bare_${Date.now().toString(36)}_${index}`,
+        name: 'Glob',
+        input: globInput,
+      }
+    }
+  }
+
+  if (hasTool(availableToolNames, 'Grep')) {
+    const grepInput = normalizeGrepInput(input)
+    if (grepInput) {
+      return {
+        id: `bare_${Date.now().toString(36)}_${index}`,
+        name: 'Grep',
+        input: grepInput,
+      }
+    }
+  }
+
   return null
 }
 
 export function looksLikeBareJsonToolCallPrefix(text: string): boolean {
   const trimmed = text.trimStart()
+  if (trimmed.startsWith('```')) return true
   if (!trimmed.startsWith('{')) return false
-  return /^\{\s*"(?:subject|description|file_path|content|old_string|new_string|replace_all|questions|command|taskId|status)"\s*:/.test(trimmed)
+  return /^\{\s*"(?:subject|description|file_path|content|old_string|new_string|replace_all|questions|command|taskId|status|pattern|path|glob)"\s*:/.test(trimmed)
 }
 
 export function parseBareJsonToolCalls(

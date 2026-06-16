@@ -13,6 +13,14 @@ export class SandboxViolationStore {
     return []
   }
 
+  getTotalCount(): number {
+    return 0
+  }
+
+  subscribe(_listener: (violations: never[]) => void): () => void {
+    return () => {}
+  }
+
   clear(): void {}
 }
 

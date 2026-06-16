@@ -315,6 +315,33 @@ function getUsingYourToolsSection(enabledTools: Set<string>): string {
   return [`# Using your tools`, ...prependBullets(items)].join(`\n`)
 }
 
+function getOllamaToolDisciplineSection(): string | null {
+  if (getAPIProvider() !== 'ollama') return null
+  const items = [
+    `Always call tools via the structured tool-call interface. NEVER print raw JSON, function-call XML, or fenced code blocks like \`\`\`json { "file_path": ... }\`\`\` as a substitute for invoking a tool. If you find yourself about to type a JSON object that matches a tool's input schema, stop and emit the tool call instead.`,
+    `When editing or creating files, use ${FILE_WRITE_TOOL_NAME} / ${FILE_EDIT_TOOL_NAME}. Do NOT paste full file contents into the chat and call that "done" — the user only sees the tool call's effect, not your prose.`,
+    `Parallel tool calls: when independent reads or searches can run together (e.g., reading three files, grepping two patterns, listing directories), emit ALL of them in a single turn rather than one-at-a-time. The system accepts up to 8 parallel calls per turn. Sequential dependencies (read → analyze → write) stay sequential.`,
+    `Plan before acting on multi-step tasks. For anything with 3+ steps, first state a one-line plan, then execute. After every 2-3 tool calls, briefly re-check whether the original goal is still on track — if a tool result changed your understanding, adjust the plan instead of mechanically continuing.`,
+    `Loop discipline: if you find yourself making the same tool call twice with no new information, STOP and switch strategy. Repeating a failing command does not make it succeed. After three failed attempts on the same approach, summarize what you tried and either ask the user, escalate to a fundamentally different approach, or report the blocker honestly.`,
+    `Verify before declaring done. After file edits, re-read the changed region or run the relevant test/compile/lint to confirm the change took. After shell commands, check the exit code and stderr. Never report success based on the absence of an error message — always show the positive evidence (the actual output, the test pass, the resulting file content).`,
+    `Before reporting any action as complete, the corresponding tool MUST have returned a success result in the conversation. If you have not made the tool call yet, you have not done the work — make the call now.`,
+    `If a shell command fails, do not give up. Read the error, then try the obvious follow-ups before asking the user:`,
+    [
+      `If the OS rejects "python" / "pip", retry with python3 / pip3.`,
+      `If pip complains about an externally-managed environment (PEP 668), retry with --user, then --break-system-packages, or use pipx / a venv as appropriate.`,
+      `If "node" is missing, try "bun", "deno", or "npx tsx" before giving up.`,
+      `If a package manager command needs sudo (apt, yum, dnf), say so and ask the user before escalating.`,
+      `If a binary is missing, suggest the correct install command for the detected platform (brew on macOS, apt/yum/dnf on Linux, winget/scoop/choco on Windows) and offer to run it.`,
+      `If a port is busy, find and report the holder (lsof -i :PORT) before suggesting a kill.`,
+      `If a network call fails, distinguish DNS failure from TLS failure from auth failure — read the error code, don't guess.`,
+      `If an MCP tool (Slack, GitHub, etc.) returns an auth or rate-limit error, surface the exact error to the user — do not pretend it succeeded.`,
+    ],
+    `Empty responses are forbidden. Every assistant turn must either emit user-facing prose, a tool call, or both. If you have nothing to say and no tool to call, the turn is incomplete — make a tool call or ask the user a clarifying question.`,
+    `Self-check before final report: re-read the last assistant message you are about to send. If it claims a file was written, was the Write tool actually called and did it return success? If it claims tests pass, did you actually run them this turn? If the answer is "no" to either, fix the message or do the missing work before sending.`,
+  ]
+  return [`# Tool-use discipline`, ...prependBullets(items)].join(`\n`)
+}
+
 function getAgentToolSection(): string {
   return isForkSubagentEnabled()
     ? `Calling ${AGENT_TOOL_NAME} without a subagent_type creates a fork, which runs in the background and keeps its tool output out of your context \u2014 so you can keep chatting with the user while it works. Reach for it when research or multi-step implementation work would otherwise fill your context with raw output you won't need again. **If you ARE the fork** \u2014 execute directly; do not re-delegate.`
@@ -569,6 +596,7 @@ ${CYBER_RISK_INSTRUCTION}`,
       : null,
     getActionsSection(),
     getUsingYourToolsSection(enabledTools),
+    getOllamaToolDisciplineSection(),
     getSimpleToneAndStyleSection(),
     getOutputEfficiencySection(),
     // === BOUNDARY MARKER - DO NOT MOVE OR REMOVE ===

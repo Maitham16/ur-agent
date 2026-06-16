@@ -23,10 +23,11 @@ import {
 } from '../../cli/transports/kimiToolCalls.js'
 
 type OllamaMessage = {
-  role: 'system' | 'user' | 'assistant'
+  role: 'system' | 'user' | 'assistant' | 'tool'
   content: string
   images?: string[]
   tool_calls?: OllamaToolCall[]
+  tool_name?: string
 }
 
 type OllamaTool = {
@@ -224,7 +225,11 @@ function toOllamaChatRequest(
   const request: OllamaChatRequest = {
     model: params.model,
     messages: [systemMessage, ...messagesToOllama(params.messages)].filter(
-      message => message.content.trim() !== '' || (message.images?.length ?? 0) > 0,
+      message =>
+        message.role === 'tool' ||
+        message.content.trim() !== '' ||
+        (message.images?.length ?? 0) > 0 ||
+        (message.tool_calls?.length ?? 0) > 0,
     ),
     stream,
     ...(tools.length > 0 ? { tools } : {}),
@@ -283,9 +288,6 @@ function messagesToOllama(messages: MessageParam[]): OllamaMessage[] {
                 arguments: block.input,
               },
             })
-            textParts.push(
-              `<tool_call name="${block.name}">${stringifyToolInput(block.input)}</tool_call>`,
-            )
           }
         }
       }
@@ -306,6 +308,7 @@ function messagesToOllama(messages: MessageParam[]): OllamaMessage[] {
 
     const textParts: string[] = []
     const images: string[] = []
+    const toolMessages: OllamaMessage[] = []
     for (const block of content) {
       switch (block.type) {
         case 'text':
@@ -313,9 +316,11 @@ function messagesToOllama(messages: MessageParam[]): OllamaMessage[] {
           break
         case 'tool_result': {
           const toolName = toolNamesById.get(block.tool_use_id) ?? block.tool_use_id
-          textParts.push(
-            `<tool_result name="${toolName}" id="${block.tool_use_id}">\n${contentBlockToText(block.content)}\n</tool_result>`,
-          )
+          toolMessages.push({
+            role: 'tool',
+            content: contentBlockToText(block.content),
+            tool_name: toolName,
+          })
           break
         }
         case 'image':
@@ -331,11 +336,18 @@ function messagesToOllama(messages: MessageParam[]): OllamaMessage[] {
       }
     }
 
-    result.push({
-      role: 'user',
-      content: textParts.filter(Boolean).join('\n\n'),
-      ...(images.length > 0 ? { images } : {}),
-    })
+    for (const toolMessage of toolMessages) {
+      result.push(toolMessage)
+    }
+
+    const text = textParts.filter(Boolean).join('\n\n')
+    if (text || images.length > 0) {
+      result.push({
+        role: 'user',
+        content: text,
+        ...(images.length > 0 ? { images } : {}),
+      })
+    }
   }
 
   return result

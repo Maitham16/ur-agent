@@ -1,40 +1,237 @@
-// Stub: not included in leaked source
-export interface AssistantMessage {}
-export interface AttachmentMessage {}
-export interface CollapsedReadSearchGroup {}
-export interface CollapsibleMessage {}
-export interface CompactMetadata {}
-export interface GroupedToolUseMessage {}
-export interface HookResultMessage {}
-export interface Message {}
-export interface MessageOrigin {}
-export interface NormalizedAssistantMessage {}
-export interface NormalizedMessage {}
-export interface NormalizedUserMessage {}
-export interface PartialCompactDirection {}
-export interface ProgressMessage {}
-export interface RenderableMessage {}
-export interface RequestStartEvent {}
-export interface StopHookInfo {}
-export interface StreamEvent {}
-export interface SystemAPIErrorMessage {}
-export interface SystemAgentsKilledMessage {}
-export interface SystemApiMetricsMessage {}
-export interface SystemAwaySummaryMessage {}
-export interface SystemBridgeStatusMessage {}
-export interface SystemCompactBoundaryMessage {}
-export interface SystemFileSnapshotMessage {}
-export interface SystemInformationalMessage {}
-export interface SystemLocalCommandMessage {}
-export interface SystemMemorySavedMessage {}
-export interface SystemMessage {}
-export interface SystemMessageLevel {}
-export interface SystemMicrocompactBoundaryMessage {}
-export interface SystemPermissionRetryMessage {}
-export interface SystemScheduledTaskFireMessage {}
-export interface SystemStopHookSummaryMessage {}
-export interface SystemThinkingMessage {}
-export interface SystemTurnDurationMessage {}
-export interface TombstoneMessage {}
-export interface ToolUseSummaryMessage {}
-export interface UserMessage {}
+// Reconstructed Message type definitions.
+// Permissive shapes capturing the union of fields observed across the codebase.
+// Runtime behavior is unchanged; these types only feed the typechecker.
+
+import type {
+  BetaMessage,
+  BetaUsage,
+} from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
+import type {
+  ContentBlockParam,
+  MessageParam,
+} from '@anthropic-ai/sdk/resources/index.mjs'
+
+type AnyObject = Record<string, unknown>
+
+export interface MessageOrigin {
+  kind?: string
+  server?: string
+  source?: string
+  [key: string]: unknown
+}
+
+export interface CompactMetadata {
+  trigger?: string
+  preTokens?: number
+  preservedSegment?: unknown
+  direction?: string
+  messagesSummarized?: number
+  userContext?: string
+  [key: string]: unknown
+}
+
+export interface BaseMessage {
+  type?: string
+  uuid?: string
+  message?: BetaMessage | MessageParam | AnyObject
+  isMeta?: boolean
+  isVirtual?: boolean
+  isApiErrorMessage?: boolean
+  isCompactSummary?: boolean
+  isVisibleInTranscriptOnly?: boolean
+  toolUseResult?: unknown
+  toolUseID?: string
+  parentToolUseID?: string
+  sourceToolUseID?: string
+  origin?: MessageOrigin | string
+  timestamp?: number
+  requestId?: string
+  subtype?: string
+  apiError?: string | { message?: string }
+  errorDetails?: string
+  error?: string | Error | { message?: string }
+  research?: unknown
+  compactMetadata?: CompactMetadata
+  mcpMeta?: AnyObject
+  imagePasteIds?: string[]
+  permissionMode?: string
+  planContent?: string
+  advisorModel?: string
+  durationMs?: number
+  costUSD?: number
+  model?: string
+  usage?: BetaUsage
+  content?: string | ContentBlockParam[]
+  attachment?: unknown
+  data?: unknown
+  hookLabel?: string
+  relevantMemories?: unknown
+  messageCount?: number
+  [key: string]: unknown
+}
+
+export interface UserMessage extends BaseMessage {
+  type?: 'user'
+}
+
+export interface AssistantMessage extends BaseMessage {
+  type?: 'assistant'
+}
+
+export interface AttachmentMessage extends BaseMessage {
+  type?: 'attachment'
+  attachment?: unknown
+}
+
+export interface ProgressMessage extends BaseMessage {
+  type?: 'progress'
+  data?: unknown
+}
+
+export interface SystemMessage extends BaseMessage {
+  type?: 'system'
+  subtype?: string
+}
+
+export interface SystemAPIErrorMessage extends SystemMessage {
+  subtype?: 'apiError'
+}
+
+export interface SystemAgentsKilledMessage extends SystemMessage {}
+export interface SystemAwaySummaryMessage extends SystemMessage {}
+export interface SystemBridgeStatusMessage extends SystemMessage {}
+
+export interface SystemCompactBoundaryMessage extends SystemMessage {
+  compactMetadata?: CompactMetadata
+}
+
+export interface SystemFileSnapshotMessage extends SystemMessage {
+  snapshotFiles?: unknown
+}
+
+export interface SystemInformationalMessage extends SystemMessage {}
+export interface SystemLocalCommandMessage extends SystemMessage {}
+
+export interface SystemMemorySavedMessage extends SystemMessage {
+  teamCount?: number
+}
+
+export interface SystemMessageLevel {
+  level?: string
+  [key: string]: unknown
+}
+
+export interface SystemMicrocompactBoundaryMessage extends SystemMessage {}
+export interface SystemPermissionRetryMessage extends SystemMessage {}
+export interface SystemScheduledTaskFireMessage extends SystemMessage {}
+
+export interface SystemStopHookSummaryMessage extends SystemMessage {
+  hookCount?: number
+  hookErrors?: unknown
+  hookInfos?: unknown
+  hasOutput?: boolean
+  totalDurationMs?: number
+  preventedContinuation?: boolean
+}
+
+export interface SystemApiMetricsMessage extends SystemMessage {}
+export interface SystemThinkingMessage extends SystemMessage {}
+export interface SystemTurnDurationMessage extends SystemMessage {}
+
+export interface HookResultMessage extends BaseMessage {
+  toolUseID?: string
+  data?: unknown
+  attachment?: unknown
+}
+
+export interface StopHookInfo {
+  command?: string
+  durationMs?: number
+  [key: string]: unknown
+}
+
+export interface TombstoneMessage extends BaseMessage {
+  type?: 'tombstone'
+}
+
+export interface ToolUseSummaryMessage extends BaseMessage {}
+
+export interface CollapsibleMessage extends BaseMessage {
+  toolUseResult?: unknown
+}
+
+export interface CollapsedReadSearchGroup {
+  bashCount?: number
+  branches?: unknown
+  commits?: unknown
+  displayMessage?: string
+  gitOpBashCount?: number
+  hookCount?: number
+  hookInfos?: unknown
+  hookTotalMs?: number
+  latestDisplayHint?: string
+  listCount?: number
+  mcpCallCount?: number
+  mcpServerNames?: string[]
+  memoryReadCount?: number
+  memorySearchCount?: number
+  memoryWriteCount?: number
+  messages?: BaseMessage[]
+  prs?: unknown
+  pushes?: unknown
+  readCount?: number
+  readFilePaths?: string[]
+  relevantMemories?: unknown
+  replCount?: number
+  searchArgs?: unknown
+  searchCount?: number
+  teamMemoryReadCount?: number
+  teamMemorySearchCount?: number
+  teamMemoryWriteCount?: number
+  type?: string
+  [key: string]: unknown
+}
+
+export interface GroupedToolUseMessage extends BaseMessage {
+  messages?: BaseMessage[]
+  results?: unknown
+  toolName?: string
+}
+
+export interface NormalizedMessage extends BaseMessage {
+  sourceToolUseID?: string
+}
+
+export interface NormalizedAssistantMessage extends AssistantMessage {
+  mcpMeta?: AnyObject
+}
+
+export interface NormalizedUserMessage extends UserMessage {}
+
+export interface RenderableMessage extends BaseMessage {
+  hookLabel?: string
+  messages?: BaseMessage[]
+  relevantMemories?: unknown
+  results?: unknown
+  toolName?: string
+}
+
+export interface RequestStartEvent {
+  type?: string
+  requestId?: string
+  model?: string
+  [key: string]: unknown
+}
+
+export interface StreamEvent {
+  type?: string
+  [key: string]: unknown
+}
+
+export interface PartialCompactDirection {
+  direction?: 'up_to' | 'from'
+  [key: string]: unknown
+}
+
+// Permissive Message union — accepts any of the concrete variants.
+export interface Message extends BaseMessage {}
