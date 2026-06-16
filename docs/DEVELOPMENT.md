@@ -30,11 +30,13 @@ bun run dev
 ## Verify
 
 ```sh
-bun run typecheck
 bun test
+bun run smoke
+bun run secrets:scan
+npm pack --dry-run
 ```
 
-There is no `test` script in `package.json`; run `bun test` directly.
+`bun run typecheck` and `bun run build` are kept as development commands, but this fork still has pre-existing type and bundle issues. The GitHub install path uses the runnable source launcher in `bin/ur.js`.
 
 ## Build
 
@@ -53,18 +55,26 @@ bun link
 ur --version
 ```
 
-## Publishing Notes
+## GitHub Install
 
-The package currently has:
+This package is configured for install without cloning:
 
-```json
-"private": true
+```sh
+bun add -g github:Maitham16/ur-agent
 ```
 
-That prevents accidental package publishing. For GitHub distribution, keep the repository source-focused and let users install dependencies with Bun.
+The package exposes the global `ur` command from `bin/ur.js`. That launcher reads `package.json` for version and repository metadata, then runs `src/entrypoints/cli.tsx` with Bun.
+
+For the first release:
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
 
 Before making the repository public:
 
 - Add a license if others should be allowed to reuse or modify the code.
 - Review `.gitignore` and `git status` before the first commit.
+- Run `bun run secrets:scan` before pushing release commits or tags.
 - Confirm no local credentials or generated runtime state are staged.

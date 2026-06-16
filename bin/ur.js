@@ -1,11 +1,37 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const entrypoint = resolve(packageRoot, 'src/entrypoints/cli.tsx')
 const preload = resolve(packageRoot, 'plugins/bunBundleDev.ts')
+const packageJsonPath = resolve(packageRoot, 'package.json')
+
+function readPackageMetadata() {
+  try {
+    return JSON.parse(readFileSync(packageJsonPath, 'utf8'))
+  } catch {
+    return {}
+  }
+}
+
+function defineMacro(name, value) {
+  return `${name}=${value === undefined ? 'undefined' : JSON.stringify(value)}`
+}
+
+const packageMetadata = readPackageMetadata()
+const version =
+  typeof packageMetadata.version === 'string'
+    ? packageMetadata.version
+    : '0.0.0-dev'
+const packageName =
+  typeof packageMetadata.name === 'string' ? packageMetadata.name : 'ur-agent'
+const issuesUrl =
+  typeof packageMetadata.bugs?.url === 'string'
+    ? packageMetadata.bugs.url
+    : 'https://github.com/Maitham16/ur-agent/issues'
 
 const bun = process.env.BUN_BIN || process.env.BUN_EXECUTABLE || 'bun'
 const ollamaModel =
@@ -15,19 +41,19 @@ const args = [
   '--preload',
   preload,
   '--define',
-  'MACRO.VERSION="1.0.0-dev"',
+  defineMacro('MACRO.VERSION', version),
   '--define',
-  'MACRO.BUILD_TIME=""',
+  defineMacro('MACRO.BUILD_TIME', ''),
   '--define',
-  'MACRO.PACKAGE_URL="ur"',
+  defineMacro('MACRO.PACKAGE_URL', packageName),
   '--define',
-  'MACRO.NATIVE_PACKAGE_URL=undefined',
+  defineMacro('MACRO.NATIVE_PACKAGE_URL', undefined),
   '--define',
-  'MACRO.FEEDBACK_CHANNEL=""',
+  defineMacro('MACRO.FEEDBACK_CHANNEL', issuesUrl),
   '--define',
-  'MACRO.ISSUES_EXPLAINER=""',
+  defineMacro('MACRO.ISSUES_EXPLAINER', `file an issue at ${issuesUrl}`),
   '--define',
-  'MACRO.VERSION_CHANGELOG=""',
+  defineMacro('MACRO.VERSION_CHANGELOG', ''),
   entrypoint,
   ...process.argv.slice(2),
 ]
