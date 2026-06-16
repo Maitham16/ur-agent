@@ -94,6 +94,7 @@ import { executePostSamplingHooks } from './utils/hooks/postSamplingHooks.js'
 import { executeStopFailureHooks } from './utils/hooks.js'
 import type { QuerySource } from './constants/querySource.js'
 import { createDumpPromptsFetch } from './services/api/dumpPrompts.js'
+import { Verifier } from './services/verifier/index.js'
 import { StreamingToolExecutor } from './services/tools/StreamingToolExecutor.js'
 import { queryCheckpoint } from './utils/queryProfiler.js'
 import { runTools } from './services/tools/toolOrchestration.js'
@@ -303,6 +304,31 @@ async function* queryLoop(
     state.messages,
     state.toolUseContext,
   )
+
+  // Verifier (L1): deterministic quality gates. Active only on the main
+  // interactive thread — subagents are evaluated by their parent. The turn
+  // id is the most recent user-message uuid in the seed messages so the
+  // ledger is keyed stably across all loop iterations of one request.
+  const verifierActive = !state.toolUseContext.agentId
+  const verifier = verifierActive
+    ? new Verifier({ cwd: state.toolUseContext.options.cwd ?? process.cwd() })
+    : null
+  let verifierTurnId: string | undefined
+  if (verifier) {
+    for (let i = state.messages.length - 1; i >= 0; i--) {
+      const m = state.messages[i] as { type?: string; uuid?: string } | undefined
+      if (m?.type === 'user' && typeof m.uuid === 'string') {
+        verifierTurnId = m.uuid
+        break
+      }
+    }
+    if (!verifierTurnId) verifierTurnId = deps.uuid()
+    verifier.beginTurn(verifierTurnId)
+  }
+  // Rejection injection counter — bail out of verifier after a couple
+  // rounds even if the Verifier's own cap missed (defense in depth).
+  let verifierInjections = 0
+  const VERIFIER_MAX_INJECTIONS = 3
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
@@ -1355,6 +1381,54 @@ async function* queryLoop(
         }
       }
 
+      // Verifier L1: final-turn check. Validate the closing assistant text
+      // against the ledger and project gates. A rejection injects a
+      // <system-reminder> as a user message and re-enters the loop so the
+      // agent can correct itself instead of yielding a wrong claim to the
+      // user.
+      if (verifier && verifierTurnId) {
+        let assistantText = ''
+        for (const msg of assistantMessages) {
+          const content = (msg as { message?: { content?: unknown } }).message?.content
+          if (Array.isArray(content)) {
+            for (const block of content) {
+              const b = block as { type?: string; text?: string }
+              if (b.type === 'text' && typeof b.text === 'string') {
+                assistantText += b.text
+              }
+            }
+          }
+        }
+        const verdict = await verifier.checkTurn(
+          verifierTurnId,
+          assistantText,
+          toolUseBlocks.length > 0,
+        )
+        if (!verdict.ok && verifierInjections < VERIFIER_MAX_INJECTIONS) {
+          verifierInjections++
+          const failed = verdict as Extract<typeof verdict, { ok: false }>
+          const reminder = createUserMessage({
+            content: `<system-reminder>\n${failed.reminder}\n</system-reminder>`,
+            isMeta: true,
+          })
+          yield reminder
+          state = {
+            messages: [...messagesForQuery, ...assistantMessages, reminder],
+            toolUseContext,
+            autoCompactTracking: tracking,
+            maxOutputTokensRecoveryCount: 0,
+            hasAttemptedReactiveCompact,
+            maxOutputTokensOverride: undefined,
+            pendingToolUseSummary: undefined,
+            stopHookActive: undefined,
+            turnCount,
+            transition: { reason: 'verifier_rejected' },
+          }
+          continue
+        }
+        verifier.endTurn(verifierTurnId)
+      }
+
       return { reason: 'completed' }
     }
 
@@ -1408,6 +1482,35 @@ async function* queryLoop(
       }
     }
     queryCheckpoint('query_tool_execution_end')
+
+    // Verifier: record each tool result for this batch. A result is treated
+    // as failed only if a tool_result block with is_error: true was emitted.
+    if (verifier && verifierTurnId) {
+      for (const toolUse of toolUseBlocks) {
+        let isError = false
+        for (const result of toolResults) {
+          const content = (result as { message?: { content?: unknown } }).message?.content
+          if (!Array.isArray(content)) continue
+          for (const block of content) {
+            const b = block as { type?: string; tool_use_id?: string; is_error?: boolean }
+            if (b.type === 'tool_result' && b.tool_use_id === toolUse.id) {
+              isError = Boolean(b.is_error)
+              break
+            }
+          }
+        }
+        const loopHit = verifier.recordToolCall(verifierTurnId, toolUse, !isError)
+        if (loopHit && verifierInjections < VERIFIER_MAX_INJECTIONS) {
+          verifierInjections++
+          const reminder = createUserMessage({
+            content: `<system-reminder>\n${loopHit.reminder}\n</system-reminder>`,
+            isMeta: true,
+          })
+          yield reminder
+          toolResults.push(reminder as never)
+        }
+      }
+    }
 
     // Generate tool use summary after tool batch completes — passed to next recursive call
     let nextPendingToolUseSummary:
