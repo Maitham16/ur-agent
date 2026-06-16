@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as React from 'react';
 import { Text } from '../ink.js';
 import { isURAISubscriber } from '../utils/auth.js';

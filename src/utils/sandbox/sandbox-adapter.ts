@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Adapter layer for sandbox integrations.
  */

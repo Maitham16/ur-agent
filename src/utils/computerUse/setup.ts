@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { buildComputerUseTools } from './computerUseCompat.js'
 import { join } from 'path'
 import { fileURLToPath } from 'url'

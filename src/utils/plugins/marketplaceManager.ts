@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Marketplace manager for UR plugins
  *

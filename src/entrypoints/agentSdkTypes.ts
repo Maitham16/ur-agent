@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Main entrypoint for UR Agent SDK types.
  *

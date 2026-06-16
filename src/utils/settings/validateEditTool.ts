@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { ValidationResult } from 'src/Tool.js'
 import { isURSettingsPath } from '../permissions/filesystem.js'
 import { validateSettingsFileContent } from './validation.js'

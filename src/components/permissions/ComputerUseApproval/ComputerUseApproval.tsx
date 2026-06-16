@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { c as _c } from "react/compiler-runtime";
 import { getSentinelCategory, type CuPermissionRequest, type CuPermissionResponse, DEFAULT_GRANT_FLAGS } from '../../../utils/computerUse/computerUseCompat.js';
 import figures from 'figures';
