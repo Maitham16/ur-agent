@@ -166,7 +166,15 @@ export function synthesizeKimiToolCalls(message: unknown): void {
         block.text.includes('\n{'))
     ) {
       const { text, toolCalls } = parseTextToolCalls(block.text, {
-        availableToolNames: new Set(['TaskCreate', 'Write', 'Edit']),
+        availableToolNames: new Set([
+          'TaskCreate',
+          'Write',
+          'Edit',
+          'AskUserQuestion',
+          'Bash',
+          'Read',
+          'TaskUpdate',
+        ]),
         parseBareJsonToolCalls: true,
       })
       if (toolCalls.length > 0) {

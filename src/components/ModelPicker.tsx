@@ -1,7 +1,7 @@
 import { c as _c } from "react/compiler-runtime";
 import capitalize from 'lodash-es/capitalize.js';
 import * as React from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useExitOnCtrlCDWithKeybindings } from 'src/hooks/useExitOnCtrlCDWithKeybindings.js';
 import { type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS, logEvent } from 'src/services/analytics/index.js';
 import { FAST_MODE_MODEL_DISPLAY, isFastModeAvailable, isFastModeCooldown, isFastModeEnabled } from 'src/utils/fastMode.js';
@@ -10,7 +10,9 @@ import { useKeybindings } from '../keybindings/useKeybinding.js';
 import { useAppState, useSetAppState } from '../state/AppState.js';
 import { convertEffortValueToLevel, type EffortLevel, getDefaultEffortForModel, modelSupportsEffort, modelSupportsMaxEffort, resolvePickerEffortPersistence, toPersistableEffort } from '../utils/effort.js';
 import { getDefaultMainLoopModel, type ModelSetting, modelDisplayString, parseUserSpecifiedModel } from '../utils/model/model.js';
-import { getModelOptions } from '../utils/model/modelOptions.js';
+import { getModelOptions, type ModelOption } from '../utils/model/modelOptions.js';
+import { getOllamaModelOptions, mergeModelOptions } from '../utils/model/ollamaModels.js';
+import { getAPIProvider } from '../utils/model/providers.js';
 import { getSettingsForSource, updateSettingsForSource } from '../utils/settings/settings.js';
 import { ConfigurableShortcutHint } from './ConfigurableShortcutHint.js';
 import { Select } from './CustomSelect/index.js';
@@ -64,6 +66,25 @@ export function ModelPicker(t0) {
     t1 = $[1];
   }
   const [effort, setEffort] = useState(t1);
+  const [ollamaModelOptions, setOllamaModelOptions] = useState<ModelOption[]>([]);
+  const isOllamaProvider = getAPIProvider() === "ollama";
+  useEffect(() => {
+    if (!isOllamaProvider) {
+      setOllamaModelOptions([]);
+      return;
+    }
+    const controller = new AbortController();
+    getOllamaModelOptions(controller.signal).then(options => {
+      if (!controller.signal.aborted) {
+        setOllamaModelOptions(options);
+      }
+    }).catch(() => {
+      if (!controller.signal.aborted) {
+        setOllamaModelOptions([]);
+      }
+    });
+    return () => controller.abort();
+  }, [isOllamaProvider]);
   const t2 = isFastMode ?? false;
   let t3;
   if ($[2] !== t2) {
@@ -73,7 +94,8 @@ export function ModelPicker(t0) {
   } else {
     t3 = $[3];
   }
-  const modelOptions = t3;
+  const baseModelOptions = t3;
+  const modelOptions = useMemo(() => mergeModelOptions(baseModelOptions, ollamaModelOptions), [baseModelOptions, ollamaModelOptions]);
   let t4;
   bb0: {
     if (initial !== null && !modelOptions.some(opt => opt.value === initial)) {
