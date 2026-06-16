@@ -18,7 +18,7 @@ If you have previous version remove it with:
 
 ```sh
 npm uninstall -g ur-agent
-  bun remove -g ur-agent
+bun remove -g ur-agent
 ```
 
 ### Then, install:
