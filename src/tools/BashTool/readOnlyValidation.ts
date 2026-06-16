@@ -1313,7 +1313,6 @@ export function isCommandSafeViaFlagParsing(command: string): boolean {
         if (token.includes('://')) {
           return false
         }
-        // Reject SSH URLs like git@github.com:user/repo.git
         if (token.includes('@') || token.includes(':')) {
           return false
         }

@@ -35,7 +35,7 @@ for pattern in "${patterns[@]}"; do
 done
 
 if [[ "$failed" -ne 0 ]]; then
-  echo "Potential secret pattern found. Review the matches before publishing." >&2
+  echo "Potential secret pattern found. Review the matches." >&2
   exit 1
 fi
 

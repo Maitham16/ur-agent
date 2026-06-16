@@ -275,10 +275,6 @@ export const getRemoteUrl = async (): Promise<string | null> => {
  * Converts SSH and HTTPS URLs to the same format: host/owner/repo (lowercase, no .git)
  *
  * Examples:
- * - git@github.com:owner/repo.git -> github.com/owner/repo
- * - https://github.com/owner/repo.git -> github.com/owner/repo
- * - ssh://git@github.com/owner/repo -> github.com/owner/repo
- * - http://local_proxy@127.0.0.1:16583/git/owner/repo -> github.com/owner/repo
  */
 export function normalizeGitRemoteUrl(url: string): string | null {
   const trimmed = url.trim()

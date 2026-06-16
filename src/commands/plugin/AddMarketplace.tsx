@@ -129,7 +129,7 @@ export function AddMarketplace({
           <Text>Enter marketplace source:</Text>
           <Text dimColor>Examples:</Text>
           <Text dimColor> · owner/repo (GitHub)</Text>
-          <Text dimColor> · git@github.com:owner/repo.git (SSH)</Text>
+          <Text dimColor> · git@example.com:owner/repo.git (SSH)</Text>
           <Text dimColor> · https://example.com/marketplace.json</Text>
           <Text dimColor> · ./path/to/marketplace</Text>
           <Box marginTop={1}>

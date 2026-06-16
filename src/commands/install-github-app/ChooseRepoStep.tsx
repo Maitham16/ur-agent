@@ -157,7 +157,7 @@ export function ChooseRepoStep(t0) {
     t16 = (!useCurrentRepo || !currentRepo) && <Box marginLeft={2} marginBottom={1}><TextInput value={repoUrl} onChange={value => {
         onRepoUrlChange(value);
         setShowEmptyError(false);
-      }} onSubmit={handleSubmit} focus={true} placeholder={"Enter a repo as owner/repo or https://github.com/owner/repo\u2026"} columns={textInputColumns} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} showCursor={true} /></Box>;
+      }} onSubmit={handleSubmit} focus={true} placeholder={"Enter a repo as owner/repo\u2026"} columns={textInputColumns} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} showCursor={true} /></Box>;
     $[29] = currentRepo;
     $[30] = cursorOffset;
     $[31] = handleSubmit;

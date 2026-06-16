@@ -560,7 +560,7 @@ async function uploadTeamMemory(
  * Empty files are included (content will be empty string).
  *
  * PSR M22174: Each file is scanned for credentials before inclusion
- * using patterns from gitleaks. Files containing secrets are SKIPPED
+ * using local secret rules. Files containing secrets are SKIPPED
  * (not uploaded) and collected in skippedSecrets so the caller can
  * warn the user.
  */
@@ -934,7 +934,7 @@ export async function pushTeamMemory(
     )
     logEvent('tengu_team_mem_secret_skipped', {
       file_count: skippedSecrets.length,
-      // Only log gitleaks rule IDs (not values, not paths — paths could
+      // Only log secret rule IDs (not values, not paths — paths could
       // leak repo structure). Comma-joined for compact single-field analytics.
       rule_ids: skippedSecrets
         .map(s => s.ruleId)

@@ -26,9 +26,9 @@ const MAX_RELEASE_NOTES_SHOWN = 5
  * 3. Next time the user starts UR, the cached changelog is available immediately
  */
 export const CHANGELOG_URL =
-  'https://github.com/anthropics/ur/blob/main/CHANGELOG.md'
+  'https://github.com/Maitham16/ur-agent'
 const RAW_CHANGELOG_URL =
-  'https://raw.githubusercontent.com/anthropics/ur/refs/heads/main/CHANGELOG.md'
+  'https://raw.githubusercontent.com/Maitham16/ur-agent/refs/heads/master/CHANGELOG.md'
 
 /**
  * Get the path for the cached changelog file.

@@ -29,7 +29,7 @@ export function secureCi(): string {
   return [
     "# Secure CI checklist",
     "- Pin action/runner versions; least-privilege tokens.",
-    "- SAST (semgrep), dependency audit (osv/npm audit), secret scan (gitleaks) on every PR.",
+    "- SAST (semgrep), dependency audit (osv/npm audit), secret scan on every PR.",
     "- Block merges on high-severity findings.",
     "- Sign artifacts; generate an SBOM (syft).",
     "- Store secrets in the CI secret store; never echo them.",

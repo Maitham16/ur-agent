@@ -177,7 +177,6 @@ export function getToolSearchMode(): ToolSearchMode {
   // reach the wire, even if ENABLE_TOOL_SEARCH is also set. This is the
   // explicit escape hatch for proxy gateways that the heuristic in
   // isToolSearchEnabledOptimistic doesn't cover.
-  // github.com/anthropics/ur/issues/20031
   if (isEnvTruthy(process.env.UR_CODE_DISABLE_EXPERIMENTAL_BETAS)) {
     return 'standard'
   }
@@ -288,7 +287,6 @@ export function isToolSearchEnabledOptimistic(): boolean {
   // is 'firstParty' but the base URL points elsewhere, the proxy will reject
   // tool_reference blocks with a 400. Vertex/Bedrock/Foundry are unaffected —
   // they have their own endpoints and beta headers.
-  // https://github.com/anthropics/ur/issues/30912
   //
   // HOWEVER: some proxies DO support tool_reference (LiteLLM passthrough,
   // Cloudflare AI Gateway, corp gateways that forward beta headers). The

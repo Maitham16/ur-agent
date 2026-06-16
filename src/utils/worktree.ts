@@ -625,7 +625,6 @@ async function performPostCreationSetup(
 
 /**
  * Parses a PR reference from a string.
- * Accepts GitHub-style PR URLs (e.g., https://github.com/owner/repo/pull/123,
  * or GHE equivalents like https://ghe.example.com/owner/repo/pull/123)
  * or `#N` format (e.g., #123).
  * Returns the PR number or null if the string is not a recognized PR reference.

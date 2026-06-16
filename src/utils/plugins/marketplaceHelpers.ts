@@ -241,7 +241,6 @@ export function extractHostFromSource(
       return 'github.com'
 
     case 'git': {
-      // SSH format: user@HOST:path (e.g., git@github.com:owner/repo.git)
       const sshMatch = source.url.match(/^[^@]+@([^:]+):/)
       if (sshMatch?.[1]) {
         return sshMatch[1]
@@ -341,18 +340,13 @@ export function getHostPatternsFromAllowlist(): string[] {
  * Returns null if not a GitHub URL.
  *
  * Handles:
- * - git@github.com:owner/repo.git
- * - https://github.com/owner/repo.git
- * - https://github.com/owner/repo
  */
 function extractGitHubRepoFromGitUrl(url: string): string | null {
-  // SSH format: git@github.com:owner/repo.git
   const sshMatch = url.match(/^git@github\.com:([^/]+\/[^/]+?)(?:\.git)?$/)
   if (sshMatch && sshMatch[1]) {
     return sshMatch[1]
   }
 
-  // HTTPS format: https://github.com/owner/repo.git or https://github.com/owner/repo
   const httpsMatch = url.match(
     /^https?:\/\/github\.com\/([^/]+\/[^/]+?)(?:\.git)?$/,
   )
@@ -456,7 +450,6 @@ function areSourcesEquivalentForBlocklist(
  * Used for error message differentiation.
  *
  * This also catches attempts to bypass a github blocklist entry by using
- * git URLs (e.g., git@github.com:owner/repo.git or https://github.com/owner/repo.git).
  */
 export function isSourceInBlocklist(source: MarketplaceSource): boolean {
   const blocklist = getBlockedMarketplaces()

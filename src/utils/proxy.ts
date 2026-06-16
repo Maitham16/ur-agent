@@ -340,7 +340,6 @@ export function configureGlobalAgents(): void {
   axios.defaults.httpsAgent = undefined
 
   if (proxyUrl) {
-    // workaround for https://github.com/axios/axios/issues/4531
     axios.defaults.proxy = false
 
     // Create proxy agent with mTLS options if available

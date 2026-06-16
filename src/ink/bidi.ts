@@ -8,7 +8,6 @@
  *
  * On macOS terminals (Terminal.app, iTerm2) bidi works natively.
  * Windows Terminal (including WSL) does not implement bidi
- * (https://github.com/microsoft/terminal/issues/538).
  *
  * Detection: Windows Terminal sets WT_SESSION; native Windows cmd/conhost
  * also lacks bidi. We enable bidi reordering when running on Windows or

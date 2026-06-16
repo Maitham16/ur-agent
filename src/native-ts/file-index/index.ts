@@ -1,7 +1,6 @@
 /**
  * Pure-TypeScript port of vendor/file-index-src (Rust NAPI module).
  *
- * The native module wraps nucleo (https://github.com/helix-editor/nucleo) for
  * high-performance fuzzy file searching. This port reimplements the same API
  * and scoring behavior without native dependencies.
  *

@@ -102,7 +102,6 @@ export function getAgentModel(
  * Prevents surprising downgrades: a Vertex user on Opus 4.6 (via /model) who
  * spawns a subagent with `model: opus` should get Opus 4.6, not whatever
  * getDefaultOpusModel() returns for 3P.
- * See https://github.com/anthropics/ur/issues/30815.
  *
  * Only bare family aliases match. `opus[1m]`, `best`, `opusplan` fall through
  * since they carry semantics beyond "same tier as parent".

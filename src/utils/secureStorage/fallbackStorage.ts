@@ -33,7 +33,6 @@ export function createFallbackStorage(
       if (result.success) {
         // Delete secondary when migrating to primary for the first time
         // This preserves credentials when sharing .ur between host and containers
-        // See: https://github.com/anthropics/ur/issues/1414
         if (primaryDataBefore === null) {
           secondary.delete()
         }

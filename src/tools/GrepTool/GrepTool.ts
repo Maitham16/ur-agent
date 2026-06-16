@@ -417,7 +417,6 @@ export const GrepTool = buildTool({
     for (const ignorePattern of ignorePatterns) {
       // Note: ripgrep only applies gitignore patterns relative to the working directory
       // So for non-absolute paths, we need to prefix them with '**'
-      // See: https://github.com/BurntSushi/ripgrep/discussions/2156#discussioncomment-2316335
       //
       // We also need to negate the pattern with `!` to exclude it
       const rgIgnorePattern = ignorePattern.startsWith('/')

@@ -502,7 +502,6 @@ function TeammateTaskStatus(t0) {
   return t6;
 }
 // We allow setting dimColor to false here to help work around the dim-bold bug.
-// https://github.com/chalk/chalk/issues/290
 function Line(t0) {
   const $ = _c(7);
   const {

@@ -241,7 +241,6 @@ export async function getAnthropicClient({
     // - Credential refresh/expiration
     // - Environment variable changes (GOOGLE_APPLICATION_CREDENTIALS, project vars)
     // - Cross-request auth state management
-    // See: https://github.com/googleapis/google-auth-library-nodejs/issues/390 for caching challenges
 
     // Prevent metadata server timeout by providing projectId as fallback
     // google-auth-library checks project ID in this order:
@@ -254,7 +253,6 @@ export async function getAnthropicClient({
     // to avoid interfering with their existing auth setup
 
     // Check project environment variables in same order as google-auth-library
-    // See: https://github.com/googleapis/google-auth-library-nodejs/blob/main/src/auth/googleauth.ts
     const hasProjectEnvVar =
       process.env['GCLOUD_PROJECT'] ||
       process.env['GOOGLE_CLOUD_PROJECT'] ||

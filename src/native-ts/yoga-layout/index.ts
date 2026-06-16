@@ -35,7 +35,6 @@
  *   - box-sizing: content-box
  *   - RTL direction (Ink always passes Direction.LTR)
  *
- * Upstream: https://github.com/facebook/yoga
  */
 
 import {

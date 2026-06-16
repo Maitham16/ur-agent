@@ -1,7 +1,7 @@
 export const PR_TITLE = 'Add UR GitHub Workflow'
 
 export const GITHUB_ACTION_SETUP_DOCS_URL =
-  'https://github.com/anthropics/ur-action/blob/main/docs/setup.md'
+  'https://github.com/Maitham16/ur-agent'
 
 export const WORKFLOW_CONTENT = `name: UR
 
@@ -16,19 +16,19 @@ on:
     types: [submitted]
 
 jobs:
-  claude:
+  ur:
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@ur')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@ur')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@ur')) ||
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@ur') || contains(github.event.issue.title, '@ur')))
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: read
       issues: read
       id-token: write
-      actions: read # Required for UR to read CI results on PRs
+      actions: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,33 +36,24 @@ jobs:
           fetch-depth: 1
 
       - name: Run UR
-        id: claude
-        uses: anthropics/ur-action@v1
+        id: ur
+        uses: Maitham16/ur-agent@v1
         with:
-          anthropic_api_key: \${{ secrets.ANTHROPIC_API_KEY }}
+          ur_api_key: \${{ secrets.UR_API_KEY }}
 
-          # This is an optional setting that allows UR to read CI results on PRs
           additional_permissions: |
             actions: read
 
-          # Optional: Give a custom prompt to Claude. If this is not specified, UR will perform the instructions specified in the comment that tagged it.
-          # prompt: 'Update the pull request description to include a summary of changes.'
-
-          # Optional: Add claude_args to customize behavior and configuration
-          # See https://github.com/anthropics/ur-action/blob/main/docs/usage.md
-          # or https://docs.ur.dev/docs/en/cli-reference for available options
-          # claude_args: '--allowed-tools Bash(gh pr:*)'
-
 `
 
-export const PR_BODY = `## 🤖 Installing UR GitHub App
+export const PR_BODY = `## Installing UR GitHub App
 
 This PR adds a GitHub Actions workflow that enables UR integration in our repository.
 
 ### What is UR?
 
-[UR](https://claude.com/ur) is an AI coding agent that can help with:
-- Bug fixes and improvements  
+[UR](https://github.com/Maitham16/ur-agent) is a terminal coding agent that can help with:
+- Bug fixes and improvements
 - Documentation updates
 - Implementing new features
 - Code reviews and suggestions
@@ -71,19 +62,19 @@ This PR adds a GitHub Actions workflow that enables UR integration in our reposi
 
 ### How it works
 
-Once this PR is merged, we'll be able to interact with UR by mentioning @claude in a pull request or issue comment.
+Once this PR is merged, we'll be able to interact with UR by mentioning @ur in a pull request or issue comment.
 Once the workflow is triggered, UR will analyze the comment and surrounding context, and execute on the request in a GitHub action.
 
 ### Important Notes
 
 - **This workflow won't take effect until this PR is merged**
-- **@claude mentions won't work until after the merge is complete**
+- **@ur mentions won't work until after the merge is complete**
 - The workflow runs automatically whenever UR is mentioned in PR or issue comments
 - UR gets access to the entire PR or issue context including files, diffs, and previous comments
 
 ### Security
 
-- Our Anthropic API key is securely stored as a GitHub Actions secret
+- The API key is securely stored as a GitHub Actions secret
 - Only users with write access to the repository can trigger the workflow
 - All UR runs are stored in the GitHub Actions run history
 - UR's default tools are limited to reading/writing files and interacting with our repo by creating comments, branches, and commits.
@@ -93,30 +84,18 @@ Once the workflow is triggered, UR will analyze the comment and surrounding cont
 allowed_tools: Bash(npm install),Bash(npm run build),Bash(npm run lint),Bash(npm run test)
 \`\`\`
 
-There's more information in the [UR action repo](https://github.com/anthropics/ur-action).
+There's more information in the [UR repository](https://github.com/Maitham16/ur-agent).
 
-After merging this PR, let's try mentioning @claude in a comment on any PR to get started!`
+After merging this PR, let's try mentioning @ur in a comment on any PR to get started!`
 
 export const CODE_REVIEW_PLUGIN_WORKFLOW_CONTENT = `name: UR Review
 
 on:
   pull_request:
     types: [opened, synchronize, ready_for_review, reopened]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
 
 jobs:
-  claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-
+  ur-review:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -131,14 +110,12 @@ jobs:
           fetch-depth: 1
 
       - name: Run UR Review
-        id: claude-review
-        uses: anthropics/ur-action@v1
+        id: ur-review
+        uses: Maitham16/ur-agent@v1
         with:
-          anthropic_api_key: \${{ secrets.ANTHROPIC_API_KEY }}
-          plugin_marketplaces: 'https://github.com/anthropics/ur.git'
+          ur_api_key: \${{ secrets.UR_API_KEY }}
+          plugin_marketplaces: 'https://github.com/Maitham16/ur-agent.git'
           plugins: 'code-review@ur-plugins'
           prompt: '/code-review:code-review \${{ github.repository }}/pull/\${{ github.event.pull_request.number }}'
-          # See https://github.com/anthropics/ur-action/blob/main/docs/usage.md
-          # or https://docs.ur.dev/docs/en/cli-reference for available options
 
 `

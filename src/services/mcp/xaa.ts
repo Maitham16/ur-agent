@@ -7,7 +7,6 @@
  *
  * Spec refs:
  *   - ID-JAG (IETF draft): https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
- *   - MCP ext-auth (SEP-990): https://github.com/modelcontextprotocol/ext-auth
  *   - RFC 8693 (Token Exchange), RFC 7523 (JWT Bearer), RFC 9728 (PRM)
  *
  * Reference impl: ~/code/mcp/conformance/examples/clients/typescript/everything-client.ts:375-522

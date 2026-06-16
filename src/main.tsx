@@ -236,7 +236,6 @@ function isBeingDebugged() {
   const hasInspectArg = process.execArgv.some(arg => {
     if (isBun) {
       // Note: Bun has an issue with single-file executables where application arguments
-      // from process.argv leak into process.execArgv (similar to https://github.com/oven-sh/bun/issues/11673)
       // This breaks use of --debug mode if we omit this branch
       // We're fine to skip that check, because Bun doesn't support Node.js legacy --debug or --debug-brk flags
       return /--inspect(-brk)?/.test(arg);
@@ -3058,7 +3057,6 @@ async function run(): Promise<CommanderCommand> {
     // repo. Captures git/filesystem state (NOT transcripts) at each turn so
     // environments can be recreated at any user message index. Gating:
     //   - Build-time: this import is stubbed in external builds.
-    //   - Runtime: uploader checks github.com/anthropics/* remote + gcloud auth.
     //   - Safety: UR_CODE_DISABLE_SESSION_DATA_UPLOAD=1 bypasses (tests set this).
     // Import is dynamic + async to avoid adding startup latency.
     const sessionUploaderPromise = "external" === 'ant' ? import('./utils/sessionDataUploader.js') : null;

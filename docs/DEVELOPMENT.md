@@ -64,17 +64,3 @@ bun add -g github:Maitham16/ur-agent
 ```
 
 The package exposes the global `ur` command from `bin/ur.js`. That launcher reads `package.json` for version and repository metadata, then runs `src/entrypoints/cli.tsx` with Bun.
-
-For the first release:
-
-```sh
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-Before making the repository public:
-
-- Confirm `LICENSE` is the non-commercial self-responsibility license.
-- Review `.gitignore` and `git status` before the first commit.
-- Run `bun run secrets:scan` before pushing release commits or tags.
-- Confirm no local credentials or generated runtime state are staged.

@@ -103,7 +103,7 @@ UR Agent is released under the [UR Agent Non-Commercial Self-Responsibility Lice
 
 The software is provided as-is. Users are responsible for reviewing how they run it, what tools it can access, and any outputs or actions it creates.
 
-## Security Before Publishing
+## Security
 
 Do not commit secrets, passwords, API keys, OAuth tokens, private keys, `.env` files, local UR memory, generated indexes, logs, or local settings. The package `files` list ships only the runtime source, launcher, docs, examples, stubs, and license.
 
@@ -122,30 +122,6 @@ bun run build
 ```
 
 The package is configured for GitHub installation through `github:Maitham16/ur-agent`. It is not published to the npm registry yet.
-
-## First GitHub Release
-
-After committing the production files, push the repository and tag the first release:
-
-```sh
-git add .
-git commit -m "Prepare first GitHub installable release"
-git push origin master
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-Then create a GitHub release from the `v1.0.0` tag. Users can install without cloning:
-
-```sh
-bun add -g github:Maitham16/ur-agent
-```
-
-## Before Publishing Publicly
-
-Review `.gitignore` and run a secret scan before the first release. Do not commit `node_modules/`, `.env` files, credentials, local UR memory, generated indexes, logs, or build output.
-
-This package is licensed for non-commercial use only. Users are responsible for their own use, configuration, outputs, actions, and consequences.
 
 ## Designed By
 

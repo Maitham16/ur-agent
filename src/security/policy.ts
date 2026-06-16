@@ -66,7 +66,7 @@ export const SECURITY_TOOLS: SecurityToolPolicy[] = [
   p("trivy", "sca", "passive", false, false, ALL, "low"),
   p("grype", "sca", "passive", false, false, ALL, "low"),
   p("syft", "sca", "passive", false, false, ALL, "low"),
-  p("gitleaks", "secrets", "passive", false, false, ALL, "low", "redact output"),
+  p("secret-scan", "secrets", "passive", false, false, ALL, "low", "redact output"),
   p("trufflehog", "secrets", "passive", false, false, ALL, "low", "local repos unless approved"),
   p("detect-secrets", "secrets", "passive", false, false, ALL, "low"),
   // Cloud / container / IaC

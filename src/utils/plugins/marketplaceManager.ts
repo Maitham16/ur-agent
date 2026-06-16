@@ -776,7 +776,6 @@ function isAuthenticationError(stderr: string): boolean {
 
 /**
  * Extract the SSH host from a git URL for error messaging.
- * Matches the SSH format user@host:path (e.g., git@github.com:owner/repo.git).
  */
 function extractSshHost(gitUrl: string): string | null {
   const match = gitUrl.match(/^[^@]+@([^:]+):/)
@@ -1195,14 +1194,10 @@ function redactHeaders(
  * Redact userinfo (username:password) in a URL to avoid logging credentials.
  *
  * Marketplace URLs may embed credentials (e.g. GitHub PATs in
- * `https://user:token@github.com/org/repo`). Debug logs and progress output
  * are written to disk and may be included in bug reports, so credentials must
  * be redacted before logging.
  *
  * Redacts all credentials from http(s) URLs:
- *   https://user:token@github.com/repo → https://***:***@github.com/repo
- *   https://:token@github.com/repo     → https://:***@github.com/repo
- *   https://token@github.com/repo      → https://***@github.com/repo
  *
  * Both username and password are redacted unconditionally on http(s) because
  * it is impossible to distinguish `placeholder:secret` (e.g. x-access-token:ghp_...)

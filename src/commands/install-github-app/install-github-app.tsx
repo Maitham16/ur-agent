@@ -68,7 +68,7 @@ function InstallGitHubApp(props: {
       warnings.push({
         title: 'GitHub CLI not found',
         message: 'GitHub CLI (gh) does not appear to be installed or accessible.',
-        instructions: ['Install GitHub CLI from https://cli.github.com/', 'macOS: brew install gh', 'Windows: winget install --id GitHub.cli', 'Linux: See installation instructions at https://github.com/cli/cli#installation']
+        instructions: ['Install GitHub CLI from https://cli.github.com/', 'macOS: brew install gh', 'Windows: winget install --id GitHub.cli', 'Linux: install GitHub CLI with your package manager']
       });
     }
 
@@ -181,7 +181,7 @@ function InstallGitHubApp(props: {
     }
   }, [state.selectedRepoName, state.workflowAction, state.selectedWorkflows, state.useCurrentRepo, state.workflowExists, state.secretExists, state.authType]);
   async function openGitHubAppInstallation() {
-    const installUrl = 'https://github.com/apps/claude';
+    const installUrl = 'https://github.com/Maitham16/ur-agent';
     await openBrowser(installUrl);
   }
   async function checkRepositoryPermissions(repoName: string): Promise<{
@@ -287,7 +287,7 @@ function InstallGitHubApp(props: {
           repoWarnings.push({
             title: 'Invalid GitHub URL format',
             message: 'The repository URL format appears to be invalid.',
-            instructions: ['Use format: owner/repo or https://github.com/owner/repo', 'Example: anthropics/claude-cli']
+            instructions: ['Use format: owner/repo', 'Example: Maitham16/ur-agent']
           });
         } else {
           repoName_1 = match[1]?.replace(/\.git$/, '') || '';

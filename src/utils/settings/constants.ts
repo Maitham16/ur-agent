@@ -196,7 +196,6 @@ export const SOURCES = [
 
 /**
  * The JSON Schema URL for UR settings
- * You can edit the contents at https://github.com/SchemaStore/schemastore/blob/master/src/schemas/json/ur-settings.json
  */
 export const UR_CODE_SETTINGS_SCHEMA_URL =
   'https://json.schemastore.org/ur-settings.json'

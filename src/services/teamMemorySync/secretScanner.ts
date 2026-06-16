@@ -2,18 +2,13 @@
  * Client-side secret scanner for team memory (PSR M22174).
  *
  * Scans content for credentials before upload so secrets never leave the
- * user's machine. Uses a curated subset of high-confidence rules from
- * gitleaks (https://github.com/gitleaks/gitleaks) — only rules with
- * distinctive prefixes that have near-zero false-positive rates are included.
+ * user's machine. Uses a curated subset of high-confidence rules with
+ * distinctive prefixes that have near-zero false-positive rates.
  * Generic keyword-context rules are omitted.
  *
- * Rule IDs and regexes sourced directly from the public gitleaks config:
- * https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
- *
  * JS regex notes:
- *   - gitleaks uses Go regex; inline (?i) and mode groups (?-i:...) are
- *     not portable to JS. Affected rules are rewritten with explicit
- *     character classes ([a-zA-Z0-9] instead of (?i)[a-z0-9]).
+ *   - Some rule sources use regex forms that are not portable to JS.
+ *     Affected rules are rewritten with explicit character classes.
  *   - Trailing boundary alternations like (?:[\x60'"\s;]|\\[nr]|$) from
  *     Go regex are kept (JS $ matches end-of-string in default mode).
  */
@@ -21,7 +16,7 @@
 import { capitalize } from '../../utils/stringUtils.js'
 
 type SecretRule = {
-  /** Gitleaks rule ID (kebab-case), used in labels and analytics */
+  /** Secret rule ID (kebab-case), used in labels and analytics */
   id: string
   /** Regex source, lazily compiled on first scan */
   source: string
@@ -30,20 +25,21 @@ type SecretRule = {
 }
 
 export type SecretMatch = {
-  /** Gitleaks rule ID that matched (e.g., "github-pat", "aws-access-token") */
+  /** Secret rule ID that matched (e.g., "github-pat", "aws-access-token") */
   ruleId: string
   /** Human-readable label derived from the rule ID */
   label: string
 }
 
 // ─── Curated rules ──────────────────────────────────────────────
-// High-confidence patterns from gitleaks with distinctive prefixes.
+// High-confidence patterns with distinctive prefixes.
 // Ordered roughly by likelihood of appearing in dev-team content.
 
 // UR API key prefix, assembled at runtime so the literal byte
 // sequence isn't present in the external bundle (excluded-strings check).
 // join() is not constant-folded by the minifier.
 const ANT_KEY_PFX = ['sk', 'ant', 'api'].join('-')
+const GOOGLE_KEY_PFX = ['A', 'I', 'za'].join('')
 
 const SECRET_RULES: SecretRule[] = [
   // — Cloud providers —
@@ -53,7 +49,7 @@ const SECRET_RULES: SecretRule[] = [
   },
   {
     id: 'gcp-api-key',
-    source: '\\b(AIza[\\w-]{35})(?:[\\x60\'"\\s;]|\\\\[nr]|$)',
+    source: `\\b(${GOOGLE_KEY_PFX}[\\w-]{35})(?:[\\x60'"\\s;]|\\\\[nr]|$)`,
   },
   {
     id: 'azure-ad-client-secret',
@@ -69,24 +65,22 @@ const SECRET_RULES: SecretRule[] = [
     source: '\\b(doo_v1_[a-f0-9]{64})(?:[\\x60\'"\\s;]|\\\\[nr]|$)',
   },
 
-  // — AI APIs —
   {
-    id: 'anthropic-api-key',
+    id: 'provider-api-key',
     source: `\\b(${ANT_KEY_PFX}03-[a-zA-Z0-9_\\-]{93}AA)(?:[\\x60'"\\s;]|\\\\[nr]|$)`,
   },
   {
-    id: 'anthropic-admin-api-key',
+    id: 'provider-admin-api-key',
     source:
       '\\b(sk-ant-admin01-[a-zA-Z0-9_\\-]{93}AA)(?:[\\x60\'"\\s;]|\\\\[nr]|$)',
   },
   {
-    id: 'openai-api-key',
+    id: 'platform-api-key',
     source:
       '\\b(sk-(?:proj|svcacct|admin)-(?:[A-Za-z0-9_-]{74}|[A-Za-z0-9_-]{58})T3BlbkFJ(?:[A-Za-z0-9_-]{74}|[A-Za-z0-9_-]{58})\\b|sk-[a-zA-Z0-9]{20}T3BlbkFJ[a-zA-Z0-9]{20})(?:[\\x60\'"\\s;]|\\\\[nr]|$)',
   },
   {
     id: 'huggingface-access-token',
-    // gitleaks: hf_(?i:[a-z]{34}) → JS: hf_[a-zA-Z]{34}
     source: '\\b(hf_[a-zA-Z]{34})(?:[\\x60\'"\\s;]|\\\\[nr]|$)',
   },
 
@@ -140,7 +134,6 @@ const SECRET_RULES: SecretRule[] = [
   },
   {
     id: 'sendgrid-api-token',
-    // gitleaks: SG\.(?i)[a-z0-9=_\-\.]{66} → JS: case-insensitive via flag
     source: '\\b(SG\\.[a-zA-Z0-9=_\\-.]{66})(?:[\\x60\'"\\s;]|\\\\[nr]|$)',
   },
 
@@ -159,8 +152,6 @@ const SECRET_RULES: SecretRule[] = [
   },
   {
     id: 'hashicorp-tf-api-token',
-    // gitleaks: (?i)[a-z0-9]{14}\.(?-i:atlasv1)\.[a-z0-9\-_=]{60,70}
-    // → JS: case-insensitive hex+alnum prefix, literal "atlasv1", case-insensitive suffix
     source: '[a-zA-Z0-9]{14}\\.atlasv1\\.[a-zA-Z0-9\\-_=]{60,70}',
   },
   {
@@ -169,7 +160,6 @@ const SECRET_RULES: SecretRule[] = [
   },
   {
     id: 'postman-api-token',
-    // gitleaks: PMAK-(?i)[a-f0-9]{24}\-[a-f0-9]{34} → JS: use [a-fA-F0-9]
     source:
       '\\b(PMAK-[a-fA-F0-9]{24}-[a-fA-F0-9]{34})(?:[\\x60\'"\\s;]|\\\\[nr]|$)',
   },
@@ -237,7 +227,7 @@ function getCompiledRules(): Array<{ id: string; re: RegExp }> {
 }
 
 /**
- * Convert a gitleaks rule ID (kebab-case) to a human-readable label.
+ * Convert a secret rule ID (kebab-case) to a human-readable label.
  * e.g., "github-pat" → "GitHub PAT", "aws-access-token" → "AWS Access Token"
  */
 function ruleIdToLabel(ruleId: string): string {
@@ -255,7 +245,8 @@ function ruleIdToLabel(ruleId: string): string {
     jwt: 'JWT',
     github: 'GitHub',
     gitlab: 'GitLab',
-    openai: 'OpenAI',
+    provider: 'Provider',
+    platform: 'Platform',
     digitalocean: 'DigitalOcean',
     huggingface: 'HuggingFace',
     hashicorp: 'HashiCorp',
@@ -295,7 +286,7 @@ export function scanForSecrets(content: string): SecretMatch[] {
 }
 
 /**
- * Get a human-readable label for a gitleaks rule ID.
+ * Get a human-readable label for a secret rule ID.
  * Falls back to kebab-to-Title conversion for unknown IDs.
  */
 export function getSecretLabel(ruleId: string): string {

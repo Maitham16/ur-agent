@@ -205,7 +205,7 @@ You CANNOT delete triggers. If the user asks to delete, direct them to: https://
       "session_context": {
         "model": "claude-sonnet-4-6",
         "sources": [
-          {"git_repository": {"url": "${gitRepoUrl || 'https://github.com/ORG/REPO'}"}}
+          {"git_repository": {"url": "${gitRepoUrl || 'https://github.com/Maitham16/ur-agent'}"}}
         ],
         "allowed_tools": ["Bash", "Read", "Write", "Edit", "Glob", "Grep"]
       },
@@ -314,7 +314,7 @@ Minimum interval is 1 hour. \`*/30 * * * *\` will be rejected.
 - These are REMOTE agents — they run in Anthropic's cloud, not on the user's machine. They cannot access local files, local services, or local environment variables.
 - Always convert cron to human-readable when displaying
 - Default to \`enabled: true\` unless user says otherwise
-- Accept GitHub URLs in any format (https://github.com/org/repo, org/repo, etc.) and normalize to the full HTTPS URL (without .git suffix)
+- Accept repository references in owner/repo format and normalize them for GitHub access
 - The prompt is the most important part — spend time getting it right. The remote agent starts with zero context, so the prompt must be self-contained.
 - To delete a trigger, direct users to https://claude.ai/code/scheduled
 ${needsGitHubAccessReminder ? `- If the user's request seems to require GitHub repo access (e.g. cloning a repo, opening PRs, reading code), remind them that ${getFeatureValue_CACHED_MAY_BE_STALE('tengu_cobalt_lantern', false) ? "they should run /web-setup to connect their GitHub account (or install the UR GitHub App on the repo as an alternative) — otherwise the remote agent won't be able to access it" : "they need the UR GitHub App installed on the repo — otherwise the remote agent won't be able to access it"}.` : ''}
