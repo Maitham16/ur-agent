@@ -11,7 +11,20 @@ import type {
   MessageParam,
 } from '@anthropic-ai/sdk/resources/index.mjs'
 
-type AnyObject = Record<string, unknown>
+type AnyObject = Record<string, any>
+
+export interface InnerMessage {
+  id?: string
+  type?: string
+  role?: string
+  model?: string
+  content?: any
+  stop_reason?: any
+  stop_sequence?: any
+  usage?: any
+  context_management?: any
+  [key: string]: any
+}
 
 export interface MessageOrigin {
   kind?: string
@@ -33,7 +46,7 @@ export interface CompactMetadata {
 export interface BaseMessage {
   type?: string
   uuid?: string
-  message?: BetaMessage | MessageParam | AnyObject
+  message?: InnerMessage
   isMeta?: boolean
   isVirtual?: boolean
   isApiErrorMessage?: boolean
@@ -44,12 +57,12 @@ export interface BaseMessage {
   parentToolUseID?: string
   sourceToolUseID?: string
   origin?: MessageOrigin | string
-  timestamp?: number
+  timestamp?: number | string
   requestId?: string
   subtype?: string
-  apiError?: string | { message?: string }
+  apiError?: any
   errorDetails?: string
-  error?: string | Error | { message?: string }
+  error?: any
   research?: unknown
   compactMetadata?: CompactMetadata
   mcpMeta?: AnyObject
@@ -78,14 +91,14 @@ export interface AssistantMessage extends BaseMessage {
   type?: 'assistant'
 }
 
-export interface AttachmentMessage extends BaseMessage {
+export interface AttachmentMessage<A = unknown> extends BaseMessage {
   type?: 'attachment'
-  attachment?: unknown
+  attachment?: A
 }
 
-export interface ProgressMessage extends BaseMessage {
+export interface ProgressMessage<P = unknown> extends BaseMessage {
   type?: 'progress'
-  data?: unknown
+  data?: P
 }
 
 export interface SystemMessage extends BaseMessage {
