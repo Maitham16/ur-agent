@@ -105,7 +105,7 @@ The software is provided as-is. Users are responsible for reviewing how they run
 
 ## Security
 
-Do not commit secrets, passwords, API keys, OAuth tokens, private keys, `.env` files, local UR memory, generated indexes, logs, or local settings. The package `files` list ships only the runtime source, launcher, docs, examples, stubs, and license.
+Do not commit secrets, passwords, API keys, OAuth tokens, private keys, `.env` files, local UR memory, generated indexes, logs, or local settings. The package `files` list ships only the runtime source, launcher, docs, examples, and license.
 
 ## Project Context
 

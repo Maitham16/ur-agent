@@ -4,14 +4,14 @@ import { requireComputerUseSwift } from './swiftLoader.js'
 
 /**
  * Global Escape → abort. Mirrors Cowork's `escAbort.ts` but without Electron:
- * CGEventTap via `@ant/computer-use-swift`. While registered, Escape is
+ * CGEventTap via the native computer-use bridge. While registered, Escape is
  * consumed system-wide (PI defense — a prompt-injected action can't dismiss
  * a dialog with Escape).
  *
  * Lifecycle: register on fresh lock acquire (`wrapper.tsx` `acquireCuLock`),
  * unregister on lock release (`cleanup.ts`). The tap's CFRunLoopSource sits
  * in .defaultMode on CFRunLoopGetMain(), so we hold a drainRunLoop pump
- * retain for the registration's lifetime — same refcounted setInterval as
+ * retain for the registration's lifetime, the same refcounted setInterval as
  * the `@MainActor` methods.
  *
  * `notifyExpectedEscape()` punches a hole for model-synthesized Escapes: the

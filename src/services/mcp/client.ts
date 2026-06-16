@@ -235,9 +235,8 @@ import { isURInChromeMCPServer } from '../../utils/urInChrome/common.js'
 const urInChromeToolRendering =
   (): typeof import('../../utils/urInChrome/toolRendering.js') =>
     require('../../utils/urInChrome/toolRendering.js')
-// Lazy: wrapper.tsx → hostAdapter.ts → executor.ts pulls both native modules
-// (@ant/computer-use-input + @ant/computer-use-swift). Runtime-gated by
-// GrowthBook tengu_malort_pedway (see gates.ts).
+// Lazy: wrapper.tsx -> hostAdapter.ts -> executor.ts pulls native computer-use support.
+// Runtime-gated by GrowthBook tengu_malort_pedway (see gates.ts).
 const computerUseWrapper = feature('CHICAGO_MCP')
   ? (): typeof import('../../utils/computerUse/wrapper.js') =>
       require('../../utils/computerUse/wrapper.js')
@@ -910,7 +909,7 @@ export const connectToServer = memoize(
           '../../utils/urInChrome/mcpServer.js'
         )
         const { createURForChromeMcpServer } = await import(
-          '@ant/claude-for-chrome-mcp'
+          '../../utils/urInChrome/chromeMcpCompat.js'
         )
         const { createLinkedTransportPair } = await import(
           './InProcessTransport.js'

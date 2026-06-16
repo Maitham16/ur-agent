@@ -68,7 +68,7 @@ function InstallGitHubApp(props: {
       warnings.push({
         title: 'GitHub CLI not found',
         message: 'GitHub CLI (gh) does not appear to be installed or accessible.',
-        instructions: ['Install GitHub CLI from https://cli.github.com/', 'macOS: brew install gh', 'Windows: winget install --id GitHub.cli', 'Linux: install GitHub CLI with your package manager']
+        instructions: ['Install GitHub CLI with your package manager', 'macOS: brew install gh', 'Windows: winget install --id GitHub.cli', 'Linux: install GitHub CLI with your package manager']
       });
     }
 

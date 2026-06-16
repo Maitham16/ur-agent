@@ -1596,8 +1596,8 @@ async function run(): Promise<CommanderCommand> {
     // chicago MCP: guarded Computer Use (app allowlist + frontmost gate +
     // SCContentFilter screenshots). Ant-only, GrowthBook-gated — failures
     // are silent (this is dogfooding). Platform + interactive checks inline
-    // so non-macOS / print-mode ants skip the heavy @ant/computer-use-mcp
-    // import entirely. gates.js is light (type-only package import).
+    // so non-macOS / print-mode ants skip the heavy computer-use import
+    // entirely. gates.js is light.
     //
     // Placed AFTER the enterprise-MCP-config check: that check rejects any
     // dynamicMcpConfig entry with `type !== 'sdk'`, and our config is

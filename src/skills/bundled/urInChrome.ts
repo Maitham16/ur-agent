@@ -1,4 +1,4 @@
-import { BROWSER_TOOLS } from '@ant/claude-for-chrome-mcp'
+import { BROWSER_TOOLS } from '../../utils/urInChrome/chromeMcpCompat.js'
 import { BASE_CHROME_PROMPT } from '../../utils/urInChrome/prompt.js'
 import { shouldAutoEnableURInChrome } from '../../utils/urInChrome/setup.js'
 import { registerBundledSkill } from '../bundledSkills.js'

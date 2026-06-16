@@ -571,9 +571,9 @@ const PluginManifestMcpServerSchema = lazySchema(() =>
 /**
  * Schema for a single user-configurable option in plugin manifest userConfig.
  *
- * Shape intentionally matches `McpbUserConfigurationOption` from
- * `@anthropic-ai/mcpb` so the parsed result is structurally assignable to
- * `UserConfigSchema` in mcpbHandler.ts — this lets us reuse
+ * Shape intentionally matches `McpbUserConfigurationOption` so the parsed
+ * result is structurally assignable to `UserConfigSchema` in mcpbHandler.ts.
+ * This lets us reuse
  * `validateUserConfig` and the config dialog without modification.
  * `title` and `description` are required (not optional) because the upstream
  * type requires them and the config dialog renders them.

@@ -1,7 +1,5 @@
 /**
- * Adapter layer that wraps @anthropic-ai/sandbox-runtime with UR CLI-specific integrations.
- * This file provides the bridge between the external sandbox-runtime package and UR CLI's
- * settings system, tool integration, and additional features.
+ * Adapter layer for sandbox integrations.
  */
 
 import type {
@@ -14,12 +12,12 @@ import type {
   SandboxDependencyCheck,
   SandboxRuntimeConfig,
   SandboxViolationEvent,
-} from '@anthropic-ai/sandbox-runtime'
+} from './sandboxRuntimeCompat.js'
 import {
   SandboxManager as BaseSandboxManager,
   SandboxRuntimeConfigSchema,
   SandboxViolationStore,
-} from '@anthropic-ai/sandbox-runtime'
+} from './sandboxRuntimeCompat.js'
 import { rmSync, statSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { memoize } from 'lodash-es'

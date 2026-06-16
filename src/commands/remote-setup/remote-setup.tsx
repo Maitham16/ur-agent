@@ -105,7 +105,7 @@ function Web({
             logEvent('tengu_remote_setup_result', {
               result: result.status as SafeString
             });
-            onDone(result.status === 'gh_not_installed' ? `GitHub CLI not found. Install it via https://cli.github.com/, then run \`gh auth login\`, or connect GitHub on the web: ${url}` : `GitHub CLI not authenticated. Run \`gh auth login\` and try again, or connect GitHub on the web: ${url}`);
+            onDone(result.status === 'gh_not_installed' ? `GitHub CLI not found. Install it with your package manager, then run \`gh auth login\`, or connect GitHub on the web: ${url}` : `GitHub CLI not authenticated. Run \`gh auth login\` and try again, or connect GitHub on the web: ${url}`);
             return;
           }
         case 'has_gh_token':
