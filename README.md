@@ -97,8 +97,5 @@ bun run build
 
 The package is marked `"private": true`, so it is ready for GitHub source sharing but not configured for npm publishing.
 
-## Before Publishing
-
-Review `.gitignore` before the first commit. Do not commit `node_modules/`, `.env` files, credentials, local UR memory, generated indexes, logs, or build output.
-
-No license file is included yet. Add a `LICENSE` before inviting other people to reuse or modify the project.
+## Designed By
+Maitham Al-rubaye
