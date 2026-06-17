@@ -66,4 +66,55 @@ describe('repo marketplace tree', () => {
       await readFile(join(dir, '.ur-plugin', 'plugin.json'), 'utf8')
     }
   })
+
+  test('every plugin manifest parses against PluginManifestSchema', async () => {
+    const raw = await readFile(
+      join(REPO, '.ur-plugin', 'marketplace.json'),
+      'utf8',
+    )
+    const parsed = JSON.parse(raw) as {
+      plugins: Array<{ name: string; source: string }>
+    }
+    for (const entry of parsed.plugins) {
+      if (typeof entry.source !== 'string' || !entry.source.startsWith('./')) {
+        continue
+      }
+      const manifestRaw = await readFile(
+        join(REPO, entry.source, '.ur-plugin', 'plugin.json'),
+        'utf8',
+      )
+      const manifest = JSON.parse(manifestRaw)
+      const result = PluginManifestSchema().safeParse(manifest)
+      if (!result.success) {
+        throw new Error(
+          `${entry.name} plugin.json invalid: ${JSON.stringify(result.error.format(), null, 2)}`,
+        )
+      }
+      expect(result.data.name).toBe(entry.name)
+    }
+  })
+
+  test('every plugin ships a same-named markdown command with frontmatter', async () => {
+    const raw = await readFile(
+      join(REPO, '.ur-plugin', 'marketplace.json'),
+      'utf8',
+    )
+    const parsed = JSON.parse(raw) as {
+      plugins: Array<{ name: string; source: string }>
+    }
+    for (const entry of parsed.plugins) {
+      if (typeof entry.source !== 'string' || !entry.source.startsWith('./')) {
+        continue
+      }
+      const cmdPath = join(
+        REPO,
+        entry.source,
+        'commands',
+        `${entry.name}.md`,
+      )
+      const content = await readFile(cmdPath, 'utf8')
+      expect(content.startsWith('---\n')).toBe(true)
+      expect(content).toContain('description:')
+    }
+  })
 })

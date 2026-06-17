@@ -6,6 +6,17 @@ Each subdirectory here is a self-contained plugin. The marketplace
 manifest at `.ur-plugin/marketplace.json` (at the repo root) lists which of
 them are published.
 
+## Shipped plugins
+
+| Plugin | Slash command | What it does |
+| --- | --- | --- |
+| [`hello`](./hello) | `/hello [name]` | Example greeting. Use as a template. |
+| [`git-summary`](./git-summary) | `/git-summary` | One-paragraph factual summary of the working tree and recent commits. |
+| [`code-review`](./code-review) | `/code-review [base-ref]` | Structured review of the working diff. Correctness, style, test coverage, security, TL;DR verdict. |
+| [`explain-error`](./explain-error) | `/explain-error [command]` | Re-runs a failing command and decodes the error in plain English with two next steps. |
+| [`release-notes`](./release-notes) | `/release-notes [since-ref]` | Drafts release notes grouped by Features / Fixes / Documentation / Other since the last tag. |
+| [`evaluate-response`](./evaluate-response) | `/evaluate-response` | Adversarial self-evaluation of the most recent assistant turn. |
+
 ## Adding a new plugin
 
 1. Copy `hello/` to a new directory, e.g. `marketplace-plugins/my-plugin/`.
