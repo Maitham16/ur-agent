@@ -68,7 +68,7 @@ export function ExistingWorkflowStep(t0) {
   }
   let t6;
   if ($[8] === Symbol.for("react.memo_cache_sentinel")) {
-    t6 = <Box flexDirection="column" marginBottom={1}><Text>A UR workflow file already exists at{" "}<Text color="ur">.github/workflows/claude.yml</Text></Text><Text dimColor={true}>What would you like to do?</Text></Box>;
+    t6 = <Box flexDirection="column" marginBottom={1}><Text>A UR workflow file already exists at{" "}<Text color="ur">.github/workflows/ur.yml</Text></Text><Text dimColor={true}>What would you like to do?</Text></Box>;
     $[8] = t6;
   } else {
     t6 = $[8];

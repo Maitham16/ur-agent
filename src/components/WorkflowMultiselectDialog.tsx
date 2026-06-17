@@ -17,10 +17,10 @@ type Props = {
   defaultSelections: Workflow[];
 };
 const WORKFLOWS: WorkflowOption[] = [{
-  value: 'claude' as const,
+  value: 'ur' as const,
   label: '@UR - Tag @ur in issues and PR comments'
 }, {
-  value: 'claude-review' as const,
+  value: 'ur-review' as const,
   label: 'UR Review - Automated code review on new PRs'
 }];
 function renderInputGuide(exitState: ExitState): React.ReactNode {
