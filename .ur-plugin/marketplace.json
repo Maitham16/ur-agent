@@ -1,0 +1,20 @@
+{
+  "name": "ur-plugins-official",
+  "owner": {
+    "name": "Maitham Al-rubaye",
+    "url": "https://github.com/Maitham16/ur-agent"
+  },
+  "metadata": {
+    "version": "0.1.0",
+    "description": "First-party plugins for UR Agent. This marketplace is hosted in the same repository as the agent itself."
+  },
+  "plugins": [
+    {
+      "name": "hello",
+      "source": "./marketplace-plugins/hello",
+      "description": "Example plugin that adds a `/hello` command. Useful as a template for new plugins.",
+      "category": "examples",
+      "tags": ["example", "template", "starter"]
+    }
+  ]
+}
