@@ -100,7 +100,7 @@
     "stack-utils": "^2.0.0",
     "strip-ansi": "^7.1.0",
     "supports-hyperlinks": "^3.1.0",
-    "tree-kill": "^1.2.3",
+    "tree-kill": "^1.2.2",
     "type-fest": "^4.30.0",
     "undici": "^7.3.0",
     "usehooks-ts": "^3.1.0",
@@ -125,7 +125,7 @@
     "@types/shell-quote": "^1.7.0",
     "@types/stack-utils": "^2.0.0",
     "@types/ws": "^8.5.0",
-    "bun-types": "^1.2.3",
+    "bun-types": "^1.2.0",
     "typescript": "^5.7.0"
   }
 }
