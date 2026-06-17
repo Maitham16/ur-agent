@@ -390,3 +390,65 @@ describe('Verifier L2 subagent nudge', () => {
     }
   })
 })
+
+describe('Verifier mode', () => {
+  test('mode=off skips all checks and disables the nudge', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'ur-verifier-'))
+    try {
+      const v = new Verifier({ cwd, mode: 'off' })
+      v.beginTurn(TURN)
+      // Lying about work in off mode passes
+      const r = await v.checkTurn(TURN, 'I created the file.', false)
+      expect(r.ok).toBe(true)
+      // Empty turn passes too
+      const r2 = await v.checkTurn(TURN, '', false)
+      expect(r2.ok).toBe(true)
+      // Nudge stays off even after a Write
+      v.recordToolCall(TURN, fakeToolUse('Write', { file_path: '/a' }), true)
+      expect(v.shouldNudgeSubagent(TURN, false)).toBeNull()
+    } finally {
+      await rm(cwd, { recursive: true, force: true })
+    }
+  })
+
+  test('mode=loose keeps empty-turn check but skips done-claim and project gates', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'ur-verifier-'))
+    try {
+      await mkdir(join(cwd, '.ur'), { recursive: true })
+      await writeFile(
+        join(cwd, '.ur', 'verify.json'),
+        JSON.stringify({ afterEdit: ['false'] }),
+      )
+      const v = new Verifier({ cwd, mode: 'loose' })
+      v.beginTurn(TURN)
+      // Lying about work — done-claim is OFF in loose, this passes
+      const lyingResult = await v.checkTurn(TURN, 'I created the file.', false)
+      expect(lyingResult.ok).toBe(true)
+      // Empty turn still rejected
+      const emptyResult = await v.checkTurn(TURN, '', false)
+      expect(emptyResult.ok).toBe(false)
+      // Project gates are off in loose — Write + failing gate command still passes
+      v.recordToolCall(
+        TURN,
+        fakeToolUse('Write', { file_path: join(cwd, 'a.ts') }),
+        true,
+      )
+      const gateResult = await v.checkTurn(TURN, 'edited file', true)
+      expect(gateResult.ok).toBe(true)
+    } finally {
+      await rm(cwd, { recursive: true, force: true })
+    }
+  })
+
+  test('mode=loose still nudges the subagent on mutating turns', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'ur-verifier-'))
+    try {
+      const v = new Verifier({ cwd, mode: 'loose' })
+      v.beginTurn(TURN, 'fix bug X')
+      v.recordToolCall(TURN, fakeToolUse('Write', { file_path: '/a' }), true)
+      expect(v.shouldNudgeSubagent(TURN, false)).not.toBeNull()
+    } finally {
+      await rm(cwd, { recursive: true, force: true })
+    }
+  })
+})

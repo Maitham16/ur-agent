@@ -240,6 +240,8 @@ const usageReport: Command = {
 }
 import oauthRefresh from './commands/oauth-refresh/index.js'
 import debugToolCall from './commands/debug-tool-call/index.js'
+import verify from './commands/verify.js'
+import trace from './commands/trace.js'
 import { getSettingSourceName } from './utils/settings/constants.js'
 import {
   type Command,
@@ -413,6 +415,8 @@ const COMMANDS = memoize((): Command[] => [
   passes,
   ...(peersCmd ? [peersCmd] : []),
   tasks,
+  verify,
+  trace,
   ...(workflowsCmd ? [workflowsCmd] : []),
   ...(torch ? [torch] : []),
   ...(process.env.USER_TYPE === 'ant' && !process.env.IS_DEMO

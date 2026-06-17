@@ -49,6 +49,51 @@ Recommended Git behavior:
 - Do not commit generated `.ur/index/`, `.ur/memory/`, `.ur/cache/`, `.ur/tmp/`, or `.ur/logs/`.
 - Do not commit `CLAUDE.local.md`.
 
+## Verifier
+
+UR runs a lightweight verifier in the agent loop to catch false "task done"
+claims, infinite tool-call loops, empty assistant turns, and project gate
+failures. After the deterministic checks pass on a mutating turn, the verifier
+also nudges the model to spawn the independent `verification` subagent for a
+second opinion.
+
+Behaviour is controlled by two environment variables:
+
+```sh
+# Overall mode (default: strict)
+UR_VERIFIER_MODE=strict   # all gates on: done-claim, loops, empty turn,
+                          # project gates, L2 nudge
+UR_VERIFIER_MODE=loose    # only empty-turn check + loop detector + L2 nudge
+UR_VERIFIER_MODE=off      # disable verifier entirely
+
+# Independent L2 toggle (default: on unless mode=off)
+UR_VERIFIER_DISABLE_SUBAGENT=1   # keep L1 deterministic gates, skip L2 nudge
+```
+
+Project-specific gates live in `.ur/verify.json`:
+
+```json
+{
+  "afterEdit": ["bun x tsc --noEmit", "bun test --quiet"],
+  "afterBash": [],
+  "ignorePatterns": ["**/*.md", "node_modules/**"],
+  "timeoutMs": 60000
+}
+```
+
+After a turn that modified files, every `afterEdit` command must exit 0
+before the agent can declare the task complete. A failing command surfaces
+to the model as a structured reminder with the command name and the trimmed
+stdout/stderr.
+
+Two related slash commands:
+
+- `/verify [focus]` — manually ask the agent to spawn the verification
+  subagent (e.g. `/verify the auth flow`). Useful before a commit.
+- `/trace [n]` — print a structured view of the last `n` messages (default 8,
+  max 50): roles, tool calls, tool results, verifier verdicts. Useful for
+  debugging what the agent did during a turn.
+
 ## MCP Servers
 
 Use the `mcp` subcommand to manage Model Context Protocol servers:
