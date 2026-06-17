@@ -469,7 +469,14 @@ export async function openInChrome(url: string): Promise<boolean> {
 }
 
 /**
- * Get the socket directory path (Unix only)
+ * Get the socket directory path (Unix only).
+ *
+ * NOTE: the `claude-mcp-browser-bridge-` prefix is a wire-protocol identifier
+ * that has to match the external Chrome-side MCP server (published separately
+ * from this CLI). Renaming this string would break the IPC channel even
+ * though the rest of the codebase has rebranded to UR — the external
+ * counterpart has not. Leave as-is until / unless the Chrome MCP is also
+ * forked.
  */
 export function getSocketDir(): string {
   return `/tmp/claude-mcp-browser-bridge-${getUsername()}`
