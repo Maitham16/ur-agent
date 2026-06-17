@@ -61,6 +61,80 @@ const permissionSetupModule = feature('TRANSCRIPT_CLASSIFIER')
  * Schema for prompt-based permission requests.
  * Used by UR to request semantic permissions when exiting plan mode.
  */
+function objectValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
+}
+
+function isBashToolName(value: unknown): boolean {
+  return (
+    typeof value !== 'string' ||
+    value === '' ||
+    value === 'Bash' ||
+    value === 'BashTool' ||
+    value === 'functions.Bash'
+  )
+}
+
+function promptTextFromObject(value: Record<string, unknown>): string | null {
+  for (const key of ['prompt', 'description', 'command', 'action', 'summary']) {
+    const text = value[key]
+    if (typeof text === 'string' && text.trim()) {
+      return text.trim()
+    }
+  }
+  return null
+}
+
+function normalizeAllowedPromptItem(value: unknown): AllowedPrompt[] {
+  if (typeof value === 'string') {
+    const prompt = value.trim()
+    return prompt ? [{ tool: 'Bash', prompt }] : []
+  }
+
+  const item = objectValue(value)
+  if (!item || !isBashToolName(item.tool)) return []
+
+  const prompt = promptTextFromObject(item)
+  if (prompt) return [{ tool: 'Bash', prompt }]
+
+  return normalizeAllowedPromptsValue(item.prompts ?? item.allowedPrompts)
+}
+
+function normalizeAllowedPromptsValue(value: unknown): AllowedPrompt[] {
+  if (value === null || value === undefined || value === false) return []
+  if (typeof value === 'string') return normalizeAllowedPromptItem(value)
+  if (Array.isArray(value)) return value.flatMap(normalizeAllowedPromptItem)
+
+  const prompts = objectValue(value)
+  if (!prompts) return []
+
+  const prompt = promptTextFromObject(prompts)
+  if (prompt && isBashToolName(prompts.tool)) return [{ tool: 'Bash', prompt }]
+
+  return Object.entries(prompts).flatMap(([tool, promptValue]) => {
+    if (!isBashToolName(tool)) return []
+    return normalizeAllowedPromptsValue(promptValue)
+  })
+}
+
+function normalizeExitPlanModeInput(value: unknown): unknown {
+  const input = objectValue(value)
+  if (!input) return value
+  const rawAllowedPrompts =
+    input.allowedPrompts ??
+    input.allowed_prompts ??
+    input.prompts ??
+    input.permissions
+  return rawAllowedPrompts === undefined
+    ? value
+    : {
+        ...input,
+        allowedPrompts: normalizeAllowedPromptsValue(rawAllowedPrompts),
+      }
+}
+
 const allowedPromptSchema = lazySchema(() =>
   z.object({
     tool: z.enum(['Bash']).describe('The tool this prompt applies to'),
@@ -74,19 +148,14 @@ const allowedPromptSchema = lazySchema(() =>
 
 const allowedPromptsSchema = lazySchema(() =>
   z.preprocess(
-    (value: unknown) =>
-      Array.isArray(value)
-        ? value.map(item =>
-            typeof item === 'string' ? { tool: 'Bash', prompt: item } : item,
-          )
-        : value,
+    normalizeAllowedPromptsValue,
     z.array(allowedPromptSchema()).optional(),
   ),
 )
 
 export type AllowedPrompt = z.infer<ReturnType<typeof allowedPromptSchema>>
 
-const inputSchema = lazySchema(() =>
+const inputObjectSchema = lazySchema(() =>
   z
     .strictObject({
       allowedPrompts: allowedPromptsSchema()
@@ -96,6 +165,10 @@ const inputSchema = lazySchema(() =>
     })
     .passthrough(),
 )
+
+const inputSchema = lazySchema(() =>
+  z.preprocess(normalizeExitPlanModeInput, inputObjectSchema()),
+)
 type InputSchema = ReturnType<typeof inputSchema>
 
 /**
@@ -104,16 +177,19 @@ type InputSchema = ReturnType<typeof inputSchema>
  * but the SDK/hooks see the normalized version with plan and file path included.
  */
 export const _sdkInputSchema = lazySchema(() =>
-  inputSchema().extend({
-    plan: z
-      .string()
-      .optional()
-      .describe('The plan content (injected by normalizeToolInput from disk)'),
-    planFilePath: z
-      .string()
-      .optional()
-      .describe('The plan file path (injected by normalizeToolInput)'),
-  }),
+  z.preprocess(
+    normalizeExitPlanModeInput,
+    inputObjectSchema().extend({
+      plan: z
+        .string()
+        .optional()
+        .describe('The plan content (injected by normalizeToolInput from disk)'),
+      planFilePath: z
+        .string()
+        .optional()
+        .describe('The plan file path (injected by normalizeToolInput)'),
+    }),
+  ),
 )
 
 export const outputSchema = lazySchema(() =>
