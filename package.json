@@ -1,6 +1,6 @@
 {
   "name": "ur-agent",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "UR terminal coding agent CLI",
   "type": "module",
   "packageManager": "bun@1.3.14",
@@ -37,7 +37,7 @@
   "scripts": {
     "start": "node ./bin/ur.js",
     "dev": "bun --watch run src/entrypoints/cli.tsx",
-    "build": "bun build src/entrypoints/cli.tsx --outdir dist --target bun --define 'MACRO.VERSION=\"1.4.2\"' --define 'MACRO.BUILD_TIME=\"\"' --define 'MACRO.PACKAGE_URL=\"ur-agent\"' --define 'MACRO.NATIVE_PACKAGE_URL=undefined' --define 'MACRO.FEEDBACK_CHANNEL=\"https://github.com/Maitham16/ur-agent/issues\"' --define 'MACRO.ISSUES_EXPLAINER=\"file an issue at https://github.com/Maitham16/ur-agent/issues\"' --define 'MACRO.VERSION_CHANGELOG=\"\"'",
+    "build": "bun build src/entrypoints/cli.tsx --outdir dist --target bun --define 'MACRO.VERSION=\"1.4.3\"' --define 'MACRO.BUILD_TIME=\"\"' --define 'MACRO.PACKAGE_URL=\"ur-agent\"' --define 'MACRO.NATIVE_PACKAGE_URL=undefined' --define 'MACRO.FEEDBACK_CHANNEL=\"https://github.com/Maitham16/ur-agent/issues\"' --define 'MACRO.ISSUES_EXPLAINER=\"file an issue at https://github.com/Maitham16/ur-agent/issues\"' --define 'MACRO.VERSION_CHANGELOG=\"\"'",
     "typecheck": "bun x tsc --noEmit",
     "test": "bun test",
     "smoke": "node ./bin/ur.js --version",
