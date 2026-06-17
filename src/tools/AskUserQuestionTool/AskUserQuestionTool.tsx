@@ -11,6 +11,77 @@ import type { Tool } from '../../Tool.js';
 import { buildTool, type ToolDef } from '../../Tool.js';
 import { lazySchema } from '../../utils/lazySchema.js';
 import { ASK_USER_QUESTION_TOOL_CHIP_WIDTH, ASK_USER_QUESTION_TOOL_NAME, ASK_USER_QUESTION_TOOL_PROMPT, DESCRIPTION, PREVIEW_FEATURE_PROMPT } from './prompt.js';
+function objectValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+function headerFromQuestion(question: string, index: number): string {
+  const stopWords = new Set(['a', 'about', 'also', 'an', 'are', 'be', 'do', 'does', 'for', 'is', 'or', 'should', 'support', 'that', 'the', 'this', 'to', 'want', 'what', 'which', 'with', 'without', 'you']);
+  const word = question.replace(/[^A-Za-z0-9]+/g, ' ').split(/\s+/).find(part => part && !stopWords.has(part.toLowerCase())) ?? `Question ${index + 1}`;
+  return word.slice(0, ASK_USER_QUESTION_TOOL_CHIP_WIDTH);
+}
+function normalizeQuestionOptionInput(value: unknown): unknown {
+  if (typeof value === 'string') {
+    const label = value.trim();
+    return label ? {
+      label,
+      description: label
+    } : value;
+  }
+  const option = objectValue(value);
+  if (!option) return value;
+  const label = typeof option.label === 'string' && option.label.trim() ? option.label.trim() : typeof option.value === 'string' && option.value.trim() ? option.value.trim() : '';
+  const description = typeof option.description === 'string' && option.description.trim() ? option.description.trim() : label;
+  if (!label || !description) return value;
+  return {
+    label,
+    description,
+    ...(typeof option.preview === 'string' ? {
+      preview: option.preview
+    } : {})
+  };
+}
+function normalizeQuestionInput(value: unknown, index: number): unknown {
+  const question = objectValue(value);
+  if (!question || typeof question.question !== 'string' || !Array.isArray(question.options)) return value;
+  const questionText = question.question.trim();
+  if (!questionText) return value;
+  return {
+    question: questionText,
+    header: typeof question.header === 'string' && question.header.trim() ? question.header.trim().slice(0, ASK_USER_QUESTION_TOOL_CHIP_WIDTH) : headerFromQuestion(questionText, index),
+    options: question.options.map(normalizeQuestionOptionInput),
+    ...(typeof question.multiSelect === 'boolean' ? {
+      multiSelect: question.multiSelect
+    } : {})
+  };
+}
+function normalizeAskUserQuestionInput(value: unknown): unknown {
+  const input = objectValue(value);
+  if (!input) return value;
+  const commonFields = {
+    ...(objectValue(input.answers) ? {
+      answers: input.answers
+    } : {}),
+    ...(objectValue(input.annotations) ? {
+      annotations: input.annotations
+    } : {}),
+    ...(objectValue(input.metadata) ? {
+      metadata: input.metadata
+    } : {})
+  };
+  if (Array.isArray(input.questions)) {
+    return {
+      questions: input.questions.map(normalizeQuestionInput),
+      ...commonFields
+    };
+  }
+  if (typeof input.question === 'string' && Array.isArray(input.options)) {
+    return {
+      questions: [normalizeQuestionInput(input, 0)],
+      ...commonFields
+    };
+  }
+  return value;
+}
 const questionOptionSchema = lazySchema(() => z.object({
   label: z.string().describe('The display text for this option that the user will see and select. Should be concise (1-5 words) and clearly describe the choice.'),
   description: z.string().describe('Explanation of what this option means or what will happen if chosen. Useful for providing context about trade-offs or implications.'),
@@ -59,12 +130,12 @@ const commonFields = lazySchema(() => ({
     source: z.string().optional().describe('Optional identifier for the source of this question (e.g., "remember" for /remember command). Used for analytics tracking.')
   }).optional().describe('Optional metadata for tracking and analytics purposes. Not displayed to user.')
 }));
-const inputSchema = lazySchema(() => z.strictObject({
+const inputSchema = lazySchema(() => z.preprocess(normalizeAskUserQuestionInput, z.strictObject({
   questions: z.array(questionSchema()).min(1).max(4).describe('Questions to ask the user (1-4 questions)'),
   ...commonFields()
 }).refine(UNIQUENESS_REFINE.check, {
   message: UNIQUENESS_REFINE.message
-}));
+})));
 type InputSchema = ReturnType<typeof inputSchema>;
 const outputSchema = lazySchema(() => z.object({
   questions: z.array(questionSchema()).describe('The questions that were asked'),
