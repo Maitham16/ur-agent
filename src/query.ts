@@ -315,15 +315,32 @@ async function* queryLoop(
     : null
   let verifierTurnId: string | undefined
   if (verifier) {
+    let userTaskHint: string | undefined
     for (let i = state.messages.length - 1; i >= 0; i--) {
-      const m = state.messages[i] as { type?: string; uuid?: string } | undefined
-      if (m?.type === 'user' && typeof m.uuid === 'string') {
+      const m = state.messages[i] as {
+        type?: string
+        uuid?: string
+        message?: { content?: unknown }
+        isMeta?: boolean
+      } | undefined
+      if (m?.type === 'user' && !m.isMeta && typeof m.uuid === 'string') {
         verifierTurnId = m.uuid
+        const content = m.message?.content
+        if (typeof content === 'string') {
+          userTaskHint = content
+        } else if (Array.isArray(content)) {
+          for (const block of content) {
+            const b = block as { type?: string; text?: string }
+            if (b.type === 'text' && typeof b.text === 'string') {
+              userTaskHint = (userTaskHint ?? '') + b.text
+            }
+          }
+        }
         break
       }
     }
     if (!verifierTurnId) verifierTurnId = deps.uuid()
-    verifier.beginTurn(verifierTurnId)
+    verifier.beginTurn(verifierTurnId, userTaskHint)
   }
   // Rejection injection counter — bail out of verifier after a couple
   // rounds even if the Verifier's own cap missed (defense in depth).
@@ -1425,6 +1442,39 @@ async function* queryLoop(
             transition: { reason: 'verifier_rejected' },
           }
           continue
+        }
+        // L2: L1 gates passed. If this turn modified files and no tool
+        // call is queued, nudge the model to spawn the verification
+        // subagent before yielding the final response. Fires at most
+        // once per request — if the model ignores it, the next loop
+        // pass falls through to `completed`.
+        if (verifierInjections < VERIFIER_MAX_INJECTIONS) {
+          const nudge = verifier.shouldNudgeSubagent(
+            verifierTurnId,
+            toolUseBlocks.length > 0,
+          )
+          if (nudge) {
+            verifier.markSubagentNudged(verifierTurnId)
+            verifierInjections++
+            const nudgeMsg = createUserMessage({
+              content: `<system-reminder>\n${nudge.reminder}\n</system-reminder>`,
+              isMeta: true,
+            })
+            yield nudgeMsg
+            state = {
+              messages: [...messagesForQuery, ...assistantMessages, nudgeMsg],
+              toolUseContext,
+              autoCompactTracking: tracking,
+              maxOutputTokensRecoveryCount: 0,
+              hasAttemptedReactiveCompact,
+              maxOutputTokensOverride: undefined,
+              pendingToolUseSummary: undefined,
+              stopHookActive: undefined,
+              turnCount,
+              transition: { reason: 'verifier_subagent_nudge' },
+            }
+            continue
+          }
         }
         verifier.endTurn(verifierTurnId)
       }

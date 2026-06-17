@@ -20,6 +20,7 @@ import {
   runGateCommands,
   type VerifyConfig,
 } from './projectGates.js'
+import { buildSubagentNudge, type SubagentNudge } from './subagentNudge.js'
 
 export type VerifierOptions = {
   cwd: string
@@ -27,6 +28,13 @@ export type VerifierOptions = {
   maxRejectionsPerTurn?: number
   /** Override the loop detector's repeat threshold. */
   repeatThreshold?: number
+  /**
+   * When true (default), after L1 passes on a mutating turn the verifier
+   * asks the loop to nudge the model to spawn the verification subagent.
+   * Set false to disable L2 entirely. Honors UR_VERIFIER_DISABLE_SUBAGENT
+   * env var when not explicitly passed.
+   */
+  enableSubagentNudge?: boolean
 }
 
 export type CheckResult = { ok: true } | { ok: false; reminder: string }
@@ -38,20 +46,28 @@ export class Verifier {
   private loops: LoopDetector
   private configPromise: Promise<VerifyConfig | null>
   private rejectionsByTurn = new Map<string, number>()
+  private nudgedTurns = new Set<string>()
+  private userTaskHintByTurn = new Map<string, string>()
   private maxRejections: number
   private cwd: string
+  private enableSubagentNudge: boolean
 
   constructor(options: VerifierOptions) {
     this.cwd = options.cwd
     this.maxRejections = options.maxRejectionsPerTurn ?? DEFAULT_MAX_REJECTIONS_PER_TURN
     this.loops = new LoopDetector(options.repeatThreshold)
     this.configPromise = loadVerifyConfig(options.cwd)
+    this.enableSubagentNudge =
+      options.enableSubagentNudge ??
+      process.env.UR_VERIFIER_DISABLE_SUBAGENT !== '1'
   }
 
   /** Reset per-turn state at the start of each new user request. */
-  beginTurn(turnId: string): void {
+  beginTurn(turnId: string, userTaskHint?: string): void {
     this.loops.reset()
     this.rejectionsByTurn.delete(turnId)
+    this.nudgedTurns.delete(turnId)
+    if (userTaskHint) this.userTaskHintByTurn.set(turnId, userTaskHint)
   }
 
   /**
@@ -131,10 +147,41 @@ export class Verifier {
     return { ok: true }
   }
 
+  /**
+   * L2 nudge: if L1 passed on a mutating turn and we have not yet
+   * nudged the model to spawn the verification subagent, return the
+   * reminder. Otherwise null. Caller is expected to inject the reminder
+   * as a user message and re-enter the loop.
+   */
+  shouldNudgeSubagent(
+    turnId: string,
+    hadToolCalls: boolean,
+  ): SubagentNudge | null {
+    if (!this.enableSubagentNudge) return null
+    if (this.nudgedTurns.has(turnId)) return null
+    // Only nudge when the model is about to finish (no further tool calls)
+    // AND it actually changed something — otherwise verification is a
+    // no-op cost.
+    if (hadToolCalls) return null
+    if (!this.ledger.hasMutatingEffect(turnId)) return null
+    const nudge = buildSubagentNudge({
+      modifiedFiles: this.ledger.modifiedFiles(turnId),
+      ranBash: this.ledger.ranBash(turnId),
+      userTaskHint: this.userTaskHintByTurn.get(turnId),
+    })
+    return nudge
+  }
+
+  markSubagentNudged(turnId: string): void {
+    this.nudgedTurns.add(turnId)
+  }
+
   /** Drop ledger + rejection state for a finished turn. */
   endTurn(turnId: string): void {
     this.ledger.forget(turnId)
     this.rejectionsByTurn.delete(turnId)
+    this.nudgedTurns.delete(turnId)
+    this.userTaskHintByTurn.delete(turnId)
   }
 
   private bumpRejection(turnId: string): void {
@@ -170,3 +217,4 @@ export {
   type ClaimKind,
   type DoneGateResult,
 } from './doneDetector.js'
+export { buildSubagentNudge, type SubagentNudge } from './subagentNudge.js'

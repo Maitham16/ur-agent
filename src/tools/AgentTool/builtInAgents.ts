@@ -61,10 +61,10 @@ export function getBuiltInAgents(): AgentDefinition[] {
     agents.push(UR_CODE_GUIDE_AGENT)
   }
 
-  if (
-    feature('VERIFICATION_AGENT') &&
-    getFeatureValue_CACHED_MAY_BE_STALE('tengu_hive_evidence', false)
-  ) {
+  // Verification agent: always available on the main thread. The verifier
+  // subsystem (src/services/verifier) nudges the model to spawn it after a
+  // mutating turn. Opt-out via UR_VERIFIER_DISABLE_SUBAGENT.
+  if (!isEnvTruthy(process.env.UR_VERIFIER_DISABLE_SUBAGENT)) {
     agents.push(VERIFICATION_AGENT)
   }
 

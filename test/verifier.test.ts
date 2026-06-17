@@ -316,3 +316,77 @@ describe('Verifier integration', () => {
     }
   })
 })
+
+describe('Verifier L2 subagent nudge', () => {
+  test('nudges once when the turn modified files and no tool call is queued', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'ur-verifier-'))
+    try {
+      const v = new Verifier({ cwd })
+      v.beginTurn(TURN, 'please fix bug X')
+      v.recordToolCall(TURN, fakeToolUse('Write', { file_path: '/a.ts' }), true)
+      const nudge = v.shouldNudgeSubagent(TURN, false)
+      expect(nudge).not.toBeNull()
+      expect(nudge?.reminder).toContain('verification')
+      expect(nudge?.reminder).toContain('/a.ts')
+      expect(nudge?.reminder).toContain('please fix bug X')
+      v.markSubagentNudged(TURN)
+      // Second call returns null
+      expect(v.shouldNudgeSubagent(TURN, false)).toBeNull()
+    } finally {
+      await rm(cwd, { recursive: true, force: true })
+    }
+  })
+
+  test('does not nudge when the turn still has tool calls queued', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'ur-verifier-'))
+    try {
+      const v = new Verifier({ cwd })
+      v.beginTurn(TURN)
+      v.recordToolCall(TURN, fakeToolUse('Write', { file_path: '/a' }), true)
+      expect(v.shouldNudgeSubagent(TURN, true)).toBeNull()
+    } finally {
+      await rm(cwd, { recursive: true, force: true })
+    }
+  })
+
+  test('does not nudge for read-only turns', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'ur-verifier-'))
+    try {
+      const v = new Verifier({ cwd })
+      v.beginTurn(TURN)
+      v.recordToolCall(TURN, fakeToolUse('Read', { file_path: '/a' }), true)
+      v.recordToolCall(TURN, fakeToolUse('Grep', { pattern: 'x' }, 'tu_2'), true)
+      expect(v.shouldNudgeSubagent(TURN, false)).toBeNull()
+    } finally {
+      await rm(cwd, { recursive: true, force: true })
+    }
+  })
+
+  test('respects enableSubagentNudge=false', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'ur-verifier-'))
+    try {
+      const v = new Verifier({ cwd, enableSubagentNudge: false })
+      v.beginTurn(TURN)
+      v.recordToolCall(TURN, fakeToolUse('Write', { file_path: '/a' }), true)
+      expect(v.shouldNudgeSubagent(TURN, false)).toBeNull()
+    } finally {
+      await rm(cwd, { recursive: true, force: true })
+    }
+  })
+
+  test('nudge resets after endTurn so the next turn can nudge again', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'ur-verifier-'))
+    try {
+      const v = new Verifier({ cwd })
+      v.beginTurn(TURN)
+      v.recordToolCall(TURN, fakeToolUse('Write', { file_path: '/a' }), true)
+      v.markSubagentNudged(TURN)
+      v.endTurn(TURN)
+      v.beginTurn(TURN)
+      v.recordToolCall(TURN, fakeToolUse('Write', { file_path: '/b' }, 'tu_2'), true)
+      expect(v.shouldNudgeSubagent(TURN, false)).not.toBeNull()
+    } finally {
+      await rm(cwd, { recursive: true, force: true })
+    }
+  })
+})
