@@ -18,7 +18,7 @@ type Props = {
 };
 const WORKFLOWS: WorkflowOption[] = [{
   value: 'claude' as const,
-  label: '@UR - Tag @claude in issues and PR comments'
+  label: '@UR - Tag @ur in issues and PR comments'
 }, {
   value: 'claude-review' as const,
   label: 'UR Review - Automated code review on new PRs'
