@@ -103,7 +103,7 @@ const bothAuthMethodsNotice: StatusNoticeDefinition = {
       source: apiKeySource
     } = getURHQApiKeyWithSource({
       skipRetrievingKeyFromApiKeyHelper: true
-    });
+    }) || {};
     const authTokenInfo = getAuthTokenSource();
     return apiKeySource !== 'none' && authTokenInfo.source !== 'none' && !(apiKeySource === 'apiKeyHelper' && authTokenInfo.source === 'apiKeyHelper');
   },
@@ -112,7 +112,7 @@ const bothAuthMethodsNotice: StatusNoticeDefinition = {
       source: apiKeySource
     } = getURHQApiKeyWithSource({
       skipRetrievingKeyFromApiKeyHelper: true
-    });
+    }) || {};
     const authTokenInfo = getAuthTokenSource();
     return <Box flexDirection="column" marginTop={1}>
         <Box flexDirection="row">
