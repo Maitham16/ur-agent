@@ -17,8 +17,8 @@ export function isOverageProvisioningAllowed(): boolean { return false; }
 export function hasURHQApiKeyAuth(): boolean { return false; }
 export function isConsumerSubscriber(): boolean { return false; }
 export function getRateLimitTier(): string { return 'free'; }
-export function getURHQApiKeyWithSource(...args: any[]): any { return {}; }
-export function getApiKeyFromApiKeyHelper(...args: any[]): any { return {}; }
+export function getURHQApiKeyWithSource(...args: any[]): any { return { source: 'none' }; }
+export function getApiKeyFromApiKeyHelper(...args: any[]): any { return { source: 'none' }; }
 export function prefetchAwsCredentialsAndBedRockInfoIfSafe(): void {}
 export function prefetchGcpCredentialsIfSafe(): void {}
 export function validateForceLoginOrg(...args: any[]): Promise<{valid: boolean, message?: string}> { return Promise.resolve({valid: true}); }
@@ -27,7 +27,7 @@ export function clearApiKeyHelperCache(): void {}
 export function clearAwsCredentialsCache(): void {}
 export function clearGcpCredentialsCache(): void {}
 export function getURHQApiKey(): any { return undefined; }
-export function getAuthTokenSource(...args: any[]): any { return {}; }
+export function getAuthTokenSource(...args: any[]): any { return { source: 'none' }; }
 export function getApiKeyFromConfigOrMacOSKeychain(...args: any[]): any { return undefined; }
 export function getOtelHeadersFromHelper(): any { return {}; }
 export function is1PApiCustomer(): boolean { return false; }
