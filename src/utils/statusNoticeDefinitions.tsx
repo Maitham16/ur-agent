@@ -77,7 +77,7 @@ const apiKeyConflictNotice: StatusNoticeDefinition = {
       source: apiKeySource
     } = getURHQApiKeyWithSource({
       skipRetrievingKeyFromApiKeyHelper: true
-    });
+    }) || {};
     return !!getApiKeyFromConfigOrMacOSKeychain() && (apiKeySource === 'UR_API_KEY' || apiKeySource === 'apiKeyHelper');
   },
   render: () => {
@@ -85,7 +85,7 @@ const apiKeyConflictNotice: StatusNoticeDefinition = {
       source: apiKeySource
     } = getURHQApiKeyWithSource({
       skipRetrievingKeyFromApiKeyHelper: true
-    });
+    }) || {};
     return <Box flexDirection="row" marginTop={1}>
         <Text color="warning">{figures.warning}</Text>
         <Text color="warning">

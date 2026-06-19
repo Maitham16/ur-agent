@@ -59,6 +59,7 @@ export async function getImageProcessor(): Promise<SharpFunction> {
   // Use sharp for non-bundled builds or as fallback.
   // Single structural cast: our SharpFunction is a subset of sharp's actual type surface.
   const imported = (await import(
+    // @ts-ignore
     'sharp'
   )) as unknown as MaybeDefault<SharpFunction>
   const sharp = unwrapDefault(imported)
@@ -77,6 +78,7 @@ export async function getImageCreator(): Promise<SharpCreator> {
   }
 
   const imported = (await import(
+    // @ts-ignore
     'sharp'
   )) as unknown as MaybeDefault<SharpCreator>
   const sharp = unwrapDefault(imported)

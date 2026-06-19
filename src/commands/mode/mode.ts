@@ -4,7 +4,7 @@ import { handleSecurityCommand } from '../../security/index.js'
 import type { LocalCommandCall } from '../../types/command.js'
 import { getCwd } from '../../utils/cwd.js'
 
-const MODES = ['code', 'research', 'debug', 'browser', 'image', 'video', 'data']
+const MODES = ['auto', 'code', 'research', 'debug', 'browser', 'image', 'video', 'data']
 // Security modes are handled by the security module (which enforces the safety boundary).
 const SECURITY_MODES = ['security', 'audit', 'blue-team', 'purple-team', 'pentest-lab', 'hardening', 'incident-response', 'secure-code']
 const file = (cwd: string) => join(cwd, '.ur', 'mode')

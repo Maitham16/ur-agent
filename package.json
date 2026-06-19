@@ -37,7 +37,7 @@
   "scripts": {
     "start": "node ./bin/ur.js",
     "dev": "bun --watch run src/entrypoints/cli.tsx",
-    "build": "bun build src/entrypoints/cli.tsx --outdir dist --target bun --define 'MACRO.VERSION=\"1.5.0\"' --define 'MACRO.BUILD_TIME=\"\"' --define 'MACRO.PACKAGE_URL=\"ur-agent\"' --define 'MACRO.NATIVE_PACKAGE_URL=undefined' --define 'MACRO.FEEDBACK_CHANNEL=\"https://github.com/Maitham16/ur-agent/issues\"' --define 'MACRO.ISSUES_EXPLAINER=\"file an issue at https://github.com/Maitham16/ur-agent/issues\"' --define 'MACRO.VERSION_CHANGELOG=\"\"'",
+    "build": "bun build src/entrypoints/cli.tsx --outdir dist --target bun --external sharp --external @aws-sdk/credential-provider-node --external @smithy/node-http-handler --define 'MACRO.VERSION=\"1.5.0\"' --define 'MACRO.BUILD_TIME=\"\"' --define 'MACRO.PACKAGE_URL=\"ur-agent\"' --define 'MACRO.NATIVE_PACKAGE_URL=undefined' --define 'MACRO.FEEDBACK_CHANNEL=\"https://github.com/Maitham16/ur-agent/issues\"' --define 'MACRO.ISSUES_EXPLAINER=\"file an issue at https://github.com/Maitham16/ur-agent/issues\"' --define 'MACRO.VERSION_CHANGELOG=\"\"'",
     "typecheck": "bun x tsc --noEmit",
     "lint": "echo 'Linting passed'",
     "test": "bun test",
@@ -93,7 +93,6 @@
     "react-compiler-runtime": "^1.0.0",
     "react-reconciler": "^0.34.0-canary-705268dc-20260409",
     "semver": "^7.6.0",
-    "sharp": "^0.33.5",
     "shell-quote": "^1.8.0",
     "signal-exit": "^4.1.0",
     "stack-utils": "^2.0.0",
@@ -128,5 +127,13 @@
     "bun-types": "^1.2.0",
     "playwright": "^1.61.0",
     "typescript": "^5.7.0"
+  },
+  "overrides": {
+    "react-compiler-runtime": {
+      "react": "$react"
+    },
+    "usehooks-ts": {
+      "react": "$react"
+    }
   }
 }

@@ -7,6 +7,10 @@ export const call: LocalCommandCall = async (args: string) => {
     const items = listResearch(getCwd(), 'papers')
     return { type: 'text', value: items.length ? items.map((i) => `- ${i.text}`).join('\n') : 'no papers recorded yet' }
   }
+  const items = listResearch(getCwd(), 'papers')
+  if (items.some(i => i.text === text)) {
+    return { type: 'text', value: `already recorded in papers: ${text}` }
+  }
   addResearch(getCwd(), 'papers', text)
   return { type: 'text', value: `added to papers: ${text}` }
 }

@@ -21,32 +21,5 @@ export function AnimatedHouse({
 }: {
   char?: string;
 }): React.ReactNode {
-  const [reducedMotion] = useState(() => getInitialSettings().prefersReducedMotion ?? false);
-  const [done, setDone] = useState(reducedMotion);
-  const startTimeRef = useRef<number | null>(null);
-  const [ref, time] = useAnimationFrame(done ? null : 150);
-
-  useEffect(() => {
-    if (done) return;
-    const t = setTimeout(setDone, TOTAL_ANIMATION_MS, true);
-    return () => clearTimeout(t);
-  }, [done]);
-
-  if (done) {
-    return <Box ref={ref}>
-        <Text color={SETTLED_GREY}>{char}</Text>
-      </Box>;
-  }
-
-  if (startTimeRef.current === null) {
-    startTimeRef.current = time;
-  }
-  const elapsed = time - startTimeRef.current;
-  const frameIndex = Math.floor(elapsed / 250) % BUILD_FRAMES.length;
-  const currentFrame = char === UR_HOUSE_SYMBOL ? BUILD_FRAMES[frameIndex] : char;
-  const hue = (elapsed / SWEEP_DURATION_MS * 360) % 360;
-
-  return <Box ref={ref}>
-      <Text color={toRGBColor(hueToRgb(hue))}>{currentFrame}</Text>
-    </Box>;
+  return <Text color={SETTLED_GREY}>{char}</Text>;
 }

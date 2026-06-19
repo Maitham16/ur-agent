@@ -398,7 +398,9 @@ export async function getAWSClientProxyConfig(): Promise<object> {
   }
 
   const [{ NodeHttpHandler }, { defaultProvider }] = await Promise.all([
+    // @ts-ignore
     import('@smithy/node-http-handler'),
+    // @ts-ignore
     import('@aws-sdk/credential-provider-node'),
   ])
 

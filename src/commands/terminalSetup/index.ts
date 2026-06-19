@@ -1,23 +1,21 @@
-import type { Command } from '../../commands.js'
-import { env } from '../../utils/env.js'
+import type { Command } from '../../types/command.js'
+import type { ContentBlockParam } from '@urhq-ai/sdk/resources/index.mjs'
 
-// Terminals that natively support CSI u / Kitty keyboard protocol
-const NATIVE_CSIU_TERMINALS: Record<string, string> = {
-  ghostty: 'Ghostty',
-  kitty: 'Kitty',
-  'iTerm.app': 'iTerm2',
-  WezTerm: 'WezTerm',
-}
-
-const terminalSetup = {
-  type: 'local-jsx',
+const terminalSetupCmd: Command = {
+  type: 'prompt',
   name: 'terminal-setup',
-  description:
-    env.terminal === 'Apple_Terminal'
-      ? 'Enable Option+Enter key binding for newlines and visual bell'
-      : 'Install Shift+Enter key binding for newlines',
-  isHidden: env.terminal !== null && env.terminal in NATIVE_CSIU_TERMINALS,
-  load: () => import('./terminalSetup.js'),
-} satisfies Command
-
-export default terminalSetup
+  description: 'Setup the terminal with proper configurations',
+  argumentHint: '<task>',
+  progressMessage: 'analyzing terminal setup',
+  contentLength: 0,
+  source: 'builtin',
+  async getPromptForCommand(args: string): Promise<ContentBlockParam[]> {
+    return [
+      {
+        type: 'text',
+        text: `The user wants you to help setup their terminal: ${args || 'Please provide configuration for terminal tools or check my environment.'}\nPlease gather real data using tools to check their OS, shell, and provide concrete instructions or scripts to set up their terminal.`,
+      },
+    ]
+  },
+}
+export default terminalSetupCmd
