@@ -24,7 +24,7 @@ export function TypeStep(_props) {
   } = useWizard();
   const [agentType, setAgentType] = useState(wizardData.agentType || "");
   const [error, setError] = useState(null);
-  const [cursorOffset, setCursorOffset] = useState(agentType.length);
+  const [caretOffset, setcaretOffset] = useState(agentType.length);
   let t0;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
     t0 = {
@@ -72,10 +72,10 @@ export function TypeStep(_props) {
     t3 = $[5];
   }
   let t4;
-  if ($[6] !== agentType || $[7] !== cursorOffset || $[8] !== handleSubmit) {
-    t4 = <Box marginTop={1}><TextInput value={agentType} onChange={setAgentType} onSubmit={handleSubmit} placeholder="e.g., test-runner, tech-lead, etc" columns={60} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} focus={true} showCursor={true} /></Box>;
+  if ($[6] !== agentType || $[7] !== caretOffset || $[8] !== handleSubmit) {
+    t4 = <Box marginTop={1}><TextInput value={agentType} onChange={setAgentType} onSubmit={handleSubmit} placeholder="e.g., test-runner, tech-lead, etc" columns={60} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} focus={true} showCaret={true} /></Box>;
     $[6] = agentType;
-    $[7] = cursorOffset;
+    $[7] = caretOffset;
     $[8] = handleSubmit;
     $[9] = t4;
   } else {

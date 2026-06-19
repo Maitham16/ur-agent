@@ -261,7 +261,7 @@ type RulesTabContentProps = {
   onSelect: (value: string) => void;
   onCancel: () => void;
   lastFocusedRuleKey: string | undefined;
-  cursorOffset?: number;
+  caretOffset?: number;
   onHeaderFocusChange?: (focused: boolean) => void;
 };
 
@@ -276,7 +276,7 @@ function RulesTabContent(props) {
     onSelect,
     onCancel,
     lastFocusedRuleKey,
-    cursorOffset,
+    caretOffset,
     onHeaderFocusChange
   } = props;
   const tabWidth = useTabsWidth();
@@ -322,9 +322,9 @@ function RulesTabContent(props) {
   useEffect(t2, t3);
   const t4 = isSearchMode && !headerFocused;
   let t5;
-  if ($[9] !== cursorOffset || $[10] !== isFocused || $[11] !== searchQuery || $[12] !== t4 || $[13] !== tabWidth) {
-    t5 = <Box marginBottom={1} flexDirection="column"><SearchBox query={searchQuery} isFocused={t4} isTerminalFocused={isFocused} width={tabWidth} cursorOffset={cursorOffset} /></Box>;
-    $[9] = cursorOffset;
+  if ($[9] !== caretOffset || $[10] !== isFocused || $[11] !== searchQuery || $[12] !== t4 || $[13] !== tabWidth) {
+    t5 = <Box marginBottom={1} flexDirection="column"><SearchBox query={searchQuery} isFocused={t4} isTerminalFocused={isFocused} width={tabWidth} caretOffset={caretOffset} /></Box>;
+    $[9] = caretOffset;
     $[10] = isFocused;
     $[11] = searchQuery;
     $[12] = t4;
@@ -669,7 +669,7 @@ export function PermissionRuleList(t0) {
   const {
     query: searchQuery,
     setQuery: setSearchQuery,
-    cursorOffset: searchCursorOffset
+    caretOffset: searchcaretOffset
   } = useSearchInput(t9);
   let t10;
   if ($[18] !== isSearchMode || $[19] !== isSearchModeActive || $[20] !== setSearchQuery) {
@@ -1039,14 +1039,14 @@ export function PermissionRuleList(t0) {
     return t25;
   }
   let t22;
-  if ($[73] !== getRulesOptions || $[74] !== handleRulesCancel || $[75] !== handleToolSelect || $[76] !== isSearchMode || $[77] !== isTerminalFocused || $[78] !== lastFocusedRuleKey || $[79] !== searchCursorOffset || $[80] !== searchQuery) {
+  if ($[73] !== getRulesOptions || $[74] !== handleRulesCancel || $[75] !== handleToolSelect || $[76] !== isSearchMode || $[77] !== isTerminalFocused || $[78] !== lastFocusedRuleKey || $[79] !== searchcaretOffset || $[80] !== searchQuery) {
     t22 = {
       searchQuery,
       isSearchMode,
       isFocused: isTerminalFocused,
       onCancel: handleRulesCancel,
       lastFocusedRuleKey,
-      cursorOffset: searchCursorOffset,
+      caretOffset: searchcaretOffset,
       getRulesOptions,
       handleToolSelect,
       onHeaderFocusChange: handleHeaderFocusChange
@@ -1057,7 +1057,7 @@ export function PermissionRuleList(t0) {
     $[76] = isSearchMode;
     $[77] = isTerminalFocused;
     $[78] = lastFocusedRuleKey;
-    $[79] = searchCursorOffset;
+    $[79] = searchcaretOffset;
     $[80] = searchQuery;
     $[81] = t22;
   } else {

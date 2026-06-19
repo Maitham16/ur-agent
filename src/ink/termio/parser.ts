@@ -13,7 +13,7 @@
 
 import { getGraphemeSegmenter } from '../../utils/intl.js'
 import { C0 } from './ansi.js'
-import { CSI, CURSOR_STYLES, ERASE_DISPLAY, ERASE_LINE_REGION } from './csi.js'
+import { CSI, caret_STYLES, ERASE_DISPLAY, ERASE_LINE_REGION } from './csi.js'
 import { DEC } from './dec.js'
 import { parseEsc } from './esc.js'
 import { parseOSC } from './osc.js'
@@ -115,45 +115,45 @@ function parseCSI(rawSequence: string): Action | null {
     return { type: 'sgr', params: paramStr }
   }
 
-  // Cursor movement
+  // caret movement
   if (finalByte === CSI.CUU) {
     return {
-      type: 'cursor',
+      type: 'caret',
       action: { type: 'move', direction: 'up', count: p0 },
     }
   }
   if (finalByte === CSI.CUD) {
     return {
-      type: 'cursor',
+      type: 'caret',
       action: { type: 'move', direction: 'down', count: p0 },
     }
   }
   if (finalByte === CSI.CUF) {
     return {
-      type: 'cursor',
+      type: 'caret',
       action: { type: 'move', direction: 'forward', count: p0 },
     }
   }
   if (finalByte === CSI.CUB) {
     return {
-      type: 'cursor',
+      type: 'caret',
       action: { type: 'move', direction: 'back', count: p0 },
     }
   }
   if (finalByte === CSI.CNL) {
-    return { type: 'cursor', action: { type: 'nextLine', count: p0 } }
+    return { type: 'caret', action: { type: 'nextLine', count: p0 } }
   }
   if (finalByte === CSI.CPL) {
-    return { type: 'cursor', action: { type: 'prevLine', count: p0 } }
+    return { type: 'caret', action: { type: 'prevLine', count: p0 } }
   }
   if (finalByte === CSI.CHA) {
-    return { type: 'cursor', action: { type: 'column', col: p0 } }
+    return { type: 'caret', action: { type: 'column', col: p0 } }
   }
   if (finalByte === CSI.CUP || finalByte === CSI.HVP) {
-    return { type: 'cursor', action: { type: 'position', row: p0, col: p1 } }
+    return { type: 'caret', action: { type: 'position', row: p0, col: p1 } }
   }
   if (finalByte === CSI.VPA) {
-    return { type: 'cursor', action: { type: 'row', row: p0 } }
+    return { type: 'caret', action: { type: 'row', row: p0 } }
   }
 
   // Erase
@@ -183,27 +183,27 @@ function parseCSI(rawSequence: string): Action | null {
     }
   }
 
-  // Cursor save/restore
+  // caret save/restore
   if (finalByte === CSI.SCOSC) {
-    return { type: 'cursor', action: { type: 'save' } }
+    return { type: 'caret', action: { type: 'save' } }
   }
   if (finalByte === CSI.SCORC) {
-    return { type: 'cursor', action: { type: 'restore' } }
+    return { type: 'caret', action: { type: 'restore' } }
   }
 
-  // Cursor style
+  // caret style
   if (finalByte === CSI.DECSCUSR && intermediate === ' ') {
-    const styleInfo = CURSOR_STYLES[p0] ?? CURSOR_STYLES[0]!
-    return { type: 'cursor', action: { type: 'style', ...styleInfo } }
+    const styleInfo = caret_STYLES[p0] ?? caret_STYLES[0]!
+    return { type: 'caret', action: { type: 'style', ...styleInfo } }
   }
 
   // Private modes
   if (privateMode === '?' && (finalByte === CSI.SM || finalByte === CSI.RM)) {
     const enabled = finalByte === CSI.SM
 
-    if (p0 === DEC.CURSOR_VISIBLE) {
+    if (p0 === DEC.caret_VISIBLE) {
       return {
-        type: 'cursor',
+        type: 'caret',
         action: enabled ? { type: 'show' } : { type: 'hide' },
       }
     }
@@ -383,7 +383,7 @@ export class Parser {
       }
 
       case 'ss3':
-        // SS3 sequences are typically cursor keys in application mode
+        // SS3 sequences are typically caret keys in application mode
         // For output parsing, treat as unknown
         return [{ type: 'unknown', sequence: seq }]
 

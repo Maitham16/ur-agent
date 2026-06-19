@@ -96,7 +96,7 @@ export function dispatchClick(
  * fires leave on the nodes exited, enter on the nodes entered.
  *
  * Mutates `hovered` in place so the caller (App instance) can hold it
- * across calls. Clears the set when the hit is null (cursor moved into a
+ * across calls. Clears the set when the hit is null (caret moved into a
  * non-rendered gap or off the root rect).
  */
 export function dispatchHover(

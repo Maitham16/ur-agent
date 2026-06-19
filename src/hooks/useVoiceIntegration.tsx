@@ -87,8 +87,8 @@ const DEFAULT_VOICE_KEYSTROKE: ParsedKeystroke = {
 };
 type InsertTextHandle = {
   insert: (text: string) => void;
-  setInputWithCursor: (value: string, cursor: number) => void;
-  cursorOffset: number;
+  setInputWithcaret: (value: string, caret: number) => void;
+  caretOffset: number;
 };
 type UseVoiceIntegrationArgs = {
   setInputValueRaw: React.Dispatch<React.SetStateAction<string>>;
@@ -125,8 +125,8 @@ export function useVoiceIntegration({
     addNotification
   } = useNotifications();
 
-  // Tracks the input content before/after the cursor when voice starts,
-  // so interim transcripts can be inserted at the cursor position without
+  // Tracks the input content before/after the caret when voice starts,
+  // so interim transcripts can be inserted at the caret position without
   // clobbering surrounding user text.
   const voicePrefixRef = useRef<string | null>(null);
   const voiceSuffixRef = useRef<string>('');
@@ -142,7 +142,7 @@ export function useVoiceIntegration({
   // anchor). Called during warmup (to clean up chars that leaked past
   // stopImmediatePropagation — listener order is not guaranteed) and
   // on activation (with anchor=true to capture the prefix/suffix around
-  // the cursor for interim transcript placement). The caller passes the
+  // the caret for interim transcript placement). The caller passes the
   // exact count it expects to strip so pre-existing chars at the
   // boundary are preserved (e.g. the "v" in "hav" when hold-key is "v").
   // The floor option sets a minimum trailing count to leave behind
@@ -156,22 +156,22 @@ export function useVoiceIntegration({
     floor = 0
   }: StripOpts = {}) => {
     const prev = inputValueRef.current;
-    const offset = insertTextRef.current?.cursorOffset ?? prev.length;
-    const beforeCursor = prev.slice(0, offset);
-    const afterCursor = prev.slice(offset);
+    const offset = insertTextRef.current?.caretOffset ?? prev.length;
+    const beforecaret = prev.slice(0, offset);
+    const aftercaret = prev.slice(offset);
     // When the hold key is space, also count full-width spaces (U+3000)
     // that a CJK IME may have inserted for the same physical key.
-    // U+3000 is BMP single-code-unit so indices align with beforeCursor.
-    const scan = char === ' ' ? normalizeFullWidthSpace(beforeCursor) : beforeCursor;
+    // U+3000 is BMP single-code-unit so indices align with beforecaret.
+    const scan = char === ' ' ? normalizeFullWidthSpace(beforecaret) : beforecaret;
     let trailing = 0;
     while (trailing < scan.length && scan[scan.length - 1 - trailing] === char) {
       trailing++;
     }
     const stripCount = Math.max(0, Math.min(trailing - floor, maxStrip));
     const remaining = trailing - stripCount;
-    const stripped = beforeCursor.slice(0, beforeCursor.length - stripCount);
+    const stripped = beforecaret.slice(0, beforecaret.length - stripCount);
     // When anchoring with a non-space suffix, insert a gap space so the
-    // waveform cursor sits on the gap instead of covering the first
+    // waveform caret sits on the gap instead of covering the first
     // suffix letter. The interim transcript effect maintains this same
     // structure (prefix + leading + interim + trailing + suffix), so
     // the gap is seamless once transcript text arrives.
@@ -182,16 +182,16 @@ export function useVoiceIntegration({
     let gap = '';
     if (anchor) {
       voicePrefixRef.current = stripped;
-      voiceSuffixRef.current = afterCursor;
-      if (afterCursor.length > 0 && !/^\s/.test(afterCursor)) {
+      voiceSuffixRef.current = aftercaret;
+      if (aftercaret.length > 0 && !/^\s/.test(aftercaret)) {
         gap = ' ';
       }
     }
-    const newValue = stripped + gap + afterCursor;
+    const newValue = stripped + gap + aftercaret;
     if (anchor) lastSetInputRef.current = newValue;
     if (newValue === prev && stripCount === 0) return remaining;
     if (insertTextRef.current) {
-      insertTextRef.current.setInputWithCursor(newValue, stripped.length);
+      insertTextRef.current.setInputWithcaret(newValue, stripped.length);
     } else {
       setInputValueRaw(newValue);
     }
@@ -212,7 +212,7 @@ export function useVoiceIntegration({
     voiceSuffixRef.current = '';
     const restored = prefix + suffix;
     if (insertTextRef.current) {
-      insertTextRef.current.setInputWithCursor(restored, prefix.length);
+      insertTextRef.current.setInputWithcaret(restored, prefix.length);
     } else {
       setInputValueRaw(restored);
     }
@@ -236,7 +236,7 @@ export function useVoiceIntegration({
     if (!feature('VOICE_MODE')) return;
     if (voiceState === 'recording' && voicePrefixRef.current === null) {
       const input = inputValueRef.current;
-      const offset_0 = insertTextRef.current?.cursorOffset ?? input.length;
+      const offset_0 = insertTextRef.current?.caretOffset ?? input.length;
       voicePrefixRef.current = input.slice(0, offset_0);
       voiceSuffixRef.current = input.slice(offset_0);
       lastSetInputRef.current = input;
@@ -249,7 +249,7 @@ export function useVoiceIntegration({
   }, [voiceState, inputValueRef, insertTextRef]);
 
   // Live-update the prompt input with the interim transcript as voice
-  // transcribes speech. The prefix (user-typed text before the cursor) is
+  // transcribes speech. The prefix (user-typed text before the caret) is
   // preserved and the transcript is inserted between prefix and suffix.
   useEffect(() => {
     if (!feature('VOICE_MODE')) return;
@@ -270,10 +270,10 @@ export function useVoiceIntegration({
     const leadingSpace = needsSpace ? ' ' : '';
     const trailingSpace = needsTrailingSpace ? ' ' : '';
     const newValue_0 = prefix_0 + leadingSpace + voiceInterimTranscript + trailingSpace + suffix_0;
-    // Position cursor after the transcribed text (before suffix)
-    const cursorPos = prefix_0.length + leadingSpace.length + voiceInterimTranscript.length;
+    // Position caret after the transcribed text (before suffix)
+    const caretPos = prefix_0.length + leadingSpace.length + voiceInterimTranscript.length;
     if (insertTextRef.current) {
-      insertTextRef.current.setInputWithCursor(newValue_0, cursorPos);
+      insertTextRef.current.setInputWithcaret(newValue_0, caretPos);
     } else {
       setInputValueRaw(newValue_0);
     }
@@ -297,10 +297,10 @@ export function useVoiceIntegration({
     const leadingSpace_0 = needsSpace_0 ? ' ' : '';
     const trailingSpace_0 = needsTrailingSpace_0 ? ' ' : '';
     const newInput = prefix_1 + leadingSpace_0 + text + trailingSpace_0 + suffix_1;
-    // Position cursor after the transcribed text (before suffix)
-    const cursorPos_0 = prefix_1.length + leadingSpace_0.length + text.length;
+    // Position caret after the transcribed text (before suffix)
+    const caretPos_0 = prefix_1.length + leadingSpace_0.length + text.length;
     if (insertTextRef.current) {
-      insertTextRef.current.setInputWithCursor(newInput, cursorPos_0);
+      insertTextRef.current.setInputWithcaret(newInput, caretPos_0);
     } else {
       setInputValueRaw(newInput);
     }
@@ -579,7 +579,7 @@ export function useVoiceKeybindingHandler({
         voiceHandleKeyEvent();
       } else {
         // Modifier combo: nothing inserted, nothing to strip. Just
-        // anchor the voice prefix at the current cursor position.
+        // anchor the voice prefix at the current caret position.
         // Longer fallback: this call is at t=0 (before auto-repeat),
         // so the gap to the next keypress is the OS initial repeat
         // *delay* (up to ~2s), not the repeat *rate* (~30-80ms).

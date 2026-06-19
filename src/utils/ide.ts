@@ -100,7 +100,7 @@ export type DetectedIDEInfo = {
 }
 
 export type IdeType =
-  | 'cursor'
+  | 'caret'
   | 'windsurf'
   | 'vscode'
   | 'pycharm'
@@ -128,12 +128,12 @@ type IdeConfig = {
 }
 
 const supportedIdeConfigs: Record<IdeType, IdeConfig> = {
-  cursor: {
+  caret: {
     ideKind: 'vscode',
-    displayName: 'Cursor',
-    processKeywordsMac: ['Cursor Helper', 'Cursor.app'],
-    processKeywordsWindows: ['cursor.exe'],
-    processKeywordsLinux: ['cursor'],
+    displayName: 'caret',
+    processKeywordsMac: ['caret Helper', 'caret.app'],
+    processKeywordsWindows: ['caret.exe'],
+    processKeywordsLinux: ['caret'],
   },
   windsurf: {
     ideKind: 'vscode',
@@ -846,8 +846,8 @@ export function hasAccessToIDEExtensionDiffFeature(
 
 const EXTENSION_ID =
   process.env.USER_TYPE === 'ant'
-    ? 'anthropic.ur-internal'
-    : 'anthropic.ur'
+    ? 'urhq.ur-internal'
+    : 'urhq.ur'
 
 export async function isIDEExtensionInstalled(
   ideType: IdeType,
@@ -891,7 +891,7 @@ async function installIDEExtension(ideType: IdeType): Promise<string | null> {
         await sleep(500)
         const result = await execFileNoThrowWithCwd(
           command,
-          ['--force', '--install-extension', 'anthropic.ur'],
+          ['--force', '--install-extension', 'urhq.ur'],
           {
             env: getInstallationEnv(),
           },
@@ -911,7 +911,7 @@ async function installIDEExtension(ideType: IdeType): Promise<string | null> {
 }
 
 function getInstallationEnv(): NodeJS.ProcessEnv | undefined {
-  // Cursor on Linux may incorrectly implement
+  // caret on Linux may incorrectly implement
   // the `code` command and actually launch the UI.
   // Make this error out if this happens by clearing the DISPLAY
   // environment variable.
@@ -941,7 +941,7 @@ async function getInstalledVSCodeExtensionVersion(
   const lines = stdout?.split('\n') || []
   for (const line of lines) {
     const [extensionId, version] = line.split('@')
-    if (extensionId === 'anthropic.ur' && version) {
+    if (extensionId === 'urhq.ur' && version) {
       return version
     }
   }
@@ -952,7 +952,7 @@ function getVSCodeIDECommandByParentProcess(): string | null {
   try {
     const platform = getPlatform()
 
-    // Only supported on OSX, where Cursor has the ability to
+    // Only supported on OSX, where caret has the ability to
     // register itself as the 'code' command.
     if (platform !== 'macos') {
       return null
@@ -975,7 +975,7 @@ function getVSCodeIDECommandByParentProcess(): string | null {
         // Check for known applications and extract the path up to and including .app
         const appNames = {
           'Visual Studio Code.app': 'code',
-          'Cursor.app': 'cursor',
+          'caret.app': 'caret',
           'Windsurf.app': 'windsurf',
           'Visual Studio Code - Insiders.app': 'code',
           'VSCodium.app': 'codium',
@@ -1033,13 +1033,13 @@ async function getVSCodeIDECommand(ideType: IdeType): Promise<string | null> {
   // then resolves to Code.exe via PATHEXT which opens a new editor window
   // instead of running the CLI. Asking for 'code.cmd' forces cross-spawn/which
   // to skip Code.exe. See microsoft/vscode#299416 (fixed in Insiders) and
-  // anthropics/ur#30975.
+  // urhqs/ur#30975.
   const ext = getPlatform() === 'windows' ? '.cmd' : ''
   switch (ideType) {
     case 'vscode':
       return 'code' + ext
-    case 'cursor':
-      return 'cursor' + ext
+    case 'caret':
+      return 'caret' + ext
     case 'windsurf':
       return 'windsurf' + ext
     default:
@@ -1048,8 +1048,8 @@ async function getVSCodeIDECommand(ideType: IdeType): Promise<string | null> {
   return null
 }
 
-export async function isCursorInstalled(): Promise<boolean> {
-  const result = await execFileNoThrow('cursor', ['--version'])
+export async function iscaretInstalled(): Promise<boolean> {
+  const result = await execFileNoThrow('caret', ['--version'])
   return result.code === 0
 }
 
@@ -1080,7 +1080,7 @@ async function detectRunningIDEsImpl(): Promise<IdeType[]> {
     if (platform === 'macos') {
       // On macOS, use ps with process name matching
       const result = await execa(
-        'ps aux | grep -E "Visual Studio Code|Code Helper|Cursor Helper|Windsurf Helper|IntelliJ IDEA|PyCharm|WebStorm|PhpStorm|RubyMine|CLion|GoLand|Rider|DataGrip|AppCode|DataSpell|Aqua|Gateway|Fleet|Android Studio" | grep -v grep',
+        'ps aux | grep -E "Visual Studio Code|Code Helper|caret Helper|Windsurf Helper|IntelliJ IDEA|PyCharm|WebStorm|PhpStorm|RubyMine|CLion|GoLand|Rider|DataGrip|AppCode|DataSpell|Aqua|Gateway|Fleet|Android Studio" | grep -v grep',
         { shell: true, reject: false },
       )
       const stdout = result.stdout ?? ''
@@ -1095,7 +1095,7 @@ async function detectRunningIDEsImpl(): Promise<IdeType[]> {
     } else if (platform === 'windows') {
       // On Windows, use tasklist with findstr for multiple patterns
       const result = await execa(
-        'tasklist | findstr /I "Code.exe Cursor.exe Windsurf.exe idea64.exe pycharm64.exe webstorm64.exe phpstorm64.exe rubymine64.exe clion64.exe goland64.exe rider64.exe datagrip64.exe appcode.exe dataspell64.exe aqua64.exe gateway64.exe fleet.exe studio64.exe"',
+        'tasklist | findstr /I "Code.exe caret.exe Windsurf.exe idea64.exe pycharm64.exe webstorm64.exe phpstorm64.exe rubymine64.exe clion64.exe goland64.exe rider64.exe datagrip64.exe appcode.exe dataspell64.exe aqua64.exe gateway64.exe fleet.exe studio64.exe"',
         { shell: true, reject: false },
       )
       const stdout = result.stdout ?? ''
@@ -1113,7 +1113,7 @@ async function detectRunningIDEsImpl(): Promise<IdeType[]> {
     } else if (platform === 'linux') {
       // On Linux, use ps with process name matching
       const result = await execa(
-        'ps aux | grep -E "code|cursor|windsurf|idea|pycharm|webstorm|phpstorm|rubymine|clion|goland|rider|datagrip|dataspell|aqua|gateway|fleet|android-studio" | grep -v grep',
+        'ps aux | grep -E "code|caret|windsurf|idea|pycharm|webstorm|phpstorm|rubymine|clion|goland|rider|datagrip|dataspell|aqua|gateway|fleet|android-studio" | grep -v grep',
         { shell: true, reject: false },
       )
       const stdout = result.stdout ?? ''
@@ -1127,7 +1127,7 @@ async function detectRunningIDEsImpl(): Promise<IdeType[]> {
               runningIDEs.push(ide as IdeType)
               break
             } else if (
-              !normalizedStdout.includes('cursor') &&
+              !normalizedStdout.includes('caret') &&
               !normalizedStdout.includes('appcode')
             ) {
               // Special case conflicting keywords from some of the IDEs.
@@ -1198,7 +1198,7 @@ export function getIdeClientName(
 
 const EDITOR_DISPLAY_NAMES: Record<string, string> = {
   code: 'VS Code',
-  cursor: 'Cursor',
+  caret: 'caret',
   windsurf: 'Windsurf',
   antigravity: 'Antigravity',
   vi: 'Vim',
@@ -1421,7 +1421,7 @@ async function installFromArtifactory(command: string): Promise<string> {
 
   // Fetch the version from artifactory
   const versionUrl =
-    'https://artifactory.infra.ant.dev/artifactory/armorcode-ur-internal/claude-vscode-releases/stable'
+    'https://artifactory.infra.ant.dev/artifactory/armorcode-ur-internal/ur-vscode-releases/stable'
 
   try {
     const versionResponse = await axios.get(versionUrl, {
@@ -1436,7 +1436,7 @@ async function installFromArtifactory(command: string): Promise<string> {
     }
 
     // Download the .vsix file from artifactory
-    const vsixUrl = `https://artifactory.infra.ant.dev/artifactory/armorcode-ur-internal/claude-vscode-releases/${version}/ur.vsix`
+    const vsixUrl = `https://artifactory.infra.ant.dev/artifactory/armorcode-ur-internal/ur-vscode-releases/${version}/ur.vsix`
     const tempVsixPath = join(
       os.tmpdir(),
       `ur-${version}-${Date.now()}.vsix`,

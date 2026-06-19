@@ -202,8 +202,8 @@ export function Tabs(t0) {
   const t15 = !hidden && <Box flexDirection="row" gap={1} flexShrink={modalScrollRef ? 0 : undefined}>{title !== undefined && <Text bold={true} color={color}>{title}</Text>}{tabs.map((t16, i) => {
       const [id, title_0] = t16;
       const isCurrent = selectedTabIndex === i;
-      const hasColorCursor = color && isCurrent && headerFocused;
-      return <Text key={id} backgroundColor={hasColorCursor ? color : undefined} color={hasColorCursor ? "inverseText" : undefined} inverse={isCurrent && !hasColorCursor} bold={isCurrent}>{" "}{title_0}{" "}</Text>;
+      const hasColorcaret = color && isCurrent && headerFocused;
+      return <Text key={id} backgroundColor={hasColorcaret ? color : undefined} color={hasColorcaret ? "inverseText" : undefined} inverse={isCurrent && !hasColorcaret} bold={isCurrent}>{" "}{title_0}{" "}</Text>;
     })}{spacerWidth > 0 && <Text>{" ".repeat(spacerWidth)}</Text>}</Box>;
   let t17;
   if ($[11] !== children || $[12] !== contentHeight || $[13] !== contentWidth || $[14] !== hidden || $[15] !== modalScrollRef || $[16] !== selectedTabIndex) {

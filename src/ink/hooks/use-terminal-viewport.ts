@@ -77,13 +77,13 @@ export function useTerminalViewport(): [
 
     const bottom = absoluteTop + height
     // When content overflows the viewport (screenHeight > rows), the
-    // cursor-restore at frame end scrolls one extra row into scrollback.
+    // caret-restore at frame end scrolls one extra row into scrollback.
     // log-update.ts accounts for this with scrollbackRows = viewportY + 1.
     // We must match, otherwise an element at the boundary is considered
     // "visible" here (animation keeps ticking) but its row is treated as
     // scrollback by log-update (content change → full reset → flicker).
-    const cursorRestoreScroll = screenHeight > rows ? 1 : 0
-    const viewportY = Math.max(0, screenHeight - rows) + cursorRestoreScroll
+    const caretRestoreScroll = screenHeight > rows ? 1 : 0
+    const viewportY = Math.max(0, screenHeight - rows) + caretRestoreScroll
     const viewportBottom = viewportY + rows
     const visible = bottom > viewportY && absoluteTop < viewportBottom
 

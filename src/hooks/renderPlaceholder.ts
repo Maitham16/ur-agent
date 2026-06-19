@@ -3,7 +3,7 @@ import chalk from 'chalk'
 type PlaceholderRendererProps = {
   placeholder?: string
   value: string
-  showCursor?: boolean
+  showCaret?: boolean
   focus?: boolean
   terminalFocus: boolean
   invert?: (text: string) => string
@@ -13,7 +13,7 @@ type PlaceholderRendererProps = {
 export function renderPlaceholder({
   placeholder,
   value,
-  showCursor,
+  showCaret,
   focus,
   terminalFocus = true,
   invert = chalk.inverse,
@@ -26,14 +26,14 @@ export function renderPlaceholder({
 
   if (placeholder) {
     if (hidePlaceholderText) {
-      // Voice recording: show only the cursor, no placeholder text
+      // Voice recording: show only the caret, no placeholder text
       renderedPlaceholder =
-        showCursor && focus && terminalFocus ? invert(' ') : ''
+        showCaret && focus && terminalFocus ? invert(' ') : ''
     } else {
       renderedPlaceholder = chalk.dim(placeholder)
 
-      // Show inverse cursor only when both input and terminal are focused
-      if (showCursor && focus && terminalFocus) {
+      // Show inverse caret only when both input and terminal are focused
+      if (showCaret && focus && terminalFocus) {
         renderedPlaceholder =
           placeholder.length > 0
             ? invert(placeholder[0]!) + chalk.dim(placeholder.slice(1))

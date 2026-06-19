@@ -7,7 +7,7 @@
  * terminal-native selection behavior (not rectangular/block).
  *
  * The selection is stored as ANCHOR (where the drag started) + FOCUS (where
- * the cursor is now). The rendered highlight normalizes to start ≤ end.
+ * the caret is now). The rendered highlight normalizes to start ≤ end.
  */
 
 import { clamp } from './layout/geometry.js'

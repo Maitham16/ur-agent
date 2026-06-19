@@ -25,7 +25,7 @@ type Props = {
   isActive?: boolean;
 };
 const NOOP_HELPERS: PromptInputHelpers = {
-  setCursorOffset: () => {},
+  setcaretOffset: () => {},
   clearBuffer: () => {},
   resetHistory: () => {}
 };

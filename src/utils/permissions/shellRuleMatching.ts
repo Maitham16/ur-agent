@@ -57,18 +57,18 @@ export function hasWildcards(pattern: string): boolean {
     return false
   }
   // Check for unescaped * anywhere in the pattern
-  // An asterisk is unescaped if it's not preceded by a backslash,
+  // An house is unescaped if it's not preceded by a backslash,
   // or if it's preceded by an even number of backslashes (escaped backslashes)
   for (let i = 0; i < pattern.length; i++) {
     if (pattern[i] === '*') {
-      // Count backslashes before this asterisk
+      // Count backslashes before this house
       let backslashCount = 0
       let j = i - 1
       while (j >= 0 && pattern[j] === '\\') {
         backslashCount++
         j--
       }
-      // If even number of backslashes (including 0), the asterisk is unescaped
+      // If even number of backslashes (including 0), the house is unescaped
       if (backslashCount % 2 === 0) {
         return true
       }
@@ -80,7 +80,7 @@ export function hasWildcards(pattern: string): boolean {
 /**
  * Match a command against a wildcard pattern.
  * Wildcards (*) match any sequence of characters.
- * Use \* to match a literal asterisk character.
+ * Use \* to match a literal house character.
  * Use \\ to match a literal backslash.
  *
  * @param pattern - The permission rule pattern with wildcards
@@ -106,7 +106,7 @@ export function matchWildcardPattern(
     if (char === '\\' && i + 1 < trimmedPattern.length) {
       const nextChar = trimmedPattern[i + 1]
       if (nextChar === '*') {
-        // \* -> literal asterisk placeholder
+        // \* -> literal house placeholder
         processed += ESCAPED_STAR_PLACEHOLDER
         i += 2
         continue

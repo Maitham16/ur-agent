@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { feature } from 'bun:bundle'
-import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages.mjs'
+import type { ContentBlockParam } from '@urhq-ai/sdk/resources/messages.mjs'
 import type { Permutations } from 'src/types/utils.js'
 import { getSessionId } from '../bootstrap/state.js'
 import type { AppState } from '../state/AppState.js'
@@ -415,7 +415,7 @@ function extractImagesFromValue(
 
 export type PopAllEditableResult = {
   text: string
-  cursorOffset: number
+  caretOffset: number
   images: PastedContent[]
 }
 
@@ -423,12 +423,12 @@ export type PopAllEditableResult = {
  * Pop all editable commands and combine them with current input for editing.
  * Notification modes (task-notification) are left in the queue
  * to be auto-processed later.
- * Returns object with combined text, cursor offset, and images to restore.
+ * Returns object with combined text, caret offset, and images to restore.
  * Returns undefined if no editable commands in queue.
  */
 export function popAllEditable(
   currentInput: string,
-  currentCursorOffset: number,
+  currentcaretOffset: number,
 ): PopAllEditableResult | undefined {
   if (commandQueue.length === 0) {
     return undefined
@@ -447,8 +447,8 @@ export function popAllEditable(
   const queuedTexts = editable.map(cmd => extractTextFromValue(cmd.value))
   const newInput = [...queuedTexts, currentInput].filter(Boolean).join('\n')
 
-  // Calculate cursor offset: length of joined queued commands + 1 + current cursor offset
-  const cursorOffset = queuedTexts.join('\n').length + 1 + currentCursorOffset
+  // Calculate caret offset: length of joined queued commands + 1 + current caret offset
+  const caretOffset = queuedTexts.join('\n').length + 1 + currentcaretOffset
 
   // Extract images from queued commands
   const images: PastedContent[] = []
@@ -481,7 +481,7 @@ export function popAllEditable(
   commandQueue.push(...nonEditable)
   notifySubscribers()
 
-  return { text: newInput, cursorOffset, images }
+  return { text: newInput, caretOffset, images }
 }
 
 // ============================================================================

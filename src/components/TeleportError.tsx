@@ -135,7 +135,7 @@ export function TeleportError(t0) {
         if (isLoggingIn) {
           let t9;
           if ($[14] !== handleLoginComplete) {
-            t9 = <ConsoleOAuthFlow onDone={handleLoginComplete} mode="login" forceLoginMethod="claudeai" />;
+            t9 = <ConsoleOAuthFlow onDone={handleLoginComplete} mode="login" forceLoginMethod="urai" />;
             $[14] = handleLoginComplete;
             $[15] = t9;
           } else {
@@ -145,7 +145,7 @@ export function TeleportError(t0) {
         }
         let t9;
         if ($[16] === Symbol.for("react.memo_cache_sentinel")) {
-          t9 = <Box flexDirection="column"><Text dimColor={true}>Teleport requires a Claude.ai account.</Text><Text dimColor={true}>Your UR Pro/Max subscription will be used by UR.</Text></Box>;
+          t9 = <Box flexDirection="column"><Text dimColor={true}>Teleport requires a UR.ai account.</Text><Text dimColor={true}>Your UR Pro/Max subscription will be used by UR.</Text></Box>;
           $[16] = t9;
         } else {
           t9 = $[16];

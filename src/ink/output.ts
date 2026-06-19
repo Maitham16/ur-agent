@@ -656,9 +656,9 @@ function writeLineToScreen(
     const character = characters[charIdx]!
     const codePoint = character.value.codePointAt(0)
 
-    // Handle C0 control characters (0x00-0x1F) that cause cursor movement
+    // Handle C0 control characters (0x00-0x1F) that cause caret movement
     // mismatches. stringWidth treats these as width 0, but terminals may
-    // move the cursor differently.
+    // move the caret differently.
     if (codePoint !== undefined && codePoint <= 0x1f) {
       // Tab (0x09): expand to spaces to reach next tab stop
       if (codePoint === 0x09) {
@@ -676,7 +676,7 @@ function writeLineToScreen(
       }
       // ESC (0x1B): skip incomplete escape sequences that ansi-tokenize
       // didn't recognize. ansi-tokenize only parses SGR sequences (ESC[...m)
-      // and OSC 8 hyperlinks (ESC]8;;url BEL). Other sequences like cursor
+      // and OSC 8 hyperlinks (ESC]8;;url BEL). Other sequences like caret
       // movement, screen clearing, or terminal title become individual char
       // tokens that we need to skip here.
       else if (codePoint === 0x1b) {
@@ -694,7 +694,7 @@ function writeLineToScreen(
         } else if (nextChar === '[') {
           // CSI sequence: ESC [ ... final-byte
           // Final byte is in range 0x40-0x7E (@, A-Z, [\]^_`, a-z, {|}~)
-          // Examples: ESC[2J (clear), ESC[?25l (cursor hide), ESC[H (home)
+          // Examples: ESC[2J (clear), ESC[?25l (caret hide), ESC[H (home)
           charIdx++ // skip the [
           while (charIdx < characters.length - 1) {
             charIdx++
@@ -742,14 +742,14 @@ function writeLineToScreen(
         ) {
           // Single-character escape sequences: ESC followed by 0x30-0x7E
           // (excluding the multi-char introducers already handled above)
-          // - Fp range (0x30-0x3F): ESC 7 (save cursor), ESC 8 (restore)
+          // - Fp range (0x30-0x3F): ESC 7 (save caret), ESC 8 (restore)
           // - Fe range (0x40-0x5F): ESC D (index), ESC M (reverse index)
           // - Fs range (0x60-0x7E): ESC c (reset)
           charIdx++ // skip the command char
         }
       }
-      // Carriage return (0x0D): would move cursor to column 0, skip it
-      // Backspace (0x08): would move cursor left, skip it
+      // Carriage return (0x0D): would move caret to column 0, skip it
+      // Backspace (0x08): would move caret left, skip it
       // Bell (0x07), vertical tab (0x0B), form feed (0x0C): skip
       // All other control chars (0x00-0x06, 0x0E-0x1F): skip
       // Note: newline (0x0A) is already handled by line splitting
@@ -758,7 +758,7 @@ function writeLineToScreen(
 
     // Zero-width characters (combining marks, ZWNJ, ZWS, etc.)
     // don't occupy terminal cells — storing them as Narrow cells
-    // desyncs the virtual cursor from the real terminal cursor.
+    // desyncs the virtual caret from the real terminal caret.
     // Width was computed once during clustering (cached via charCache).
     const charWidth = character.width
     if (charWidth === 0) {
@@ -768,7 +768,7 @@ function writeLineToScreen(
     const isWideCharacter = charWidth >= 2
 
     // Wide char at last column can't fit — terminal would wrap it to
-    // the next line, desyncing our cursor model. Place a SpacerHead
+    // the next line, desyncing our caret model. Place a SpacerHead
     // to mark the blank column, matching terminal behavior.
     if (isWideCharacter && offsetX + 2 > screenWidth) {
       setCellAt(screen, offsetX, y, {

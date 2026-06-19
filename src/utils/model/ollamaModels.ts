@@ -1,12 +1,7 @@
 import type { ModelOption } from './modelOptions.js'
 
-const DEFAULT_BASE_URL = 'http://127.0.0.1:11434'
-
 export function getOllamaBaseUrl(): string {
-  const raw =
-    process.env.OLLAMA_BASE_URL || process.env.OLLAMA_HOST || DEFAULT_BASE_URL
-  const withProtocol = /^https?:\/\//i.test(raw) ? raw : `http://${raw}`
-  return withProtocol.replace(/\/+$/, '')
+  return 'http://localhost:11434'
 }
 
 export function parseOllamaModelNames(value: unknown): string[] {
@@ -37,9 +32,6 @@ export async function listOllamaModelNames(
 ): Promise<string[]> {
   const response = await fetch(`${getOllamaBaseUrl()}/api/tags`, {
     signal,
-    headers: process.env.OLLAMA_API_KEY
-      ? { Authorization: `Bearer ${process.env.OLLAMA_API_KEY}` }
-      : undefined,
   })
   if (!response.ok) {
     return []

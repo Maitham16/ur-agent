@@ -2,7 +2,7 @@ import { c as _c } from "react/compiler-runtime";
 import figures from 'figures';
 import type { ReactNode } from 'react';
 import React from 'react';
-import { useDeclaredCursor } from '../../ink/hooks/use-declared-cursor.js';
+import { useDeclaredCaret } from '../../ink/hooks/use-declared-caret.js';
 import { Box, Text } from '../../ink.js';
 type ListItemProps = {
   /**
@@ -55,11 +55,11 @@ type ListItemProps = {
   disabled?: boolean;
 
   /**
-   * Whether this ListItem should declare the terminal cursor position.
-   * Set false when a child (e.g. BaseTextInput) declares its own cursor.
+   * Whether this ListItem should declare the terminal caret position.
+   * Set false when a child (e.g. BaseTextInput) declares its own caret.
    * @default true
    */
-  declareCursor?: boolean;
+  declareCaret?: boolean;
 };
 
 /**
@@ -112,7 +112,7 @@ export function ListItem(t0) {
     showScrollUp,
     styled: t2,
     disabled: t3,
-    declareCursor
+    declareCaret
   } = t0;
   const isSelected = t1 === undefined ? false : t1;
   const styled = t2 === undefined ? true : t2;
@@ -169,7 +169,7 @@ export function ListItem(t0) {
     t5 = $[9];
   }
   const textColor = t5;
-  const t6 = isFocused && !disabled && declareCursor !== false;
+  const t6 = isFocused && !disabled && declareCaret !== false;
   let t7;
   if ($[10] !== t6) {
     t7 = {
@@ -182,7 +182,7 @@ export function ListItem(t0) {
   } else {
     t7 = $[11];
   }
-  const cursorRef = useDeclaredCursor(t7);
+  const caretRef = useDeclaredCaret(t7);
   let t8;
   if ($[12] !== renderIndicator) {
     t8 = renderIndicator();
@@ -230,9 +230,9 @@ export function ListItem(t0) {
     t12 = $[27];
   }
   let t13;
-  if ($[28] !== cursorRef || $[29] !== t11 || $[30] !== t12) {
-    t13 = <Box ref={cursorRef} flexDirection="column">{t11}{t12}</Box>;
-    $[28] = cursorRef;
+  if ($[28] !== caretRef || $[29] !== t11 || $[30] !== t12) {
+    t13 = <Box ref={caretRef} flexDirection="column">{t11}{t12}</Box>;
+    $[28] = caretRef;
     $[29] = t11;
     $[30] = t12;
     $[31] = t13;

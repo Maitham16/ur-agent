@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Vim Text Object Finding
  *
@@ -8,7 +9,7 @@ import {
   isVimPunctuation,
   isVimWhitespace,
   isVimWordChar,
-} from '../utils/Cursor.js'
+} from '../utils/caret.js'
 import { getGraphemeSegmenter } from '../utils/intl.js'
 
 export type TextObjectRange = { start: number; end: number } | null

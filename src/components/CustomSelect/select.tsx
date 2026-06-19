@@ -2,7 +2,7 @@
 import { c as _c } from "react/compiler-runtime";
 import figures from 'figures';
 import React, { type ReactNode, useEffect, useRef, useState } from 'react';
-import { useDeclaredCursor } from '../../ink/hooks/use-declared-cursor.js';
+import { useDeclaredCaret } from '../../ink/hooks/use-declared-caret.js';
 import { stringWidth } from '../../ink/stringWidth.js';
 import { Ansi, Box, Text } from '../../ink.js';
 import { count } from '../../utils/array.js';
@@ -61,12 +61,12 @@ export type OptionWithDescription<T = string> = (BaseOption<T> & {
    */
   labelValueSeparator?: string;
   /**
-   * When true, automatically reset cursor to end of line when:
+   * When true, automatically reset caret to end of line when:
    * - Option becomes focused
    * - Input value changes
-   * This prevents cursor position bugs when the input value updates asynchronously.
+   * This prevents caret position bugs when the input value updates asynchronously.
    */
-  resetCursorOnUpdate?: boolean;
+  resetcaretOnUpdate?: boolean;
 });
 export type SelectProps<T> = {
   /**
@@ -391,7 +391,7 @@ export function Select(t0) {
                 } else {
                   onCancel?.();
                 }
-              }} onExit={onCancel} layout="expanded" showLabel={inlineDescriptions} onOpenEditor={onOpenEditor} resetCursorOnUpdate={option_1.resetCursorOnUpdate} onImagePaste={onImagePaste} pastedContents={pastedContents} onRemoveImage={onRemoveImage} imagesSelected={imagesSelected} selectedImageIndex={selectedImageIndex} onImagesSelectedChange={setImagesSelected} onSelectedImageIndexChange={setSelectedImageIndex} />;
+              }} onExit={onCancel} layout="expanded" showLabel={inlineDescriptions} onOpenEditor={onOpenEditor} resetcaretOnUpdate={option_1.resetcaretOnUpdate} onImagePaste={onImagePaste} pastedContents={pastedContents} onRemoveImage={onRemoveImage} imagesSelected={imagesSelected} selectedImageIndex={selectedImageIndex} onImagesSelectedChange={setImagesSelected} onSelectedImageIndexChange={setSelectedImageIndex} />;
             }
             let label = option_1.label;
             if (typeof option_1.label === "string" && highlightText && option_1.label.includes(highlightText)) {
@@ -439,7 +439,7 @@ export function Select(t0) {
                 } else {
                   onCancel?.();
                 }
-              }} onExit={onCancel} layout="compact" showLabel={inlineDescriptions} onOpenEditor={onOpenEditor} resetCursorOnUpdate={option_2.resetCursorOnUpdate} onImagePaste={onImagePaste} pastedContents={pastedContents} onRemoveImage={onRemoveImage} imagesSelected={imagesSelected} selectedImageIndex={selectedImageIndex} onImagesSelectedChange={setImagesSelected} onSelectedImageIndexChange={setSelectedImageIndex} />;
+              }} onExit={onCancel} layout="compact" showLabel={inlineDescriptions} onOpenEditor={onOpenEditor} resetcaretOnUpdate={option_2.resetcaretOnUpdate} onImagePaste={onImagePaste} pastedContents={pastedContents} onRemoveImage={onRemoveImage} imagesSelected={imagesSelected} selectedImageIndex={selectedImageIndex} onImagesSelectedChange={setImagesSelected} onSelectedImageIndexChange={setSelectedImageIndex} />;
             }
             let label_0 = option_2.label;
             if (typeof option_2.label === "string" && highlightText && option_2.label.includes(highlightText)) {
@@ -557,7 +557,7 @@ export function Select(t0) {
             } else {
               onCancel?.();
             }
-          }} onExit={onCancel} layout="compact" showLabel={inlineDescriptions} onOpenEditor={onOpenEditor} resetCursorOnUpdate={option_4.resetCursorOnUpdate} onImagePaste={onImagePaste} pastedContents={pastedContents} onRemoveImage={onRemoveImage} imagesSelected={imagesSelected} selectedImageIndex={selectedImageIndex} onImagesSelectedChange={setImagesSelected} onSelectedImageIndexChange={setSelectedImageIndex} />;
+          }} onExit={onCancel} layout="compact" showLabel={inlineDescriptions} onOpenEditor={onOpenEditor} resetcaretOnUpdate={option_4.resetcaretOnUpdate} onImagePaste={onImagePaste} pastedContents={pastedContents} onRemoveImage={onRemoveImage} imagesSelected={imagesSelected} selectedImageIndex={selectedImageIndex} onImagesSelectedChange={setImagesSelected} onSelectedImageIndexChange={setSelectedImageIndex} />;
         }
         let label_2 = option_4.label;
         if (typeof option_4.label === "string" && highlightText && option_4.label.includes(highlightText)) {
@@ -625,7 +625,7 @@ export function Select(t0) {
 
 // Row container for the two-column (label + description) layout. Unlike
 // the other Select layouts, this one doesn't render through SelectOption →
-// ListItem, so it declares the native cursor directly. Parks the cursor
+// ListItem, so it declares the native caret directly. Parks the caret
 // on the pointer indicator so screen readers / magnifiers track focus.
 function _temp9(c_3) {
   return c_3.type === "image";
@@ -676,12 +676,12 @@ function TwoColumnRow(t0) {
   } else {
     t1 = $[1];
   }
-  const cursorRef = useDeclaredCursor(t1);
+  const caretRef = useDeclaredCaret(t1);
   let t2;
-  if ($[2] !== children || $[3] !== cursorRef) {
-    t2 = <Box ref={cursorRef} flexDirection="row">{children}</Box>;
+  if ($[2] !== children || $[3] !== caretRef) {
+    t2 = <Box ref={caretRef} flexDirection="row">{children}</Box>;
     $[2] = children;
-    $[3] = cursorRef;
+    $[3] = caretRef;
     $[4] = t2;
   } else {
     t2 = $[4];

@@ -21,7 +21,7 @@ import {
   visibleCellAtIndex,
 } from './screen.js'
 import {
-  CURSOR_HOME,
+  caret_HOME,
   scrollDown as csiScrollDown,
   scrollUp as csiScrollUp,
   RESET_SCROLL_REGION,
@@ -115,8 +115,8 @@ export class LogUpdate {
   private getRenderOpsForDone(prev: Frame): Diff {
     this.state.previousOutput = ''
 
-    if (!prev.cursor.visible) {
-      return [{ type: 'cursorShow' }]
+    if (!prev.caret.visible) {
+      return [{ type: 'caretShow' }]
     }
     return []
   }
@@ -134,8 +134,8 @@ export class LogUpdate {
     const startTime = performance.now()
     const stylePool = this.options.stylePool
 
-    // Since we assume the cursor is at the bottom on the screen, we only need
-    // to clear when the viewport gets shorter (i.e. the cursor position drifts)
+    // Since we assume the caret is at the bottom on the screen, we only need
+    // to clear when the viewport gets shorter (i.e. the caret position drifts)
     // or when it gets thinner (and text wraps). We _could_ figure out how to
     // not reset here but that would involve predicting the current layout
     // _after_ the viewport change which means calcuating text wrapping.
@@ -153,8 +153,8 @@ export class LogUpdate {
     // prev.screen simulates the shift so the diff loop below naturally
     // finds only the rows that scrolled IN as diffs. prev.screen is
     // about to become backFrame (reused next render) so mutation is safe.
-    // CURSOR_HOME after RESET_SCROLL_REGION is defensive — DECSTBM reset
-    // homes cursor per spec but terminal implementations vary.
+    // caret_HOME after RESET_SCROLL_REGION is defensive — DECSTBM reset
+    // homes caret per spec but terminal implementations vary.
     //
     // decstbmSafe: caller passes false when the DECSTBM→diff sequence
     // can't be made atomic (no DEC 2026 / BSU/ESU). Without atomicity the
@@ -179,31 +179,31 @@ export class LogUpdate {
               setScrollRegion(top + 1, bottom + 1) +
               (delta > 0 ? csiScrollUp(delta) : csiScrollDown(-delta)) +
               RESET_SCROLL_REGION +
-              CURSOR_HOME,
+              caret_HOME,
           },
         ]
       }
     }
 
-    // We have to use purely relative operations to manipulate the cursor since
+    // We have to use purely relative operations to manipulate the caret since
     // we don't know its starting point.
     //
-    // When content height >= viewport height AND cursor is at the bottom,
-    // the cursor restore at the end of the previous frame caused terminal scroll.
+    // When content height >= viewport height AND caret is at the bottom,
+    // the caret restore at the end of the previous frame caused terminal scroll.
     // viewportY tells us how many rows are in scrollback from content overflow.
-    // Additionally, the cursor-restore scroll pushes 1 more row into scrollback.
+    // Additionally, the caret-restore scroll pushes 1 more row into scrollback.
     // We need fullReset if any changes are to rows that are now in scrollback.
     //
     // This early full-reset check only applies in "steady state" (not growing).
-    // For growing, the viewportY calculation below (with cursorRestoreScroll)
+    // For growing, the viewportY calculation below (with caretRestoreScroll)
     // catches unreachable scrollback rows in the diff loop instead.
-    const cursorAtBottom = prev.cursor.y >= prev.screen.height
+    const caretAtBottom = prev.caret.y >= prev.screen.height
     const isGrowing = next.screen.height > prev.screen.height
     // When content fills the viewport exactly (height == viewport) and the
-    // cursor is at the bottom, the cursor-restore LF at the end of the
+    // caret is at the bottom, the caret-restore LF at the end of the
     // previous frame scrolled 1 row into scrollback. Use >= to catch this.
     const prevHadScrollback =
-      cursorAtBottom && prev.screen.height >= prev.viewport.height
+      caretAtBottom && prev.screen.height >= prev.viewport.height
     const isShrinking = next.screen.height < prev.screen.height
     const nextFitsViewport = next.screen.height <= prev.viewport.height
 
@@ -222,11 +222,11 @@ export class LogUpdate {
     if (
       prev.screen.height >= prev.viewport.height &&
       prev.screen.height > 0 &&
-      cursorAtBottom &&
+      caretAtBottom &&
       !isGrowing
     ) {
       // viewportY = rows in scrollback from content overflow
-      // +1 for the row pushed by cursor-restore scroll
+      // +1 for the row pushed by caret-restore scroll
       const viewportY = prev.screen.height - prev.viewport.height
       const scrollbackRows = viewportY + 1
 
@@ -248,7 +248,7 @@ export class LogUpdate {
       }
     }
 
-    const screen = new VirtualScreen(prev.cursor, next.viewport.width)
+    const screen = new VirtualScreen(prev.caret, next.viewport.width)
 
     // Treat empty screen as height 1 to avoid spurious adjustments on first render
     const heightDelta =
@@ -271,13 +271,13 @@ export class LogUpdate {
         )
       }
 
-      // clear(N) moves cursor UP by N-1 lines and to column 0
+      // clear(N) moves caret UP by N-1 lines and to column 0
       // This puts us at line prev.screen.height - N = next.screen.height
       // But we want to be at next.screen.height - 1 (bottom of new screen)
       screen.txn(prev => [
         [
           { type: 'clear', count: linesToClear },
-          { type: 'cursorMove', x: 0, y: -1 },
+          { type: 'caretMove', x: 0, y: -1 },
         ],
         { dx: -prev.x, dy: -linesToClear },
       ])
@@ -286,19 +286,19 @@ export class LogUpdate {
     // viewportY = number of rows in scrollback (not visible on terminal).
     // For shrinking: use max(prev, next) because terminal clears don't scroll.
     // For growing: use prev state because new rows haven't scrolled old ones yet.
-    // When prevHadScrollback, add 1 for the cursor-restore LF that scrolled
+    // When prevHadScrollback, add 1 for the caret-restore LF that scrolled
     // an additional row out of view at the end of the previous frame. Without
-    // this, the diff loop treats that row as reachable — but the cursor clamps
+    // this, the diff loop treats that row as reachable — but the caret clamps
     // at viewport top, causing writes to land 1 row off and garbling the output.
-    const cursorRestoreScroll = prevHadScrollback ? 1 : 0
+    const caretRestoreScroll = prevHadScrollback ? 1 : 0
     const viewportY = growing
       ? Math.max(
           0,
-          prev.screen.height - prev.viewport.height + cursorRestoreScroll,
+          prev.screen.height - prev.viewport.height + caretRestoreScroll,
         )
       : Math.max(prev.screen.height, next.screen.height) -
         next.viewport.height +
-        cursorRestoreScroll
+        caretRestoreScroll
 
     let currentStyleId = stylePool.none
     let currentHyperlink: Hyperlink = undefined
@@ -342,14 +342,14 @@ export class LogUpdate {
       }
 
       // If the cell outside the viewport range has changed, we need to reset
-      // because we can't move the cursor there to draw.
+      // because we can't move the caret there to draw.
       if (y < viewportY) {
         needsFullReset = true
         resetTriggerY = y
         return true // early exit
       }
 
-      moveCursorTo(screen, x, y)
+      movecaretTo(screen, x, y)
 
       if (added) {
         const targetHyperlink = added.hyperlink
@@ -412,21 +412,21 @@ export class LogUpdate {
       )
     }
 
-    // Restore cursor. Skipped in alt-screen: the cursor is hidden, its
+    // Restore caret. Skipped in alt-screen: the caret is hidden, its
     // position only matters as the starting point for the NEXT frame's
     // relative moves, and in alt-screen the next frame always begins with
     // CSI H (see ink.tsx onRender) which resets to (0,0) regardless. This
-    // saves a CR + cursorMove round-trip (~6-10 bytes) every frame.
+    // saves a CR + caretMove round-trip (~6-10 bytes) every frame.
     //
-    // Main screen: if cursor needs to be past the last line of content
-    // (typical: cursor.y = screen.height), emit \n to create that line
-    // since cursor movement can't create new lines.
+    // Main screen: if caret needs to be past the last line of content
+    // (typical: caret.y = screen.height), emit \n to create that line
+    // since caret movement can't create new lines.
     if (altScreen) {
-      // no-op; next frame's CSI H anchors cursor
-    } else if (next.cursor.y >= next.screen.height) {
+      // no-op; next frame's CSI H anchors caret
+    } else if (next.caret.y >= next.screen.height) {
       // Move to column 0 of current line, then emit newlines to reach target row
       screen.txn(prev => {
-        const rowsToCreate = next.cursor.y - prev.y
+        const rowsToCreate = next.caret.y - prev.y
         if (rowsToCreate > 0) {
           // Use CR to resolve pending wrap (if any) without advancing
           // to the next line, then LF to create each new row.
@@ -437,18 +437,18 @@ export class LogUpdate {
           }
           return [patches, { dx: -prev.x, dy: rowsToCreate }]
         }
-        // At or past target row - need to move cursor to correct position
-        const dy = next.cursor.y - prev.y
-        if (dy !== 0 || prev.x !== next.cursor.x) {
-          // Use CR to clear pending wrap (if any), then cursor move
+        // At or past target row - need to move caret to correct position
+        const dy = next.caret.y - prev.y
+        if (dy !== 0 || prev.x !== next.caret.x) {
+          // Use CR to clear pending wrap (if any), then caret move
           const patches: Diff = [CARRIAGE_RETURN]
-          patches.push({ type: 'cursorMove', x: next.cursor.x, y: dy })
-          return [patches, { dx: next.cursor.x - prev.x, dy }]
+          patches.push({ type: 'caretMove', x: next.caret.x, y: dy })
+          return [patches, { dx: next.caret.x - prev.x, dy }]
         }
         return [[], { dx: 0, dy: 0 }]
       })
     } else {
-      moveCursorTo(screen, next.cursor.x, next.cursor.y)
+      movecaretTo(screen, next.caret.x, next.caret.y)
     }
 
     const elapsed = performance.now() - startTime
@@ -507,7 +507,7 @@ function fullResetSequence_CAUSES_FLICKER(
   stylePool: StylePool,
   debug?: { triggerY: number; prevLine: string; nextLine: string },
 ): Diff {
-  // After clearTerminal, cursor is at (0, 0)
+  // After clearTerminal, caret is at (0, 0)
   const screen = new VirtualScreen({ x: 0, y: 0 }, frame.viewport.width)
   renderFrame(screen, frame, stylePool)
   return [{ type: 'clearTerminal', reason, debug }, ...screen.diff]
@@ -523,7 +523,7 @@ function renderFrame(
 
 /**
  * Render a slice of rows from the frame's screen.
- * Each row is rendered followed by a newline. Cursor ends at (0, endY).
+ * Each row is rendered followed by a newline. caret ends at (0, endY).
  */
 function renderFrameSlice(
   screen: VirtualScreen,
@@ -542,14 +542,14 @@ function renderFrameSlice(
 
   let index = startY * screenWidth
   for (let y = startY; y < endY; y += 1) {
-    // Advance cursor to this row using LF (not CSI CUD / cursor-down).
+    // Advance caret to this row using LF (not CSI CUD / caret-down).
     // CSI CUD stops at the viewport bottom margin and cannot scroll,
     // but LF scrolls the viewport to create new lines. Without this,
-    // when the cursor is at the viewport bottom, moveCursorTo's
-    // cursor-down silently fails, creating a permanent off-by-one
-    // between the virtual cursor and the real terminal cursor.
-    if (screen.cursor.y < y) {
-      const rowsToAdvance = y - screen.cursor.y
+    // when the caret is at the viewport bottom, movecaretTo's
+    // caret-down silently fails, creating a permanent off-by-one
+    // between the virtual caret and the real terminal caret.
+    if (screen.caret.y < y) {
+      const rowsToAdvance = y - screen.caret.y
       screen.txn(prev => {
         const patches: Diff = new Array<Diff[number]>(1 + rowsToAdvance)
         patches[0] = CARRIAGE_RETURN
@@ -564,7 +564,7 @@ function renderFrameSlice(
 
     for (let x = 0; x < screenWidth; x += 1, index += 1) {
       // Skip spacers, unstyled empty cells, and fg-only styled spaces that
-      // match the last rendered style (since cursor-forward produces identical
+      // match the last rendered style (since caret-forward produces identical
       // visual result). visibleCellAtIndex handles the optimization internally
       // to avoid allocating Cell objects for skipped cells.
       const cell = visibleCellAtIndex(
@@ -578,7 +578,7 @@ function renderFrameSlice(
         continue
       }
 
-      moveCursorTo(screen, x, y)
+      movecaretTo(screen, x, y)
 
       // Handle hyperlink
       const targetHyperlink = cell.hyperlink
@@ -611,7 +611,7 @@ function renderFrameSlice(
       undefined,
     )
     // CR+LF at end of row — \r resets to column 0, \n moves to next line.
-    // Without \r, the terminal cursor stays at whatever column content ended
+    // Without \r, the terminal caret stays at whatever column content ended
     // (since we skip trailing spaces, this can be mid-row).
     screen.txn(prev => [[CARRIAGE_RETURN, NEWLINE], { dx: -prev.x, dy: 1 }])
   }
@@ -642,7 +642,7 @@ function writeCellWithStyleStr(
   styleStr: string,
 ): boolean {
   const cellWidth = cell.width === CellWidth.Wide ? 2 : 1
-  const px = screen.cursor.x
+  const px = screen.caret.x
   const vw = screen.viewportWidth
 
   // Don't write wide chars that would cross the viewport edge.
@@ -663,61 +663,61 @@ function writeCellWithStyleStr(
   const needsCompensation = cellWidth === 2 && needsWidthCompensation(cell.char)
 
   // On terminals with old wcwidth tables, a compensated emoji only advances
-  // the cursor 1 column, so the CHA below skips column x+1 without painting
+  // the caret 1 column, so the CHA below skips column x+1 without painting
   // it. Write a styled space there first — on correct terminals the emoji
   // glyph (width 2) overwrites it harmlessly; on old terminals it fills the
   // gap with the emoji's background. Also clears any stale content at x+1.
   // CHA is 1-based, so column px+1 (0-based) is CHA target px+2.
   if (needsCompensation && px + 1 < vw) {
-    diff.push({ type: 'cursorTo', col: px + 2 })
+    diff.push({ type: 'caretTo', col: px + 2 })
     diff.push({ type: 'stdout', content: ' ' })
-    diff.push({ type: 'cursorTo', col: px + 1 })
+    diff.push({ type: 'caretTo', col: px + 1 })
   }
 
   diff.push({ type: 'stdout', content: cell.char })
 
-  // Force terminal cursor to correct column after the emoji.
+  // Force terminal caret to correct column after the emoji.
   if (needsCompensation) {
-    diff.push({ type: 'cursorTo', col: px + cellWidth + 1 })
+    diff.push({ type: 'caretTo', col: px + cellWidth + 1 })
   }
 
-  // Update cursor — mutate in place to avoid Point allocation
+  // Update caret — mutate in place to avoid Point allocation
   if (px >= vw) {
-    screen.cursor.x = cellWidth
-    screen.cursor.y++
+    screen.caret.x = cellWidth
+    screen.caret.y++
   } else {
-    screen.cursor.x = px + cellWidth
+    screen.caret.x = px + cellWidth
   }
   return true
 }
 
-function moveCursorTo(screen: VirtualScreen, targetX: number, targetY: number) {
+function movecaretTo(screen: VirtualScreen, targetX: number, targetY: number) {
   screen.txn(prev => {
     const dx = targetX - prev.x
     const dy = targetY - prev.y
     const inPendingWrap = prev.x >= screen.viewportWidth
 
-    // If we're in pending wrap state (cursor.x >= width), use CR
+    // If we're in pending wrap state (caret.x >= width), use CR
     // to reset to column 0 on the current line without advancing
-    // to the next line, then issue the cursor movement.
+    // to the next line, then issue the caret movement.
     if (inPendingWrap) {
       return [
-        [CARRIAGE_RETURN, { type: 'cursorMove', x: targetX, y: dy }],
+        [CARRIAGE_RETURN, { type: 'caretMove', x: targetX, y: dy }],
         { dx, dy },
       ]
     }
 
     // When moving to a different line, use carriage return (\r) to reset to
-    // column 0 first, then cursor move.
+    // column 0 first, then caret move.
     if (dy !== 0) {
       return [
-        [CARRIAGE_RETURN, { type: 'cursorMove', x: targetX, y: dy }],
+        [CARRIAGE_RETURN, { type: 'caretMove', x: targetX, y: dy }],
         { dx, dy },
       ]
     }
 
-    // Standard same-line cursor move
-    return [[{ type: 'cursorMove', x: dx, y: dy }], { dx, dy }]
+    // Standard same-line caret move
+    return [[{ type: 'caretMove', x: dx, y: dy }], { dx, dy }]
   })
 }
 
@@ -753,22 +753,22 @@ function needsWidthCompensation(char: string): boolean {
 class VirtualScreen {
   // Public for direct mutation by writeCellWithStyleStr (avoids txn overhead).
   // File-private class — not exposed outside log-update.ts.
-  cursor: Point
+  caret: Point
   diff: Diff = []
 
   constructor(
     origin: Point,
     readonly viewportWidth: number,
   ) {
-    this.cursor = { ...origin }
+    this.caret = { ...origin }
   }
 
   txn(fn: (prev: Point) => [patches: Diff, next: Delta]): void {
-    const [patches, next] = fn(this.cursor)
+    const [patches, next] = fn(this.caret)
     for (const patch of patches) {
       this.diff.push(patch)
     }
-    this.cursor.x += next.dx
-    this.cursor.y += next.dy
+    this.caret.x += next.dx
+    this.caret.y += next.dy
   }
 }

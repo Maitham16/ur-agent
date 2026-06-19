@@ -562,12 +562,12 @@ export function createCliExecutor(opts: {
       await requireComputerUseInput().mouseButton('left', 'release')
     },
 
-    async getCursorPosition(): Promise<{ x: number; y: number }> {
+    async getcaretPosition(): Promise<{ x: number; y: number }> {
       return requireComputerUseInput().mouseLocation()
     },
 
     /**
-     * `from === undefined` → drag from current cursor (training's
+     * `from === undefined` → drag from current caret (training's
      * left_click_drag with start_coordinate omitted). Inner `finally`: the
      * button is ALWAYS released even if the move throws — otherwise the
      * user's left button is stuck-pressed until they physically click.

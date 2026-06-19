@@ -15,8 +15,8 @@ Common environment variables:
 ```sh
 OLLAMA_MODEL=qwen2.5-coder:latest
 UR_MODEL=qwen2.5-coder:latest
-OLLAMA_HOST=http://127.0.0.1:11434
-OLLAMA_BASE_URL=http://127.0.0.1:11434
+UR_HOST=http://127.0.0.1:11434
+UR_BASE_URL=http://127.0.0.1:11434
 OLLAMA_API_KEY=...
 ```
 
@@ -47,7 +47,7 @@ Recommended Git behavior:
 - Commit shared docs, skills, agents, and project settings that are safe for teammates.
 - Do not commit `.ur/settings.local.json`.
 - Do not commit generated `.ur/index/`, `.ur/memory/`, `.ur/cache/`, `.ur/tmp/`, or `.ur/logs/`.
-- Do not commit `CLAUDE.local.md`.
+- Do not commit `UR.local.md`.
 
 ## Verifier
 

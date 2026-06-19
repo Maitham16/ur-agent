@@ -6,11 +6,11 @@ import type { Diff } from './frame.js'
  *
  * Rules applied:
  * - Remove empty stdout patches
- * - Merge consecutive cursorMove patches
- * - Remove no-op cursorMove (0,0) patches
+ * - Merge consecutive caretMove patches
+ * - Remove no-op caretMove (0,0) patches
  * - Concat adjacent style patches (transition diffs — can't drop either)
  * - Dedupe consecutive hyperlinks with same URI
- * - Cancel cursor hide/show pairs
+ * - Cancel caret hide/show pairs
  * - Remove clear patches with count 0
  */
 export function optimize(diff: Diff): Diff {
@@ -27,7 +27,7 @@ export function optimize(diff: Diff): Diff {
     // Skip no-ops
     if (type === 'stdout') {
       if (patch.content === '') continue
-    } else if (type === 'cursorMove') {
+    } else if (type === 'caretMove') {
       if (patch.x === 0 && patch.y === 0) continue
     } else if (type === 'clear') {
       if (patch.count === 0) continue
@@ -39,18 +39,18 @@ export function optimize(diff: Diff): Diff {
       const last = result[lastIdx]!
       const lastType = last.type
 
-      // Merge consecutive cursorMove
-      if (type === 'cursorMove' && lastType === 'cursorMove') {
+      // Merge consecutive caretMove
+      if (type === 'caretMove' && lastType === 'caretMove') {
         result[lastIdx] = {
-          type: 'cursorMove',
+          type: 'caretMove',
           x: last.x + patch.x,
           y: last.y + patch.y,
         }
         continue
       }
 
-      // Collapse consecutive cursorTo (only the last one matters)
-      if (type === 'cursorTo' && lastType === 'cursorTo') {
+      // Collapse consecutive caretTo (only the last one matters)
+      if (type === 'caretTo' && lastType === 'caretTo') {
         result[lastIdx] = patch
         continue
       }
@@ -74,10 +74,10 @@ export function optimize(diff: Diff): Diff {
         continue
       }
 
-      // Cancel cursor hide/show pairs
+      // Cancel caret hide/show pairs
       if (
-        (type === 'cursorShow' && lastType === 'cursorHide') ||
-        (type === 'cursorHide' && lastType === 'cursorShow')
+        (type === 'caretShow' && lastType === 'caretHide') ||
+        (type === 'caretHide' && lastType === 'caretShow')
       ) {
         result.pop()
         len--

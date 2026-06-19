@@ -163,7 +163,7 @@ export const GIT_READ_ONLY_COMMANDS: Record<string, ExternalCommandConfig> = {
       // validator sees -S as no-arg → advances 1 token → breaks on `--` →
       // --output unchecked. git sees -S requires arg → consumes `--` as the
       // pickaxe string (standard getopt: required-arg options consume next
-      // argv unconditionally, BEFORE the top-level `--` check) → cursor at
+      // argv unconditionally, BEFORE the top-level `--` check) → caret at
       // --output=... → parses as long option → ARBITRARY FILE WRITE.
       // git log config at line ~207 correctly has -S/-G as 'string'.
       '-S': 'string',
@@ -505,7 +505,7 @@ export const GIT_READ_ONLY_COMMANDS: Record<string, ExternalCommandConfig> = {
     safeFlags: {
       '--is-ancestor': 'none', // Check if first commit is ancestor of second
       '--fork-point': 'none', // Find fork point
-      '--octopus': 'none', // Find best common ancestors for multiple refs
+      '--octmodelO': 'none', // Find best common ancestors for multiple refs
       '--independent': 'none', // Filter independent refs
       '--all': 'none', // Output all merge bases
     },

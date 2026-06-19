@@ -1,5 +1,5 @@
 // @ts-nocheck
-import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/messages.mjs'
+import type { ContentBlockParam } from '@urhq-ai/sdk/resources/messages.mjs'
 import type { UUID } from 'crypto'
 import type React from 'react'
 import type { PermissionResult } from '../entrypoints/agentSdkTypes.js'
@@ -58,9 +58,9 @@ export type BaseTextInputProps = {
   readonly mask?: string
 
   /**
-   * Whether to show cursor and allow navigation inside text input with arrow keys.
+   * Whether to show caret and allow navigation inside text input with arrow keys.
    */
-  readonly showCursor?: boolean
+  readonly showCaret?: boolean
 
   /**
    * Highlight pasted text
@@ -114,7 +114,7 @@ export type BaseTextInputProps = {
 
   /**
    * Maximum visible lines for the input viewport. When the wrapped input
-   * exceeds this many lines, only lines around the cursor are rendered.
+   * exceeds this many lines, only lines around the caret are rendered.
    */
   readonly maxVisibleLines?: number
 
@@ -140,9 +140,9 @@ export type BaseTextInputProps = {
   readonly onIsPastingChange?: (isPasting: boolean) => void
 
   /**
-   * Whether to disable cursor movement for up/down arrow keys
+   * Whether to disable caret movement for up/down arrow keys
    */
-  readonly disableCursorMovementForUpDownKeys?: boolean
+  readonly disableCaretMovementForUpDownKeys?: boolean
 
   /**
    * Skip the text-level double-press escape handler. Set this when a
@@ -153,14 +153,14 @@ export type BaseTextInputProps = {
   readonly disableEscapeDoublePress?: boolean
 
   /**
-   * The offset of the cursor within the text
+   * The offset of the caret within the text
    */
-  readonly cursorOffset: number
+  readonly caretOffset: number
 
   /**
-   * Callback to set the offset of the cursor
+   * Callback to set the offset of the caret
    */
-  onChangeCursorOffset: (offset: number) => void
+  onChangeCaretOffset: (offset: number) => void
 
   /**
    * Optional hint text to display after command input
@@ -230,10 +230,10 @@ export type BaseInputState = {
   renderedValue: string
   offset: number
   setOffset: (offset: number) => void
-  /** Cursor line (0-indexed) within the rendered text, accounting for wrapping. */
-  cursorLine: number
-  /** Cursor column (display-width) within the current line. */
-  cursorColumn: number
+  /** caret line (0-indexed) within the rendered text, accounting for wrapping. */
+  caretLine: number
+  /** caret column (display-width) within the current line. */
+  caretColumn: number
   /** Character offset in the full text where the viewport starts (0 when no windowing). */
   viewportCharOffset: number
   /** Character offset in the full text where the viewport ends (text.length when no windowing). */

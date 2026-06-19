@@ -77,7 +77,7 @@ export default function createRenderer(
           hyperlinkPool,
         ),
         viewport: { width: terminalWidth, height: terminalRows },
-        cursor: { x: 0, y: 0, visible: true },
+        caret: { x: 0, y: 0, visible: true },
       }
     }
 
@@ -88,9 +88,9 @@ export default function createRenderer(
     // height={rows} flexShrink={0}>, so yogaHeight should equal
     // terminalRows. But if something renders as a SIBLING of that Box
     // (bug: MessageSelector was outside <FullscreenLayout>), yogaHeight
-    // exceeds rows and every assumption below (viewport +1 hack, cursor.y
+    // exceeds rows and every assumption below (viewport +1 hack, caret.y
     // clamp, log-update's heightDelta===0 fast path) breaks, desyncing
-    // virtual/physical cursors. Clamping here enforces the invariant:
+    // virtual/physical carets. Clamping here enforces the invariant:
     // overflow writes land at y >= screen.height and setCellAt drops
     // them. The sibling is invisible (obvious, easy to find) instead of
     // corrupting the whole terminal.
@@ -154,23 +154,23 @@ export default function createRenderer(
         // (which treats exactly-filling content as "overflows" for
         // scrollback purposes) never fires. Alt-screen content is always
         // exactly `rows` tall (via <Box height={rows}>) but never
-        // scrolls — the cursor.y clamp below keeps the cursor-restore
+        // scrolls — the caret.y clamp below keeps the caret-restore
         // from emitting an LF. With the standard diff path, every frame
         // is incremental; no fullResetSequence_CAUSES_FLICKER.
         height: options.altScreen ? terminalRows + 1 : terminalRows,
       },
-      cursor: {
+      caret: {
         x: 0,
-        // In the alt screen, keep the cursor inside the viewport. When
+        // In the alt screen, keep the caret inside the viewport. When
         // screen.height === terminalRows exactly (content fills the alt
-        // screen), cursor.y = screen.height would trigger log-update's
-        // cursor-restore LF at the last row, scrolling one row off the top
-        // of the alt buffer and desyncing the diff's cursor model. The
-        // cursor is hidden so its position only matters for diff coords.
+        // screen), caret.y = screen.height would trigger log-update's
+        // caret-restore LF at the last row, scrolling one row off the top
+        // of the alt buffer and desyncing the diff's caret model. The
+        // caret is hidden so its position only matters for diff coords.
         y: options.altScreen
           ? Math.max(0, Math.min(screen.height, terminalRows) - 1)
           : screen.height,
-        // Hide cursor when there's dynamic output to render (only in TTY mode)
+        // Hide caret when there's dynamic output to render (only in TTY mode)
         visible: !isTTY || screen.height === 0,
       },
     }

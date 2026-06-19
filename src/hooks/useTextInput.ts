@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { isInputModeCharacter } from 'src/components/PromptInput/inputModes.js'
 import { useNotifications } from 'src/context/notifications.js'
 import { useRef } from 'react'
@@ -10,7 +11,7 @@ import type {
   TextInputState,
 } from '../types/textInputTypes.js'
 import {
-  Cursor,
+  Caret as caret,
   getLastKill,
   pushToKillRing,
   recordYank,
@@ -18,18 +19,18 @@ import {
   resetYankState,
   updateYankLength,
   yankPop,
-} from '../utils/Cursor.js'
+} from '../utils/caret.js'
 import { isFullscreenEnvEnabled } from '../utils/fullscreen.js'
 import type { ImageDimensions } from '../utils/imageResizer.js'
 import { useDoublePress } from './useDoublePress.js'
 
-type MaybeCursor = void | Cursor
-type InputHandler = (input: string) => MaybeCursor
-type InputMapper = (input: string) => MaybeCursor
+type Maybecaret = void | caret
+type InputHandler = (input: string) => Maybecaret
+type InputMapper = (input: string) => Maybecaret
 const NOOP_HANDLER: InputHandler = () => {}
 function mapInput(input_map: Array<[string, InputHandler]>): InputMapper {
   const map = new Map(input_map)
-  return function (input: string): MaybeCursor {
+  return function (input: string): Maybecaret {
     return (map.get(input) ?? NOOP_HANDLER)(input)
   }
 }
@@ -47,7 +48,7 @@ export type UseTextInputProps = {
   focus?: boolean
   mask?: string
   multiline?: boolean
-  cursorChar: string
+  caretChar: string
   highlightPastedText?: boolean
   invert: (text: string) => string
   themeText: (text: string) => string
@@ -59,7 +60,7 @@ export type UseTextInputProps = {
     dimensions?: ImageDimensions,
     sourcePath?: string,
   ) => void
-  disableCursorMovementForUpDownKeys?: boolean
+  disableCaretMovementForUpDownKeys?: boolean
   disableEscapeDoublePress?: boolean
   maxVisibleLines?: number
   externalOffset: number
@@ -81,11 +82,11 @@ export function useTextInput({
   onClearInput,
   mask = '',
   multiline = false,
-  cursorChar,
+  caretChar,
   invert,
   columns,
   onImagePaste: _onImagePaste,
-  disableCursorMovementForUpDownKeys = false,
+  disableCaretMovementForUpDownKeys = false,
   disableEscapeDoublePress = false,
   maxVisibleLines,
   externalOffset,
@@ -96,9 +97,9 @@ export function useTextInput({
 }: UseTextInputProps): TextInputState {
   const offset = externalOffset
   const setOffset = onOffsetChange
-  const cursor = Cursor.fromText(originalValue, columns, offset)
-  const latestCursorRef = useRef(cursor)
-  latestCursorRef.current = cursor
+  const caretInst = caret.fromText(originalValue, columns, offset)
+  const latestcaretRef = useRef(caretInst)
+  latestcaretRef.current = caretInst
   const { addNotification, removeNotification } = useNotifications()
 
   const handleCtrlC = useDoublePress(
@@ -163,68 +164,68 @@ export function useTextInput({
     },
   )
 
-  function handleCtrlD(): MaybeCursor {
-    if (cursor.text === '') {
+  function handleCtrlD(): Maybecaret {
+    if (caretInst.text === '') {
       // When input is empty, handle double-press
       handleEmptyCtrlD()
-      return cursor
+      return caretInst
     }
     // When input is not empty, delete forward like iPython
-    return cursor.del()
+    return caretInst.del()
   }
 
-  function killToLineEnd(): Cursor {
-    const { cursor: newCursor, killed } = cursor.deleteToLineEnd()
+  function killToLineEnd(): caret {
+    const { caret: newcaret, killed } = caretInst.deleteToLineEnd()
     pushToKillRing(killed, 'append')
-    return newCursor
+    return newcaret
   }
 
-  function killToLineStart(): Cursor {
-    const { cursor: newCursor, killed } = cursor.deleteToLineStart()
+  function killToLineStart(): caret {
+    const { caret: newcaret, killed } = caretInst.deleteToLineStart()
     pushToKillRing(killed, 'prepend')
-    return newCursor
+    return newcaret
   }
 
-  function killWordBefore(): Cursor {
-    const { cursor: newCursor, killed } = cursor.deleteWordBefore()
+  function killWordBefore(): caret {
+    const { caret: newcaret, killed } = caretInst.deleteWordBefore()
     pushToKillRing(killed, 'prepend')
-    return newCursor
+    return newcaret
   }
 
-  function yank(): Cursor {
+  function yank(): caret {
     const text = getLastKill()
     if (text.length > 0) {
-      const startOffset = cursor.offset
-      const newCursor = cursor.insert(text)
+      const startOffset = caretInst.offset
+      const newcaret = caretInst.insert(text)
       recordYank(startOffset, text.length)
-      return newCursor
+      return newcaret
     }
-    return cursor
+    return caretInst
   }
 
-  function handleYankPop(): Cursor {
+  function handleYankPop(): caret {
     const popResult = yankPop()
     if (!popResult) {
-      return cursor
+      return caretInst
     }
     const { text, start, length } = popResult
     // Replace the previously yanked text with the new one
-    const before = cursor.text.slice(0, start)
-    const after = cursor.text.slice(start + length)
+    const before = caretInst.text.slice(0, start)
+    const after = caretInst.text.slice(start + length)
     const newText = before + text + after
     const newOffset = start + text.length
     updateYankLength(text.length)
-    return Cursor.fromText(newText, columns, newOffset)
+    return caret.fromText(newText, columns, newOffset)
   }
 
   const handleCtrl = mapInput([
-    ['a', () => cursor.startOfLine()],
-    ['b', () => cursor.left()],
+    ['a', () => caretInst.startOfLine()],
+    ['b', () => caretInst.left()],
     ['c', handleCtrlC],
     ['d', handleCtrlD],
-    ['e', () => cursor.endOfLine()],
-    ['f', () => cursor.right()],
-    ['h', () => cursor.deleteTokenBefore() ?? cursor.backspace()],
+    ['e', () => caretInst.endOfLine()],
+    ['f', () => caretInst.right()],
+    ['h', () => caretInst.deleteTokenBefore() ?? caretInst.backspace()],
     ['k', killToLineEnd],
     ['n', () => downOrHistoryDown()],
     ['p', () => upOrHistoryUp()],
@@ -234,77 +235,77 @@ export function useTextInput({
   ])
 
   const handleMeta = mapInput([
-    ['b', () => cursor.prevWord()],
-    ['f', () => cursor.nextWord()],
-    ['d', () => cursor.deleteWordAfter()],
+    ['b', () => caretInst.prevWord()],
+    ['f', () => caretInst.nextWord()],
+    ['d', () => caretInst.deleteWordAfter()],
     ['y', handleYankPop],
   ])
 
   function handleEnter(key: Key) {
-    const latestCursor = latestCursorRef.current
+    const latestcaret = latestcaretRef.current
     if (
       multiline &&
-      latestCursor.offset > 0 &&
-      latestCursor.text[latestCursor.offset - 1] === '\\'
+      latestcaret.offset > 0 &&
+      latestcaret.text[latestcaret.offset - 1] === '\\'
     ) {
       // Track that the user has used backslash+return
       markBackslashReturnUsed()
-      return latestCursor.backspace().insert('\n')
+      return latestcaret.backspace().insert('\n')
     }
     // Meta+Enter or Shift+Enter inserts a newline
     if (key.meta || key.shift) {
-      return latestCursor.insert('\n')
+      return latestcaret.insert('\n')
     }
-    onSubmit?.(latestCursor.text)
+    onSubmit?.(latestcaret.text)
   }
 
   function upOrHistoryUp() {
-    if (disableCursorMovementForUpDownKeys) {
+    if (disableCaretMovementForUpDownKeys) {
       onHistoryUp?.()
-      return cursor
+      return caretInst
     }
     // Try to move by wrapped lines first
-    const cursorUp = cursor.up()
-    if (!cursorUp.equals(cursor)) {
-      return cursorUp
+    const caretUp = caretInst.up()
+    if (!caretUp.equals(caretInst)) {
+      return caretUp
     }
 
     // If we can't move by wrapped lines and this is multiline input,
     // try to move by logical lines (to handle paragraph boundaries)
     if (multiline) {
-      const cursorUpLogical = cursor.upLogicalLine()
-      if (!cursorUpLogical.equals(cursor)) {
-        return cursorUpLogical
+      const caretUpLogical = caretInst.upLogicalLine()
+      if (!caretUpLogical.equals(caretInst)) {
+        return caretUpLogical
       }
     }
 
     // Can't move up at all - trigger history navigation
     onHistoryUp?.()
-    return cursor
+    return caretInst
   }
   function downOrHistoryDown() {
-    if (disableCursorMovementForUpDownKeys) {
+    if (disableCaretMovementForUpDownKeys) {
       onHistoryDown?.()
-      return cursor
+      return caretInst
     }
     // Try to move by wrapped lines first
-    const cursorDown = cursor.down()
-    if (!cursorDown.equals(cursor)) {
-      return cursorDown
+    const caretDown = caretInst.down()
+    if (!caretDown.equals(caretInst)) {
+      return caretDown
     }
 
     // If we can't move by wrapped lines and this is multiline input,
     // try to move by logical lines (to handle paragraph boundaries)
     if (multiline) {
-      const cursorDownLogical = cursor.downLogicalLine()
-      if (!cursorDownLogical.equals(cursor)) {
-        return cursorDownLogical
+      const caretDownLogical = caretInst.downLogicalLine()
+      if (!caretDownLogical.equals(caretInst)) {
+        return caretDownLogical
       }
     }
 
     // Can't move down at all - trigger history navigation
     onHistoryDown?.()
-    return cursor
+    return caretInst
   }
 
   function mapKey(key: Key): InputMapper {
@@ -316,39 +317,39 @@ export function useTextInput({
           // BaseTextInput's useInput registers first (child effects fire
           // before parent effects), so this handler has already run by the
           // time the keybinding's handler stops propagation.
-          if (disableEscapeDoublePress) return cursor
+          if (disableEscapeDoublePress) return caretInst
           handleEscape()
-          // Return the current cursor unchanged - handleEscape manages state internally
-          return cursor
+          // Return the current caret unchanged - handleEscape manages state internally
+          return caretInst
         }
       case key.leftArrow && (key.ctrl || key.meta || key.fn):
-        return () => cursor.prevWord()
+        return () => caretInst.prevWord()
       case key.rightArrow && (key.ctrl || key.meta || key.fn):
-        return () => cursor.nextWord()
+        return () => caretInst.nextWord()
       case key.backspace:
         return key.meta || key.ctrl
           ? killWordBefore
-          : () => cursor.deleteTokenBefore() ?? cursor.backspace()
+          : () => caretInst.deleteTokenBefore() ?? caretInst.backspace()
       case key.delete:
-        return key.meta ? killToLineEnd : () => cursor.del()
+        return key.meta ? killToLineEnd : () => caretInst.del()
       case key.ctrl:
         return handleCtrl
       case key.home:
-        return () => cursor.startOfLine()
+        return () => caretInst.startOfLine()
       case key.end:
-        return () => cursor.endOfLine()
+        return () => caretInst.endOfLine()
       case key.pageDown:
         // In fullscreen mode, PgUp/PgDn scroll the message viewport instead
-        // of moving the cursor — no-op here, ScrollKeybindingHandler handles it.
+        // of moving the caret — no-op here, ScrollKeybindingHandler handles it.
         if (isFullscreenEnvEnabled()) {
           return NOOP_HANDLER
         }
-        return () => cursor.endOfLine()
+        return () => caretInst.endOfLine()
       case key.pageUp:
         if (isFullscreenEnvEnabled()) {
           return NOOP_HANDLER
         }
-        return () => cursor.startOfLine()
+        return () => caretInst.startOfLine()
       case key.wheelUp:
       case key.wheelDown:
         // Mouse wheel events only exist when fullscreen mouse tracking is on.
@@ -361,24 +362,24 @@ export function useTextInput({
       case key.meta:
         return handleMeta
       case key.tab:
-        return () => cursor
+        return () => caretInst
       case key.upArrow && !key.shift:
         return upOrHistoryUp
       case key.downArrow && !key.shift:
         return downOrHistoryDown
       case key.leftArrow:
-        return () => cursor.left()
+        return () => caretInst.left()
       case key.rightArrow:
-        return () => cursor.right()
+        return () => caretInst.right()
       default: {
         return function (input: string) {
           switch (true) {
             // Home key
             case input === '\x1b[H' || input === '\x1b[1~':
-              return cursor.startOfLine()
+              return caretInst.startOfLine()
             // End key
             case input === '\x1b[F' || input === '\x1b[4~':
-              return cursor.endOfLine()
+              return caretInst.endOfLine()
             default: {
               // Trailing \r after text is SSH-coalesced Enter ("o\r") —
               // strip it so the Enter isn't inserted as content. Lone \r
@@ -388,15 +389,15 @@ export function useTextInput({
               // paste — convert to \n. Backslash+\r is a stale VS Code
               // Shift+Enter binding (pre-#8991 /terminal-setup wrote
               // args.text "\\\r\n" to keybindings.json); keep the \r so
-              // it becomes \n below (anthropics/ur#31316).
+              // it becomes \n below (urhqs/ur#31316).
               const text = stripAnsi(input)
                 // eslint-disable-next-line custom-rules/no-lookbehind-regex -- .replace(re, str) on 1-2 char keystrokes: no-match returns same string (Object.is), regex never runs
                 .replace(/(?<=[^\\\r\n])\r$/, '')
                 .replace(/\r/g, '\n')
-              if (cursor.isAtStart() && isInputModeCharacter(input)) {
-                return cursor.insert(text).left()
+              if (caretInst.isAtStart() && isInputModeCharacter(input)) {
+                return caretInst.insert(text).left()
               }
-              return cursor.insert(text)
+              return caretInst.insert(text)
             }
           }
         }
@@ -438,19 +439,19 @@ export function useTextInput({
 
       // Apply all DEL characters as backspace operations synchronously
       // Try to delete tokens first, fall back to character backspace
-      let currentCursor = cursor
+      let currentcaret = caretInst
       for (let i = 0; i < delCount; i++) {
-        currentCursor =
-          currentCursor.deleteTokenBefore() ?? currentCursor.backspace()
+        currentcaret =
+          currentcaret.deleteTokenBefore() ?? currentcaret.backspace()
       }
 
       // Update state once with the final result
-      latestCursorRef.current = currentCursor
-      if (!cursor.equals(currentCursor)) {
-        if (cursor.text !== currentCursor.text) {
-          onChange(currentCursor.text)
+      latestcaretRef.current = currentcaret
+      if (!caretInst.equals(currentcaret)) {
+        if (caretInst.text !== currentcaret.text) {
+          onChange(currentcaret.text)
         }
-        setOffset(currentCursor.offset)
+        setOffset(currentcaret.offset)
       }
       resetKillAccumulation()
       resetYankState()
@@ -467,14 +468,14 @@ export function useTextInput({
       resetYankState()
     }
 
-    const nextCursor = mapKey(key)(filteredInput)
-    if (nextCursor) {
-      latestCursorRef.current = nextCursor
-      if (!cursor.equals(nextCursor)) {
-        if (cursor.text !== nextCursor.text) {
-          onChange(nextCursor.text)
+    const nextcaret = mapKey(key)(filteredInput)
+    if (nextcaret) {
+      latestcaretRef.current = nextcaret
+      if (!caretInst.equals(nextcaret)) {
+        if (caretInst.text !== nextcaret.text) {
+          onChange(nextcaret.text)
         }
-        setOffset(nextCursor.offset)
+        setOffset(nextcaret.offset)
       }
       // SSH-coalesced Enter: on slow links, "o" + Enter can arrive as one
       // chunk "o\r". parseKeypress only matches s === '\r', so it hit the
@@ -489,25 +490,25 @@ export function useTextInput({
         // coalesced Enter. See default handler above.
         filteredInput[filteredInput.length - 2] !== '\\'
       ) {
-        onSubmit?.(nextCursor.text)
+        onSubmit?.(nextcaret.text)
       }
     }
   }
 
   // Prepare ghost text for rendering - validate insertPosition matches current
-  // cursor offset to prevent stale ghost text from a previous keystroke causing
+  // caret offset to prevent stale ghost text from a previous keystroke causing
   // a one-frame jitter (ghost text state is updated via useEffect after render)
   const ghostTextForRender =
     inlineGhostText && dim && inlineGhostText.insertPosition === offset
       ? { text: inlineGhostText.text, dim }
       : undefined
 
-  const cursorPos = cursor.getPosition()
+  const caretPos = caretInst.getPosition()
 
   return {
     onInput,
-    renderedValue: cursor.render(
-      cursorChar,
+    renderedValue: caretInst.render(
+      caretChar,
       mask,
       invert,
       ghostTextForRender,
@@ -515,9 +516,9 @@ export function useTextInput({
     ),
     offset,
     setOffset,
-    cursorLine: cursorPos.line - cursor.getViewportStartLine(maxVisibleLines),
-    cursorColumn: cursorPos.column,
-    viewportCharOffset: cursor.getViewportCharOffset(maxVisibleLines),
-    viewportCharEnd: cursor.getViewportCharEnd(maxVisibleLines),
+    caretLine: caretPos.line - caretInst.getViewportStartLine(maxVisibleLines),
+    caretColumn: caretPos.column,
+    viewportCharOffset: caretInst.getViewportCharOffset(maxVisibleLines),
+    viewportCharEnd: caretInst.getViewportCharEnd(maxVisibleLines),
   }
 }

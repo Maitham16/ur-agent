@@ -38,7 +38,7 @@ type DecrpmResponse = Extract<TerminalResponse, { type: 'decrpm' }>
 type Da1Response = Extract<TerminalResponse, { type: 'da1' }>
 type Da2Response = Extract<TerminalResponse, { type: 'da2' }>
 type KittyResponse = Extract<TerminalResponse, { type: 'kittyKeyboard' }>
-type CursorPosResponse = Extract<TerminalResponse, { type: 'cursorPosition' }>
+type caretPosResponse = Extract<TerminalResponse, { type: 'caretPosition' }>
 type OscResponse = Extract<TerminalResponse, { type: 'osc' }>
 type XtversionResponse = Extract<TerminalResponse, { type: 'xtversion' }>
 
@@ -80,14 +80,14 @@ export function kittyKeyboard(): TerminalQuery<KittyResponse> {
   }
 }
 
-/** DECXCPR: request cursor position with DEC-private marker (CSI ? 6 n).
+/** DECXCPR: request caret position with DEC-private marker (CSI ? 6 n).
  *  Terminal replies with CSI ? row ; col R. The `?` marker is critical —
  *  the plain DSR form (CSI 6 n → CSI row;col R) is ambiguous with
  *  modified F3 keys (Shift+F3 = CSI 1;2 R, etc.). */
-export function cursorPosition(): TerminalQuery<CursorPosResponse> {
+export function caretPosition(): TerminalQuery<caretPosResponse> {
   return {
     request: csi('?6n'),
-    match: (r): r is CursorPosResponse => r.type === 'cursorPosition',
+    match: (r): r is caretPosResponse => r.type === 'caretPosition',
   }
 }
 

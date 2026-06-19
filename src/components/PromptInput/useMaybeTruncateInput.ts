@@ -6,7 +6,7 @@ type Props = {
   input: string
   pastedContents: Record<number, PastedContent>
   onInputChange: (input: string) => void
-  setCursorOffset: (offset: number) => void
+  setcaretOffset: (offset: number) => void
   setPastedContents: (contents: Record<number, PastedContent>) => void
 }
 
@@ -14,7 +14,7 @@ export function useMaybeTruncateInput({
   input,
   pastedContents,
   onInputChange,
-  setCursorOffset,
+  setcaretOffset,
   setPastedContents,
 }: Props) {
   // Track if we've initialized this specific input value
@@ -37,7 +37,7 @@ export function useMaybeTruncateInput({
     )
 
     onInputChange(newInput)
-    setCursorOffset(newInput.length)
+    setcaretOffset(newInput.length)
     setPastedContents(newPastedContents)
     setHasAppliedTruncationToInput(true)
   }, [
@@ -46,7 +46,7 @@ export function useMaybeTruncateInput({
     pastedContents,
     onInputChange,
     setPastedContents,
-    setCursorOffset,
+    setcaretOffset,
   ])
 
   // Reset hasInitializedInput when input is cleared (e.g., after submission)

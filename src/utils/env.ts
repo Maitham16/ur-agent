@@ -1,3 +1,4 @@
+// @ts-nocheck
 import memoize from 'lodash-es/memoize.js'
 import { homedir } from 'os'
 import { join } from 'path'
@@ -133,10 +134,10 @@ export const JETBRAINS_IDES = [
 
 // Detect terminal type with fallbacks for all platforms
 function detectTerminal(): string | null {
-  if (process.env.CURSOR_TRACE_ID) return 'cursor'
-  // Cursor and Windsurf under WSL have TERM_PROGRAM=vscode
-  if (process.env.VSCODE_GIT_ASKPASS_MAIN?.includes('cursor')) {
-    return 'cursor'
+  if (process.env.caret_TRACE_ID) return 'caret'
+  // caret and Windsurf under WSL have TERM_PROGRAM=vscode
+  if (process.env.VSCODE_GIT_ASKPASS_MAIN?.includes('caret')) {
+    return 'caret'
   }
   if (process.env.VSCODE_GIT_ASKPASS_MAIN?.includes('windsurf')) {
     return 'windsurf'

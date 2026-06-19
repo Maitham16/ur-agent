@@ -16,8 +16,8 @@ import type { ViewState } from './types.js';
 type Props = {
   inputValue: string;
   setInputValue: (value: string) => void;
-  cursorOffset: number;
-  setCursorOffset: (offset: number) => void;
+  caretOffset: number;
+  setcaretOffset: (offset: number) => void;
   error: string | null;
   setError: (error: string | null) => void;
   result: string | null;
@@ -29,8 +29,8 @@ type Props = {
 export function AddMarketplace({
   inputValue,
   setInputValue,
-  cursorOffset,
-  setCursorOffset,
+  caretOffset,
+  setcaretOffset,
   error,
   setError,
   result,
@@ -133,7 +133,7 @@ export function AddMarketplace({
           <Text dimColor> · https://example.com/marketplace.json</Text>
           <Text dimColor> · ./path/to/marketplace</Text>
           <Box marginTop={1}>
-            <TextInput value={inputValue} onChange={setInputValue} onSubmit={handleAdd} columns={80} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} focus showCursor />
+            <TextInput value={inputValue} onChange={setInputValue} onSubmit={handleAdd} columns={80} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} focus showCaret />
           </Box>
         </Box>
         {isLoading && <Box marginTop={1}>

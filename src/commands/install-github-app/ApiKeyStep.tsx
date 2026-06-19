@@ -28,7 +28,7 @@ export function ApiKeyStep(t0) {
     onSelectOption
   } = t0;
   const selectedOption = t1 === undefined ? existingApiKey ? "existing" : onCreateOAuthToken ? "oauth" : "new" : t1;
-  const [cursorOffset, setCursorOffset] = useState(0);
+  const [caretOffset, setcaretOffset] = useState(0);
   const terminalSize = useTerminalSize();
   const [theme] = useTheme();
   let t2;
@@ -188,10 +188,10 @@ export function ApiKeyStep(t0) {
     t14 = $[39];
   }
   let t15;
-  if ($[40] !== apiKeyOrOAuthToken || $[41] !== cursorOffset || $[42] !== onApiKeyChange || $[43] !== onSubmit || $[44] !== selectedOption || $[45] !== terminalSize) {
-    t15 = selectedOption === "new" && <TextInput value={apiKeyOrOAuthToken} onChange={onApiKeyChange} onSubmit={onSubmit} onPaste={onApiKeyChange} focus={true} placeholder={"sk-ant\u2026 (Create a new key at https://platform.claude.com/settings/keys)"} mask="*" columns={terminalSize.columns} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} showCursor={true} />;
+  if ($[40] !== apiKeyOrOAuthToken || $[41] !== caretOffset || $[42] !== onApiKeyChange || $[43] !== onSubmit || $[44] !== selectedOption || $[45] !== terminalSize) {
+    t15 = selectedOption === "new" && <TextInput value={apiKeyOrOAuthToken} onChange={onApiKeyChange} onSubmit={onSubmit} onPaste={onApiKeyChange} focus={true} placeholder={"sk-ant\u2026 (Create a new key at https://platform.ur.com/settings/keys)"} mask="*" columns={terminalSize.columns} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} showCaret={true} />;
     $[40] = apiKeyOrOAuthToken;
-    $[41] = cursorOffset;
+    $[41] = caretOffset;
     $[42] = onApiKeyChange;
     $[43] = onSubmit;
     $[44] = selectedOption;

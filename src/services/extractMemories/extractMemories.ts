@@ -111,12 +111,12 @@ function countModelVisibleMessagesSince(
 }
 
 /**
- * Returns true if any assistant message after the cursor UUID contains a
+ * Returns true if any assistant message after the caret UUID contains a
  * Write/Edit tool_use block targeting an auto-memory path.
  *
  * The main agent's prompt has full save instructions — when it writes
  * memories, the forked extraction is redundant. runExtraction skips the
- * agent and advances the cursor past this range, making the main agent
+ * agent and advances the caret past this range, making the main agent
  * and the background agent mutually exclusive per turn.
  */
 function hasMemoryWritesSince(
@@ -290,7 +290,7 @@ let drainer: (timeoutMs?: number) => Promise<void> = async () => {}
 
 /**
  * Initialize the memory extraction system.
- * Creates a fresh closure that captures all mutable state (cursor position,
+ * Creates a fresh closure that captures all mutable state (caret position,
  * overlap guard, pending context). Call once at startup alongside
  * initConfidenceRating/initPromptCoaching, or per-test in beforeEach.
  */
@@ -303,7 +303,7 @@ export function initExtractMemories(): void {
    *  full trailing-run chain via runExtraction's recursive finally. */
   const inFlightExtractions = new Set<Promise<void>>()
 
-  /** UUID of the last message processed — cursor so each run only
+  /** UUID of the last message processed — caret so each run only
    *  considers messages added since the previous extraction. */
   let lastMemoryMessageUuid: string | undefined
 
@@ -344,7 +344,7 @@ export function initExtractMemories(): void {
     )
 
     // Mutual exclusion: when the main agent wrote memories, skip the
-    // forked agent and advance the cursor past this range so the next
+    // forked agent and advance the caret past this range so the next
     // extraction only considers messages after the main agent's write.
     if (hasMemoryWritesSince(messages, lastMemoryMessageUuid)) {
       logForDebugging(
@@ -427,8 +427,8 @@ export function initExtractMemories(): void {
         maxTurns: 5,
       })
 
-      // Advance the cursor only after a successful run. If the agent errors
-      // out (caught below), the cursor stays put so those messages are
+      // Advance the caret only after a successful run. If the agent errors
+      // out (caught below), the caret stays put so those messages are
       // reconsidered on the next extraction.
       const lastMessage = messages.at(-1)
       if (lastMessage?.uuid) {
@@ -506,7 +506,7 @@ export function initExtractMemories(): void {
 
       // If a call arrived while we were running, run a trailing extraction
       // with the latest stashed context. The trailing run will compute its
-      // newMessageCount relative to the cursor we just advanced — so it only
+      // newMessageCount relative to the caret we just advanced — so it only
       // picks up messages added between the two calls, not the full history.
       const trailing = pendingContext
       pendingContext = undefined

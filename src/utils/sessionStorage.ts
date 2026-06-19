@@ -2,7 +2,7 @@ import { feature } from 'bun:bundle'
 import type { UUID } from 'crypto'
 import type { Dirent } from 'fs'
 // Sync fs primitives for readFileTailSync — separate from fs/promises
-// imports above. Named (not wildcard) per CLAUDE.md style; no collisions
+// imports above. Named (not wildcard) per UR.md style; no collisions
 // with the async-suffixed names.
 import { closeSync, fstatSync, openSync, readSync } from 'fs'
 import {
@@ -1392,7 +1392,7 @@ export type TeamInfo = {
 // Filter out already-recorded messages before passing to insertMessageChain.
 // Without this, after compaction messagesToKeep (same UUIDs as pre-compact
 // messages) are dedup-skipped by appendEntry but still advance the parentUuid
-// cursor in insertMessageChain, causing new messages to chain from pre-compact
+// caret in insertMessageChain, causing new messages to chain from pre-compact
 // UUIDs instead of the post-compact summary — orphaning the compact boundary.
 //
 // `startingParentUuidHint`: used by useLogMessages to pass the parent from
@@ -1778,7 +1778,7 @@ export function getFirstMeaningfulUserMessageTextContent<T extends Message>(
         const commandName = commandNameTag.replace(/^\//, '')
 
         // If it's a built-in command, then it's unlikely to provide
-        // meaningful context (e.g. `/model sonnet`)
+        // meaningful context (e.g. `/model modelS`)
         if (builtInCommandNames().has(commandName)) {
           continue
         } else {

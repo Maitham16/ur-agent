@@ -54,16 +54,16 @@ export function csi(...args: (string | number)[]): string {
  * CSI final bytes - the command identifier
  */
 export const CSI = {
-  // Cursor movement
-  CUU: 0x41, // A - Cursor Up
-  CUD: 0x42, // B - Cursor Down
-  CUF: 0x43, // C - Cursor Forward
-  CUB: 0x44, // D - Cursor Back
-  CNL: 0x45, // E - Cursor Next Line
-  CPL: 0x46, // F - Cursor Previous Line
-  CHA: 0x47, // G - Cursor Horizontal Absolute
-  CUP: 0x48, // H - Cursor Position
-  CHT: 0x49, // I - Cursor Horizontal Tab
+  // caret movement
+  CUU: 0x41, // A - caret Up
+  CUD: 0x42, // B - caret Down
+  CUF: 0x43, // C - caret Forward
+  CUB: 0x44, // D - caret Back
+  CNL: 0x45, // E - caret Next Line
+  CPL: 0x46, // F - caret Previous Line
+  CHA: 0x47, // G - caret Horizontal Absolute
+  CUP: 0x48, // H - caret Position
+  CHT: 0x49, // I - caret Horizontal Tab
   VPA: 0x64, // d - Vertical Position Absolute
   HVP: 0x66, // f - Horizontal Vertical Position
 
@@ -91,11 +91,11 @@ export const CSI = {
 
   // Other
   DSR: 0x6e, // n - Device Status Report
-  DECSCUSR: 0x71, // q - Set Cursor Style (with space intermediate)
+  DECSCUSR: 0x71, // q - Set caret Style (with space intermediate)
   DECSTBM: 0x72, // r - Set Top and Bottom Margins
-  SCOSC: 0x73, // s - Save Cursor Position
-  SCORC: 0x75, // u - Restore Cursor Position
-  CBT: 0x5a, // Z - Cursor Backward Tabulation
+  SCOSC: 0x73, // s - Save caret Position
+  SCORC: 0x75, // u - Restore caret Position
+  CBT: 0x5a, // Z - caret Backward Tabulation
 } as const
 
 /**
@@ -109,11 +109,11 @@ export const ERASE_DISPLAY = ['toEnd', 'toStart', 'all', 'scrollback'] as const
 export const ERASE_LINE_REGION = ['toEnd', 'toStart', 'all'] as const
 
 /**
- * Cursor styles (DECSCUSR)
+ * caret styles (DECSCUSR)
  */
-export type CursorStyle = 'block' | 'underline' | 'bar'
+export type caretStyle = 'block' | 'underline' | 'bar'
 
-export const CURSOR_STYLES: Array<{ style: CursorStyle; blinking: boolean }> = [
+export const caret_STYLES: Array<{ style: caretStyle; blinking: boolean }> = [
   { style: 'block', blinking: true }, // 0 - default
   { style: 'block', blinking: true }, // 1
   { style: 'block', blinking: false }, // 2
@@ -123,82 +123,82 @@ export const CURSOR_STYLES: Array<{ style: CursorStyle; blinking: boolean }> = [
   { style: 'bar', blinking: false }, // 6
 ]
 
-// Cursor movement generators
+// caret movement generators
 
-/** Move cursor up n lines (CSI n A) */
-export function cursorUp(n = 1): string {
+/** Move caret up n lines (CSI n A) */
+export function caretUp(n = 1): string {
   return n === 0 ? '' : csi(n, 'A')
 }
 
-/** Move cursor down n lines (CSI n B) */
-export function cursorDown(n = 1): string {
+/** Move caret down n lines (CSI n B) */
+export function caretDown(n = 1): string {
   return n === 0 ? '' : csi(n, 'B')
 }
 
-/** Move cursor forward n columns (CSI n C) */
-export function cursorForward(n = 1): string {
+/** Move caret forward n columns (CSI n C) */
+export function caretForward(n = 1): string {
   return n === 0 ? '' : csi(n, 'C')
 }
 
-/** Move cursor back n columns (CSI n D) */
-export function cursorBack(n = 1): string {
+/** Move caret back n columns (CSI n D) */
+export function caretBack(n = 1): string {
   return n === 0 ? '' : csi(n, 'D')
 }
 
-/** Move cursor to column n (1-indexed) (CSI n G) */
-export function cursorTo(col: number): string {
+/** Move caret to column n (1-indexed) (CSI n G) */
+export function caretTo(col: number): string {
   return csi(col, 'G')
 }
 
-/** Move cursor to column 1 (CSI G) */
-export const CURSOR_LEFT = csi('G')
+/** Move caret to column 1 (CSI G) */
+export const caret_LEFT = csi('G')
 
-/** Move cursor to row, col (1-indexed) (CSI row ; col H) */
-export function cursorPosition(row: number, col: number): string {
+/** Move caret to row, col (1-indexed) (CSI row ; col H) */
+export function caretPosition(row: number, col: number): string {
   return csi(row, col, 'H')
 }
 
-/** Move cursor to home position (CSI H) */
-export const CURSOR_HOME = csi('H')
+/** Move caret to home position (CSI H) */
+export const caret_HOME = csi('H')
 
 /**
- * Move cursor relative to current position
+ * Move caret relative to current position
  * Positive x = right, negative x = left
  * Positive y = down, negative y = up
  */
-export function cursorMove(x: number, y: number): string {
+export function caretMove(x: number, y: number): string {
   let result = ''
   // Horizontal first (matches ansi-escapes behavior)
   if (x < 0) {
-    result += cursorBack(-x)
+    result += caretBack(-x)
   } else if (x > 0) {
-    result += cursorForward(x)
+    result += caretForward(x)
   }
   // Then vertical
   if (y < 0) {
-    result += cursorUp(-y)
+    result += caretUp(-y)
   } else if (y > 0) {
-    result += cursorDown(y)
+    result += caretDown(y)
   }
   return result
 }
 
-// Save/restore cursor position
+// Save/restore caret position
 
-/** Save cursor position (CSI s) */
-export const CURSOR_SAVE = csi('s')
+/** Save caret position (CSI s) */
+export const caret_SAVE = csi('s')
 
-/** Restore cursor position (CSI u) */
-export const CURSOR_RESTORE = csi('u')
+/** Restore caret position (CSI u) */
+export const caret_RESTORE = csi('u')
 
 // Erase generators
 
-/** Erase from cursor to end of line (CSI K) */
+/** Erase from caret to end of line (CSI K) */
 export function eraseToEndOfLine(): string {
   return csi('K')
 }
 
-/** Erase from cursor to start of line (CSI 1 K) */
+/** Erase from caret to start of line (CSI 1 K) */
 export function eraseToStartOfLine(): string {
   return csi(1, 'K')
 }
@@ -211,12 +211,12 @@ export function eraseLine(): string {
 /** Erase entire line - constant form */
 export const ERASE_LINE = csi(2, 'K')
 
-/** Erase from cursor to end of screen (CSI J) */
+/** Erase from caret to end of screen (CSI J) */
 export function eraseToEndOfScreen(): string {
   return csi('J')
 }
 
-/** Erase from cursor to start of screen (CSI 1 J) */
+/** Erase from caret to start of screen (CSI 1 J) */
 export function eraseToStartOfScreen(): string {
   return csi(1, 'J')
 }
@@ -233,7 +233,7 @@ export const ERASE_SCREEN = csi(2, 'J')
 export const ERASE_SCROLLBACK = csi(3, 'J')
 
 /**
- * Erase n lines starting from cursor line, moving cursor up
+ * Erase n lines starting from caret line, moving caret up
  * This erases each line and moves up, ending at column 1
  */
 export function eraseLines(n: number): string {
@@ -242,10 +242,10 @@ export function eraseLines(n: number): string {
   for (let i = 0; i < n; i++) {
     result += ERASE_LINE
     if (i < n - 1) {
-      result += cursorUp(1)
+      result += caretUp(1)
     }
   }
-  result += CURSOR_LEFT
+  result += caret_LEFT
   return result
 }
 
@@ -266,7 +266,7 @@ export function setScrollRegion(top: number, bottom: number): string {
   return csi(top, bottom, 'r')
 }
 
-/** Reset scroll region to full screen (DECSTBM, CSI r). Homes the cursor. */
+/** Reset scroll region to full screen (DECSTBM, CSI r). Homes the caret. */
 export const RESET_SCROLL_REGION = csi('r')
 
 // Bracketed paste markers (input from terminal, not output)

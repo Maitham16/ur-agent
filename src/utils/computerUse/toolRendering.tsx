@@ -61,7 +61,7 @@ export function getComputerUseMCPRenderingOverrides(toolName: string): {
         case 'screenshot':
         case 'left_mouse_down':
         case 'left_mouse_up':
-        case 'cursor_position':
+        case 'caret_position':
         case 'list_granted_applications':
         case 'read_clipboard':
           return '';

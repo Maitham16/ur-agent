@@ -129,7 +129,7 @@ export function formatGoToDefinitionResult(
   cwd?: string,
 ): string {
   if (!result) {
-    return 'No definition found. This may occur if the cursor is not on a symbol, or if the definition is in an external library not indexed by the LSP server.'
+    return 'No definition found. This may occur if the caret is not on a symbol, or if the definition is in an external library not indexed by the LSP server.'
   }
 
   if (Array.isArray(result)) {
@@ -150,7 +150,7 @@ export function formatGoToDefinitionResult(
     const validLocations = locations.filter(loc => loc && loc.uri)
 
     if (validLocations.length === 0) {
-      return 'No definition found. This may occur if the cursor is not on a symbol, or if the definition is in an external library not indexed by the LSP server.'
+      return 'No definition found. This may occur if the caret is not on a symbol, or if the definition is in an external library not indexed by the LSP server.'
     }
     if (validLocations.length === 1) {
       return `Defined in ${formatLocation(validLocations[0]!, cwd)}`
@@ -252,7 +252,7 @@ function extractMarkupText(
  */
 export function formatHoverResult(result: Hover | null, _cwd?: string): string {
   if (!result) {
-    return 'No hover information available. This may occur if the cursor is not on a symbol, or if the LSP server has not fully indexed the file.'
+    return 'No hover information available. This may occur if the caret is not on a symbol, or if the LSP server has not fully indexed the file.'
   }
 
   const content = extractMarkupText(result.contents)

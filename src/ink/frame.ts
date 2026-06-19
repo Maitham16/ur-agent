@@ -1,4 +1,4 @@
-import type { Cursor } from './cursor.js'
+import type { Caret } from './caret.js'
 import type { Size } from './layout/geometry.js'
 import type { ScrollHint } from './render-node-to-output.js'
 import {
@@ -12,7 +12,7 @@ import {
 export type Frame = {
   readonly screen: Screen
   readonly viewport: Size
-  readonly cursor: Cursor
+  readonly caret: Caret
   /** DECSTBM scroll optimization hint (alt-screen only, null otherwise). */
   readonly scrollHint?: ScrollHint | null
   /** A ScrollBox has remaining pendingScrollDelta — schedule another frame. */
@@ -29,7 +29,7 @@ export function emptyFrame(
   return {
     screen: createScreen(0, 0, stylePool, charPool, hyperlinkPool),
     viewport: { width: columns, height: rows },
-    cursor: { x: 0, y: 0, visible: true },
+    caret: { x: 0, y: 0, visible: true },
   }
 }
 
@@ -81,10 +81,10 @@ export type Patch =
       // flicker to its source React component.
       debug?: { triggerY: number; prevLine: string; nextLine: string }
     }
-  | { type: 'cursorHide' }
-  | { type: 'cursorShow' }
-  | { type: 'cursorMove'; x: number; y: number }
-  | { type: 'cursorTo'; col: number }
+  | { type: 'caretHide' }
+  | { type: 'caretShow' }
+  | { type: 'caretMove'; x: number; y: number }
+  | { type: 'caretTo'; col: number }
   | { type: 'carriageReturn' }
   | { type: 'hyperlink'; uri: string }
   // Pre-serialized style transition string from StylePool.transition() —

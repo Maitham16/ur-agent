@@ -60,7 +60,7 @@ async function loadHistoryEntries(minCount: number, modeFilter?: HistoryMode): P
     pendingLoadModeFilter = undefined;
   }
 }
-export function useArrowKeyHistory(onSetInput: (value: string, mode: HistoryMode, pastedContents: Record<number, PastedContent>) => void, currentInput: string, pastedContents: Record<number, PastedContent>, setCursorOffset?: (offset: number) => void, currentMode?: HistoryMode): {
+export function useArrowKeyHistory(onSetInput: (value: string, mode: HistoryMode, pastedContents: Record<number, PastedContent>) => void, currentInput: string, pastedContents: Record<number, PastedContent>, setcaretOffset?: (offset: number) => void, currentMode?: HistoryMode): {
   historyIndex: number;
   setHistoryIndex: (index: number) => void;
   onHistoryUp: () => void;
@@ -101,16 +101,16 @@ export function useArrowKeyHistory(onSetInput: (value: string, mode: HistoryMode
   currentInputRef.current = currentInput;
   pastedContentsRef.current = pastedContents;
   currentModeRef.current = currentMode;
-  const setInputWithCursor = useCallback((value: string, mode: HistoryMode, contents: Record<number, PastedContent>, cursorToStart = false): void => {
+  const setInputWithcaret = useCallback((value: string, mode: HistoryMode, contents: Record<number, PastedContent>, caretToStart = false): void => {
     onSetInput(value, mode, contents);
-    setCursorOffset?.(cursorToStart ? 0 : value.length);
-  }, [onSetInput, setCursorOffset]);
-  const updateInput = useCallback((input: HistoryEntry | undefined, cursorToStart_0 = false): void => {
+    setcaretOffset?.(caretToStart ? 0 : value.length);
+  }, [onSetInput, setcaretOffset]);
+  const updateInput = useCallback((input: HistoryEntry | undefined, caretToStart_0 = false): void => {
     if (!input || !input.display) return;
     const mode_0 = getModeFromInput(input.display);
     const value_0 = mode_0 === 'bash' ? input.display.slice(1) : input.display;
-    setInputWithCursor(value_0, mode_0, input.pastedContents ?? {}, cursorToStart_0);
-  }, [setInputWithCursor]);
+    setInputWithcaret(value_0, mode_0, input.pastedContents ?? {}, caretToStart_0);
+  }, [setInputWithcaret]);
   const showSearchHint = useCallback((): void => {
     addNotification({
       key: 'search-history-hint',
@@ -194,17 +194,17 @@ export function useArrowKeyHistory(onSetInput: (value: string, mode: HistoryMode
         // Restore the draft with its saved mode if available
         const savedMode = lastShownHistoryEntry.mode;
         if (savedMode) {
-          setInputWithCursor(lastShownHistoryEntry.display, savedMode, lastShownHistoryEntry.pastedContents ?? {});
+          setInputWithcaret(lastShownHistoryEntry.display, savedMode, lastShownHistoryEntry.pastedContents ?? {});
         } else {
           updateInput(lastShownHistoryEntry);
         }
       } else {
         // When in filtered mode, stay in that mode when clearing input
-        setInputWithCursor('', initialModeFilterRef.current ?? 'prompt', {});
+        setInputWithcaret('', initialModeFilterRef.current ?? 'prompt', {});
       }
     }
     return currentIndex <= 0;
-  }, [lastShownHistoryEntry, updateInput, setInputWithCursor]);
+  }, [lastShownHistoryEntry, updateInput, setInputWithcaret]);
   const resetHistory = useCallback((): void => {
     setLastShownHistoryEntry(undefined);
     setHistoryIndex(0);

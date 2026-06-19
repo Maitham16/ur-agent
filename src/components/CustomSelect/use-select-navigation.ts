@@ -587,7 +587,7 @@ export function useSelectNavigation<T>({
 
   // Validate that focusedValue exists in current options.
   // This handles the case where options change during render but the reset
-  // action hasn't been processed yet - without this, the cursor would disappear
+  // action hasn't been processed yet - without this, the caret would disappear
   // because focusedValue points to an option that no longer exists.
   const validatedFocusedValue = useMemo(() => {
     if (state.focusedValue === undefined) {

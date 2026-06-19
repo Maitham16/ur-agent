@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import type { CommandResultDisplay } from '../../commands.js';
-import { TEARDROP_ASTERISK } from '../../constants/figures.js';
+import { UR_HOUSE_SYMBOL } from '../../constants/figures.js';
 import { useExitOnCtrlCDWithKeybindings } from '../../hooks/useExitOnCtrlCDWithKeybindings.js';
 import { setClipboard } from '../../ink/termio/osc.js';
 // eslint-disable-next-line custom-rules/prefer-use-keybindings -- enter to copy link
@@ -139,7 +139,7 @@ export function Passes({
       // Grayed out redeemed ticket with slashes
       return <Box key={pass.passNumber} flexDirection="column" marginRight={1}>
           <Text dimColor>{'┌─────────╱'}</Text>
-          <Text dimColor>{` ) CC ${TEARDROP_ASTERISK} ┊╱`}</Text>
+          <Text dimColor>{` ) CC ${UR_HOUSE_SYMBOL} ┊╱`}</Text>
           <Text dimColor>{'└───────╱'}</Text>
         </Box>;
     }
@@ -147,7 +147,7 @@ export function Passes({
         <Text>{'┌──────────┐'}</Text>
         <Text>
           {' ) CC '}
-          <Text color="ur">{TEARDROP_ASTERISK}</Text>
+          <Text color="ur">{UR_HOUSE_SYMBOL}</Text>
           {' ┊ ( '}
         </Text>
         <Text>{'└──────────┘'}</Text>
@@ -168,7 +168,7 @@ export function Passes({
         <Box flexDirection="column" marginLeft={2}>
           <Text dimColor>
             {referrerReward ? `Share a free week of UR with friends. If they love it and subscribe, you'll get ${formatCreditAmount(referrerReward)} of extra usage to keep building. ` : 'Share a free week of UR with friends. '}
-            <Link url={referrerReward ? 'https://support.claude.com/en/articles/13456702-ur-guest-passes' : 'https://support.claude.com/en/articles/12875061-ur-guest-passes'}>
+            <Link url={referrerReward ? 'https://support.ur.com/en/articles/13456702-ur-guest-passes' : 'https://support.ur.com/en/articles/12875061-ur-guest-passes'}>
               Terms apply.
             </Link>
           </Text>

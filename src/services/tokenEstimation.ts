@@ -1,6 +1,6 @@
 // @ts-nocheck
-import type { Anthropic } from '@anthropic-ai/sdk'
-import type { BetaMessageParam as MessageParam } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
+import type { URHQ } from '@urhq-ai/sdk'
+import type { BetaMessageParam as MessageParam } from '@urhq-ai/sdk/resources/beta/messages/messages.mjs'
 // @aws-sdk/client-bedrock-runtime is imported dynamically in countTokensWithBedrock()
 // to defer ~279KB of AWS SDK code until a Bedrock call is actually made
 import type { CountTokensCommandInput } from '@aws-sdk/client-bedrock-runtime'
@@ -17,15 +17,15 @@ import {
   isFoundationModel,
 } from '../utils/model/bedrock.js'
 import {
-  getDefaultSonnetModel,
+  getDefaultmodelSModel,
   getMainLoopModel,
   getSmallFastModel,
   normalizeModelStringForAPI,
 } from '../utils/model/model.js'
 import { jsonStringify } from '../utils/slowOperations.js'
 import { isToolReferenceBlock } from '../utils/toolSearch.js'
-import { getAPIMetadata, getExtraBodyParams } from './api/claude.js'
-import { getAnthropicClient } from './api/client.js'
+import { getAPIMetadata, getExtraBodyParams } from './api/ur.js'
+import { getURHQClient } from './api/client.js'
 import { withTokenCountVCR } from './vcr.js'
 
 // Minimal values for token counting with thinking enabled
@@ -37,7 +37,7 @@ const TOKEN_COUNT_MAX_TOKENS = 2048
  * Check if messages contain thinking blocks
  */
 function hasThinkingBlocks(
-  messages: Anthropic.Beta.Messages.BetaMessageParam[],
+  messages: URHQ.Beta.Messages.BetaMessageParam[],
 ): boolean {
   for (const message of messages) {
     if (message.role === 'assistant' && Array.isArray(message.content)) {
@@ -65,8 +65,8 @@ function hasThinkingBlocks(
  * but at runtime these fields may exist from API responses when tool search was enabled.
  */
 function stripToolSearchFieldsFromMessages(
-  messages: Anthropic.Beta.Messages.BetaMessageParam[],
-): Anthropic.Beta.Messages.BetaMessageParam[] {
+  messages: URHQ.Beta.Messages.BetaMessageParam[],
+): URHQ.Beta.Messages.BetaMessageParam[] {
   return messages.map(message => {
     if (!Array.isArray(message.content)) {
       return message
@@ -77,7 +77,7 @@ function stripToolSearchFieldsFromMessages(
       if (block.type === 'tool_use') {
         // Destructure to exclude any extra fields like 'caller'
         const toolUse =
-          block as Anthropic.Beta.Messages.BetaToolUseBlockParam & {
+          block as URHQ.Beta.Messages.BetaToolUseBlockParam & {
             caller?: unknown
           }
         return {
@@ -91,7 +91,7 @@ function stripToolSearchFieldsFromMessages(
       // Strip tool_reference blocks from tool_result content (user messages)
       if (block.type === 'tool_result') {
         const toolResult =
-          block as Anthropic.Beta.Messages.BetaToolResultBlockParam
+          block as URHQ.Beta.Messages.BetaToolResultBlockParam
         if (Array.isArray(toolResult.content)) {
           const filteredContent = (toolResult.content as unknown[]).filter(
             c => !isToolReferenceBlock(c),
@@ -130,7 +130,7 @@ export async function countTokensWithAPI(
     return 0
   }
 
-  const message: Anthropic.Beta.Messages.BetaMessageParam = {
+  const message: URHQ.Beta.Messages.BetaMessageParam = {
     role: 'user',
     content: content,
   }
@@ -139,8 +139,8 @@ export async function countTokensWithAPI(
 }
 
 export async function countMessagesTokensWithAPI(
-  messages: Anthropic.Beta.Messages.BetaMessageParam[],
-  tools: Anthropic.Beta.Messages.BetaToolUnion[],
+  messages: URHQ.Beta.Messages.BetaMessageParam[],
+  tools: URHQ.Beta.Messages.BetaToolUnion[],
 ): Promise<number | null> {
   return withTokenCountVCR(messages, tools, async () => {
     try {
@@ -149,7 +149,7 @@ export async function countMessagesTokensWithAPI(
       const containsThinking = hasThinkingBlocks(messages)
 
       if (getAPIProvider() === 'bedrock') {
-        // @anthropic-sdk/bedrock-sdk doesn't support countTokens currently
+        // @urhq-sdk/bedrock-sdk doesn't support countTokens currently
         return countTokensWithBedrock({
           model: normalizeModelStringForAPI(model),
           messages,
@@ -159,7 +159,7 @@ export async function countMessagesTokensWithAPI(
         })
       }
 
-      const anthropic = await getAnthropicClient({
+      const urhq = await getURHQClient({
         maxRetries: 1,
         model,
         source: 'count_tokens',
@@ -170,7 +170,7 @@ export async function countMessagesTokensWithAPI(
           ? betas.filter(b => VERTEX_COUNT_TOKENS_ALLOWED_BETAS.has(b))
           : betas
 
-      const response = await anthropic.beta.messages.countTokens({
+      const response = await urhq.beta.messages.countTokens({
         model: normalizeModelStringForAPI(model),
         messages:
           // When we pass tools and no messages, we need to pass a dummy message
@@ -245,38 +245,38 @@ export function roughTokenCountEstimationForFileType(
 /**
  * Estimates token count for a Message object by extracting and analyzing its text content.
  * This provides a more reliable estimate than getTokenUsage for messages that may have been compacted.
- * Uses Haiku for token counting (Haiku 4.5 supports thinking blocks), except:
- * - Vertex global region: uses Sonnet (Haiku not available)
- * - Bedrock with thinking blocks: uses Sonnet (Haiku 3.5 doesn't support thinking)
+ * Uses modelH for token counting (modelH 4.5 supports thinking blocks), except:
+ * - Vertex global region: uses modelS (modelH not available)
+ * - Bedrock with thinking blocks: uses modelS (modelH 3.5 doesn't support thinking)
  */
-export async function countTokensViaHaikuFallback(
-  messages: Anthropic.Beta.Messages.BetaMessageParam[],
-  tools: Anthropic.Beta.Messages.BetaToolUnion[],
+export async function countTokensViamodelHFallback(
+  messages: URHQ.Beta.Messages.BetaMessageParam[],
+  tools: URHQ.Beta.Messages.BetaToolUnion[],
 ): Promise<number | null> {
   // Check if messages contain thinking blocks
   const containsThinking = hasThinkingBlocks(messages)
 
-  // If we're on Vertex and using global region, always use Sonnet since Haiku is not available there.
+  // If we're on Vertex and using global region, always use modelS since modelH is not available there.
   const isVertexGlobalEndpoint =
     isEnvTruthy(process.env.UR_CODE_USE_VERTEX) &&
     getVertexRegionForModel(getSmallFastModel()) === 'global'
-  // If we're on Bedrock with thinking blocks, use Sonnet since Haiku 3.5 doesn't support thinking
+  // If we're on Bedrock with thinking blocks, use modelS since modelH 3.5 doesn't support thinking
   const isBedrockWithThinking =
     isEnvTruthy(process.env.UR_CODE_USE_BEDROCK) && containsThinking
-  // If we're on Vertex with thinking blocks, use Sonnet since Haiku 3.5 doesn't support thinking
+  // If we're on Vertex with thinking blocks, use modelS since modelH 3.5 doesn't support thinking
   const isVertexWithThinking =
     isEnvTruthy(process.env.UR_CODE_USE_VERTEX) && containsThinking
-  // Otherwise always use Haiku - Haiku 4.5 supports thinking blocks.
-  // WARNING: if you change this to use a non-Haiku model, this request will fail in 1P unless it uses getCLISyspromptPrefix.
-  // Note: We don't need Sonnet for tool_reference blocks because we strip them via
+  // Otherwise always use modelH - modelH 4.5 supports thinking blocks.
+  // WARNING: if you change this to use a non-modelH model, this request will fail in 1P unless it uses getCLISyspromptPrefix.
+  // Note: We don't need modelS for tool_reference blocks because we strip them via
   // stripToolSearchFieldsFromMessages() before sending.
-  // Use getSmallFastModel() to respect ANTHROPIC_SMALL_FAST_MODEL env var for Bedrock users
+  // Use getSmallFastModel() to respect URHQ_SMALL_FAST_MODEL env var for Bedrock users
   // with global inference profiles (see issue #10883).
   const model =
     isVertexGlobalEndpoint || isBedrockWithThinking || isVertexWithThinking
-      ? getDefaultSonnetModel()
+      ? getDefaultmodelSModel()
       : getSmallFastModel()
-  const anthropic = await getAnthropicClient({
+  const urhq = await getURHQClient({
     maxRetries: 1,
     model,
     source: 'count_tokens',
@@ -300,7 +300,7 @@ export async function countTokensViaHaikuFallback(
       : betas
 
   // biome-ignore lint/plugin: token counting needs specialized parameters (thinking, betas) that sideQuery doesn't support
-  const response = await anthropic.beta.messages.create({
+  const response = await urhq.beta.messages.create({
     model: normalizeModelStringForAPI(model),
     max_tokens: containsThinking ? TOKEN_COUNT_MAX_TOKENS : 1,
     messages: messagesToSend,
@@ -351,8 +351,8 @@ export function roughTokenCountEstimationForMessage(message: {
     return roughTokenCountEstimationForContent(
       message.message?.content as
         | string
-        | Array<Anthropic.ContentBlock>
-        | Array<Anthropic.ContentBlockParam>
+        | Array<URHQ.ContentBlock>
+        | Array<URHQ.ContentBlockParam>
         | undefined,
     )
   }
@@ -372,8 +372,8 @@ export function roughTokenCountEstimationForMessage(message: {
 function roughTokenCountEstimationForContent(
   content:
     | string
-    | Array<Anthropic.ContentBlock>
-    | Array<Anthropic.ContentBlockParam>
+    | Array<URHQ.ContentBlock>
+    | Array<URHQ.ContentBlockParam>
     | undefined,
 ): number {
   if (!content) {
@@ -390,7 +390,7 @@ function roughTokenCountEstimationForContent(
 }
 
 function roughTokenCountEstimationForBlock(
-  block: string | Anthropic.ContentBlock | Anthropic.ContentBlockParam,
+  block: string | URHQ.ContentBlock | URHQ.ContentBlockParam,
 ): number {
   if (typeof block === 'string') {
     return roughTokenCountEstimation(block)
@@ -443,8 +443,8 @@ async function countTokensWithBedrock({
   containsThinking,
 }: {
   model: string
-  messages: Anthropic.Beta.Messages.BetaMessageParam[]
-  tools: Anthropic.Beta.Messages.BetaToolUnion[]
+  messages: URHQ.Beta.Messages.BetaMessageParam[]
+  tools: URHQ.Beta.Messages.BetaToolUnion[]
   betas: string[]
   containsThinking: boolean
 }): Promise<number | null> {
@@ -459,14 +459,14 @@ async function countTokensWithBedrock({
     }
 
     const requestBody = {
-      anthropic_version: 'bedrock-2023-05-31',
+      urhq_version: 'bedrock-2023-05-31',
       // When we pass tools and no messages, we need to pass a dummy message
       // to get an accurate tool token count.
       messages:
         messages.length > 0 ? messages : [{ role: 'user', content: 'foo' }],
       max_tokens: containsThinking ? TOKEN_COUNT_MAX_TOKENS : 1,
       ...(tools.length > 0 && { tools }),
-      ...(betas.length > 0 && { anthropic_beta: betas }),
+      ...(betas.length > 0 && { urhq_beta: betas }),
       ...(containsThinking && {
         thinking: {
           type: 'enabled',

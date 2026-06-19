@@ -261,11 +261,11 @@ type Props = {
    *  (e.g. /export via renderToString) where the memory concern doesn't apply
    *  and the "already in scrollback" justification doesn't hold. */
   disableRenderCap?: boolean;
-  /** In-transcript cursor; expanded overrides verbose for selected message. */
-  cursor?: MessageActionsState | null;
-  setCursor?: (cursor: MessageActionsState | null) => void;
+  /** In-transcript caret; expanded overrides verbose for selected message. */
+  caret?: MessageActionsState | null;
+  setcaret?: (caret: MessageActionsState | null) => void;
   /** Passed through to VirtualMessageList (heightCache owns visibility). */
-  cursorNavRef?: React.Ref<MessageActionsNav>;
+  caretNavRef?: React.Ref<MessageActionsNav>;
   /** Render only collapsed.slice(start, end). For chunked headless export
    *  (streamRenderedMessages in exportRenderer.tsx): prep runs on the FULL
    *  messages array so grouping/lookups are correct, but only this slice
@@ -368,9 +368,9 @@ const MessagesImpl = ({
   scanElement,
   setPositions,
   disableRenderCap = false,
-  cursor = null,
-  setCursor,
-  cursorNavRef,
+  caret = null,
+  setcaret,
+  caretNavRef,
   renderRange
 }: Props): React.ReactNode => {
   const {
@@ -553,9 +553,9 @@ const MessagesImpl = ({
     return renderableMessages.findIndex(m => m.uuid.slice(0, 24) === prefix);
   }, [unseenDivider, renderableMessages]);
   const selectedIdx = useMemo(() => {
-    if (!cursor) return -1;
-    return renderableMessages.findIndex(m_0 => m_0.uuid === cursor.uuid);
-  }, [cursor, renderableMessages]);
+    if (!caret) return -1;
+    return renderableMessages.findIndex(m_0 => m_0.uuid === caret.uuid);
+  }, [caret, renderableMessages]);
 
   // Fullscreen: click a message to toggle verbose rendering for it. Keyed by
   // tool_use_id where available so a tool_use and its tool_result (separate
@@ -622,7 +622,7 @@ const MessagesImpl = ({
     // streaming instead of waiting for the block to finalize.
     const hasContentAfter = msg_8.type === 'collapsed_read_search' && (!!streamingText || hasContentAfterIndex(renderableMessages, index, tools, streamingToolUseIDs));
     const k_0 = messageKey(msg_8);
-    const row = <MessageRow key={k_0} message={msg_8} isUserContinuation={isUserContinuation} hasContentAfter={hasContentAfter} tools={tools} commands={commands} verbose={verbose || isItemExpanded(msg_8) || cursor?.expanded === true && index === selectedIdx} inProgressToolUseIDs={inProgressToolUseIDs} streamingToolUseIDs={streamingToolUseIDs} screen={screen} canAnimate={canAnimate} onOpenRateLimitOptions={onOpenRateLimitOptions} lastThinkingBlockId={lastThinkingBlockId} latestBashOutputUUID={latestBashOutputUUID} columns={columns} isLoading={isLoading} lookups={lookups_0} />;
+    const row = <MessageRow key={k_0} message={msg_8} isUserContinuation={isUserContinuation} hasContentAfter={hasContentAfter} tools={tools} commands={commands} verbose={verbose || isItemExpanded(msg_8) || caret?.expanded === true && index === selectedIdx} inProgressToolUseIDs={inProgressToolUseIDs} streamingToolUseIDs={streamingToolUseIDs} screen={screen} canAnimate={canAnimate} onOpenRateLimitOptions={onOpenRateLimitOptions} lastThinkingBlockId={lastThinkingBlockId} latestBashOutputUUID={latestBashOutputUUID} columns={columns} isLoading={isLoading} lookups={lookups_0} />;
 
     // Per-row Provider — only 2 rows re-render on selection change.
     // Wrapped BEFORE divider branch so both return paths get it.
@@ -698,7 +698,7 @@ const MessagesImpl = ({
           passing the array would accumulate every historical version
           (~1-2MB over a 7-turn session). */}
       {virtualScrollRuntimeGate ? <InVirtualListContext.Provider value={true}>
-          <VirtualMessageList messages={renderableMessages} scrollRef={scrollRef} columns={columns} itemKey={messageKey} renderItem={renderMessageRow} onItemClick={onItemClick} isItemClickable={isItemClickable} isItemExpanded={isItemExpanded} trackStickyPrompt={trackStickyPrompt} selectedIndex={selectedIdx >= 0 ? selectedIdx : undefined} cursorNavRef={cursorNavRef} setCursor={setCursor} jumpRef={jumpRef} onSearchMatchesChange={onSearchMatchesChange} scanElement={scanElement} setPositions={setPositions} extractSearchText={extractSearchText} />
+          <VirtualMessageList messages={renderableMessages} scrollRef={scrollRef} columns={columns} itemKey={messageKey} renderItem={renderMessageRow} onItemClick={onItemClick} isItemClickable={isItemClickable} isItemExpanded={isItemExpanded} trackStickyPrompt={trackStickyPrompt} selectedIndex={selectedIdx >= 0 ? selectedIdx : undefined} caretNavRef={caretNavRef} setcaret={setcaret} jumpRef={jumpRef} onSearchMatchesChange={onSearchMatchesChange} scanElement={scanElement} setPositions={setPositions} extractSearchText={extractSearchText} />
         </InVirtualListContext.Provider> : renderableMessages.flatMap(renderMessageRow)}
 
       {streamingText && !isBriefOnly && <Box alignItems="flex-start" flexDirection="row" marginTop={1} width="100%">
@@ -742,7 +742,7 @@ function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
 export const Messages = React.memo(MessagesImpl, (prev, next) => {
   const keys = Object.keys(prev) as (keyof typeof prev)[];
   for (const key of keys) {
-    if (key === 'onOpenRateLimitOptions' || key === 'scrollRef' || key === 'trackStickyPrompt' || key === 'setCursor' || key === 'cursorNavRef' || key === 'jumpRef' || key === 'onSearchMatchesChange' || key === 'scanElement' || key === 'setPositions') continue;
+    if (key === 'onOpenRateLimitOptions' || key === 'scrollRef' || key === 'trackStickyPrompt' || key === 'setcaret' || key === 'caretNavRef' || key === 'jumpRef' || key === 'onSearchMatchesChange' || key === 'scanElement' || key === 'setPositions') continue;
     if (prev[key] !== next[key]) {
       if (key === 'streamingToolUses') {
         const p = prev.streamingToolUses;

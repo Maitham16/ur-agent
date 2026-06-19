@@ -708,7 +708,7 @@ async function getTopLevelPaths(): Promise<string[]> {
 }
 
 /**
- * Generate file suggestions for the current input and cursor position
+ * Generate file suggestions for the current input and caret position
  * @param partialPath The partial file path to match
  * @param showOnEmpty Whether to show suggestions even if partialPath is empty (used for @ symbol)
  */
@@ -792,7 +792,7 @@ export function applyFileSuggestion(
   partialPath: string,
   startPos: number,
   onInputChange: (value: string) => void,
-  setCursorOffset: (offset: number) => void,
+  setcaretOffset: (offset: number) => void,
 ): void {
   // Extract suggestion text from string or SuggestionItem
   const suggestionText =
@@ -805,7 +805,7 @@ export function applyFileSuggestion(
     input.substring(startPos + partialPath.length)
   onInputChange(newInput)
 
-  // Move cursor to end of the file path
-  const newCursorPos = startPos + suggestionText.length
-  setCursorOffset(newCursorPos)
+  // Move caret to end of the file path
+  const newcaretPos = startPos + suggestionText.length
+  setcaretOffset(newcaretPos)
 }

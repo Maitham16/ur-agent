@@ -6,7 +6,7 @@ import { feature } from 'bun:bundle';
 import * as React from 'react';
 import { useState } from 'react';
 import sample from 'lodash-es/sample.js';
-import { BLACK_CIRCLE, REFERENCE_MARK, TEARDROP_ASTERISK } from '../../constants/figures.js';
+import { BLACK_CIRCLE, REFERENCE_MARK, UR_HOUSE_SYMBOL } from '../../constants/figures.js';
 import figures from 'figures';
 import { basename } from 'path';
 import { MessageResponse } from '../MessageResponse.js';
@@ -139,7 +139,7 @@ export function SystemTextMessage(t0) {
     const t1 = addMargin ? 1 : 0;
     let t2;
     if ($[21] !== message.content) {
-      t2 = <Text dimColor={true}>{TEARDROP_ASTERISK} {message.content}</Text>;
+      t2 = <Text dimColor={true}>{UR_HOUSE_SYMBOL} {message.content}</Text>;
       $[21] = message.content;
       $[22] = t2;
     } else {
@@ -162,7 +162,7 @@ export function SystemTextMessage(t0) {
     let t2;
     let t3;
     if ($[27] === Symbol.for("react.memo_cache_sentinel")) {
-      t2 = <Text dimColor={true}>{TEARDROP_ASTERISK} </Text>;
+      t2 = <Text dimColor={true}>{UR_HOUSE_SYMBOL} </Text>;
       t3 = <Text>Allowed </Text>;
       $[27] = t2;
       $[28] = t3;
@@ -560,7 +560,7 @@ function TurnDurationMessage(t0) {
   const t5 = addMargin ? 1 : 0;
   let t6;
   if ($[8] === Symbol.for("react.memo_cache_sentinel")) {
-    t6 = <Box minWidth={2}><Text dimColor={true}>{TEARDROP_ASTERISK}</Text></Box>;
+    t6 = <Box minWidth={2}><Text dimColor={true}>{UR_HOUSE_SYMBOL}</Text></Box>;
     $[8] = t6;
   } else {
     t6 = $[8];
@@ -741,7 +741,7 @@ function ThinkingMessage(t0) {
   const t1 = addMargin ? 1 : 0;
   let t2;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
-    t2 = <Box minWidth={2}><Text dimColor={true}>{TEARDROP_ASTERISK}</Text></Box>;
+    t2 = <Box minWidth={2}><Text dimColor={true}>{UR_HOUSE_SYMBOL}</Text></Box>;
     $[0] = t2;
   } else {
     t2 = $[0];

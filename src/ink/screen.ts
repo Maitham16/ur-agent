@@ -280,7 +280,7 @@ function hasVisibleSpaceEffect(styles: AnsiCode[]): boolean {
  * etc.)
  *
  * We use explicit spacer cells rather than inferring width at render time. This
- * makes the data structure self-describing and simplifies cursor positioning
+ * makes the data structure self-describing and simplifies caret positioning
  * logic.
  *
  * @see https://mitchellh.com/writing/grapheme-clusters-in-terminals
@@ -615,7 +615,7 @@ export function cellAtIndex(screen: Screen, index: number): Cell {
 /**
  * Get a Cell at the given index, or undefined if it has no visible content.
  * Returns undefined for spacer cells (charId 1), empty unstyled spaces, and
- * fg-only styled spaces that match lastRenderedStyleId (cursor-forward
+ * fg-only styled spaces that match lastRenderedStyleId (caret-forward
  * produces an identical visual result, avoiding a Cell allocation).
  *
  * @param lastRenderedStyleId - styleId of the last rendered cell on this
@@ -682,7 +682,7 @@ export function charInCellAt(
  *
  * If the cell has width = Wide, this function automatically creates the
  * corresponding SpacerTail in the next column. This two-cell model keeps
- * the buffer aligned to visual columns, making cursor positioning
+ * the buffer aligned to visual columns, making caret positioning
  * straightforward.
  *
  * TODO: When soft-wrapping is implemented, SpacerHead cells will be explicitly
@@ -726,7 +726,7 @@ export function setCellAt(
   ) {
     // Overwriting a SpacerTail: clear the orphaned Wide char at (x-1).
     // Keeping the wide character with Narrow width would cause the terminal
-    // to still render it with width 2, desyncing the cursor model.
+    // to still render it with width 2, desyncing the caret model.
     if (x > 0) {
       const wideCI = ci - 2
       if ((cells[wideCI + 1]! & WIDTH_MASK) === CellWidth.Wide) {

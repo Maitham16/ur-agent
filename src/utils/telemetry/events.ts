@@ -1,75 +1,32 @@
-import type { Attributes } from '@opentelemetry/api'
-import { getEventLogger, getPromptId } from 'src/bootstrap/state.js'
-import { logForDebugging } from '../debug.js'
-import { isEnvTruthy } from '../envUtils.js'
-import { getTelemetryAttributes } from '../telemetryAttributes.js'
 
-// Monotonically increasing counter for ordering events within a session
-let eventSequence = 0
-
-// Track whether we've already warned about a null event logger to avoid spamming
-let hasWarnedNoEventLogger = false
-
-function isUserPromptLoggingEnabled() {
-  return isEnvTruthy(process.env.OTEL_LOG_USER_PROMPTS)
-}
-
-export function redactIfDisabled(content: string): string {
-  return isUserPromptLoggingEnabled() ? content : '<REDACTED>'
-}
-
-export async function logOTelEvent(
-  eventName: string,
-  metadata: { [key: string]: string | undefined } = {},
-): Promise<void> {
-  const eventLogger = getEventLogger()
-  if (!eventLogger) {
-    if (!hasWarnedNoEventLogger) {
-      hasWarnedNoEventLogger = true
-      logForDebugging(
-        `[3P telemetry] Event dropped (no event logger initialized): ${eventName}`,
-        { level: 'warn' },
-      )
-    }
-    return
-  }
-
-  // Skip logging in test environment
-  if (process.env.NODE_ENV === 'test') {
-    return
-  }
-
-  const attributes: Attributes = {
-    ...getTelemetryAttributes(),
-    'event.name': eventName,
-    'event.timestamp': new Date().toISOString(),
-    'event.sequence': eventSequence++,
-  }
-
-  // Add prompt ID to events (but not metrics, where it would cause unbounded cardinality)
-  const promptId = getPromptId()
-  if (promptId) {
-    attributes['prompt.id'] = promptId
-  }
-
-  // Workspace directory from the desktop app (host path). Events only —
-  // filesystem paths are too high-cardinality for metric dimensions, and
-  // the BQ metrics pipeline must never see them.
-  const workspaceDir = process.env.UR_CODE_WORKSPACE_HOST_PATHS
-  if (workspaceDir) {
-    attributes['workspace.host_paths'] = workspaceDir.split('|')
-  }
-
-  // Add metadata as attributes - all values are already strings
-  for (const [key, value] of Object.entries(metadata)) {
-    if (value !== undefined) {
-      attributes[key] = value
-    }
-  }
-
-  // Emit log record as an event
-  eventLogger.emit({
-    body: `ur.${eventName}`,
-    attributes,
-  })
-}
+export const logOTelEvent = (...args: any[]) => {};
+export const redactIfDisabled = (...args: any[]) => {};
+export const startInteractionSpan = (...args: any[]) => ({ end: () => {} });
+export const endInteractionSpan = (...args: any[]) => {};
+export const recordPluginAction = (...args: any[]) => {};
+export const recordSkillLoaded = (...args: any[]) => {};
+export const logPluginLoadErrors = (...args: any[]) => {};
+export const logPluginsEnabledForSession = (...args: any[]) => {};
+export const logSkillsLoaded = (...args: any[]) => {};
+export const getOAuthToken = (...args: any[]) => null;
+export const initiateOAuth = (...args: any[]) => null;
+export const AuthProvider = (...args: any[]) => null;
+export const checkRateLimit = (...args: any[]) => null;
+export const logEvent = (...args: any[]) => {};
+export const FeedbackSurvey = (...args: any[]) => null;
+export const useFeedbackSurvey = (...args: any[]): any => ({});
+export const useMemorySurvey = (...args: any[]): any => ({});
+export const usePostCompactSurvey = (...args: any[]): any => ({ handleSelect: () => {} });
+export const FeedbackSurveyView = (...args: any[]) => null;
+export const isValidResponseInput = (...args: any[]) => false;
+export type FeedbackSurveyResponse = any;
+export const uploadBrief = (...args: any[]) => null;
+export const uploadTranscript = (...args: any[]) => null;
+export const trackBetaSession = (...args: any[]) => null;
+export const getTelemetryAttributes = (...args: any[]) => ({});
+export const initializeTelemetry = (...args: any[]) => null;
+export const isBetaTracingEnabled = (...args: any[]) => false;
+export const populateOAuthAccountInfoIfNeeded = (...args: any[]) => null;
+export const getOauthConfig = (...args: any[]) => null;
+export const Login = (props: any) => null;
+export default () => null;

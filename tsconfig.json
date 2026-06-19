@@ -19,7 +19,9 @@
     "baseUrl": ".",
     "paths": {
       "src/*": ["./src/*"],
-      "bun:bundle": ["./src/types/bun-bundle.d.ts"]
+      "bun:bundle": ["./src/types/bun-bundle.d.ts"],
+      "@urhq-ai/sdk": ["./src/urhq-sdk.ts"],
+      "@urhq-ai/sdk/*": ["./src/urhq-sdk.ts", "./src/urhq-sdk-error.ts"]
     },
     "types": ["bun-types"],
     "lib": ["ESNext"],

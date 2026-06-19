@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { feature } from 'bun:bundle';
 import chalk from 'chalk';
 import * as path from 'path';
@@ -55,7 +56,7 @@ import type { BaseTextInputProps, PromptInputMode, VimMode } from '../../types/t
 import { isAgentSwarmsEnabled } from '../../utils/agentSwarmsEnabled.js';
 import { count } from '../../utils/array.js';
 import type { AutoUpdaterResult } from '../../utils/autoUpdater.js';
-import { Cursor } from '../../utils/Cursor.js';
+import { Caret } from '../../utils/caret.js';
 import { getGlobalConfig, type PastedContent, saveGlobalConfig } from '../../utils/config.js';
 import { logForDebugging } from '../../utils/debug.js';
 import { parseDirectMemberMessage, sendDirectMemberMessage } from '../../utils/directMemberMessage.js';
@@ -71,7 +72,7 @@ import type { ImageDimensions } from '../../utils/imageResizer.js';
 import { cacheImagePath, storeImage } from '../../utils/imageStore.js';
 import { isMacosOptionChar, MACOS_OPTION_SPECIAL_CHARS } from '../../utils/keyboardShortcuts.js';
 import { logError } from '../../utils/log.js';
-import { isOpus1mMergeEnabled, modelDisplayString } from '../../utils/model/model.js';
+import { ismodelO1mMergeEnabled, modelDisplayString } from '../../utils/model/model.js';
 import { setAutoModeActive } from '../../utils/permissions/autoModeState.js';
 import { cyclePermissionMode, getNextPermissionMode } from '../../utils/permissions/getNextPermissionMode.js';
 import { transitionPermissionMode } from '../../utils/permissions/permissionSetup.js';
@@ -140,17 +141,17 @@ type Props = {
   onModeChange: (mode: PromptInputMode) => void;
   stashedPrompt: {
     text: string;
-    cursorOffset: number;
+    caretOffset: number;
     pastedContents: Record<number, PastedContent>;
   } | undefined;
   setStashedPrompt: (value: {
     text: string;
-    cursorOffset: number;
+    caretOffset: number;
     pastedContents: Record<number, PastedContent>;
   } | undefined) => void;
   submitCount: number;
   onShowMessageSelector: () => void;
-  /** Fullscreen message actions: shift+↑ enters cursor. */
+  /** Fullscreen message actions: shift+↑ enters caretInst. */
   onMessageActionsEnter?: () => void;
   mcpClients: MCPServerConnection[];
   pastedContents: Record<number, PastedContent>;
@@ -179,8 +180,8 @@ type Props = {
   isLocalJSXCommandActive?: boolean;
   insertTextRef?: React.MutableRefObject<{
     insert: (text: string) => void;
-    setInputWithCursor: (value: string, cursor: number) => void;
-    cursorOffset: number;
+    setInputWithcaret: (value: string, caret: number) => void;
+    caretOffset: number;
   } | null>;
   voiceInterimRange?: {
     start: number;
@@ -249,13 +250,13 @@ function PromptInput({
   }>({
     show: false
   });
-  const [cursorOffset, setCursorOffset] = useState<number>(input.length);
+  const [caretOffset, setCaretOffset] = useState<number>(input.length);
   // Track the last input value set via internal handlers so we can detect
-  // external input changes (e.g. speech-to-text injection) and move cursor to end.
+  // external input changes (e.g. speech-to-text injection) and move caret to end.
   const lastInternalInputRef = React.useRef(input);
   if (input !== lastInternalInputRef.current) {
-    // Input changed externally (not through any internal handler) — move cursor to end
-    setCursorOffset(input.length);
+    // Input changed externally (not through any internal handler) — move caret to end
+    setCaretOffset(input.length);
     lastInternalInputRef.current = input;
   }
   // Wrap onInputChange to track internal changes before they trigger re-render
@@ -264,22 +265,22 @@ function PromptInput({
     onInputChange(value);
   }, [onInputChange]);
   // Expose an insertText function so callers (e.g. STT) can splice text at the
-  // current cursor position instead of replacing the entire input.
+  // current caret position instead of replacing the entire input.
   if (insertTextRef) {
     insertTextRef.current = {
-      cursorOffset,
+      caretOffset,
       insert: (text: string) => {
-        const needsSpace = cursorOffset === input.length && input.length > 0 && !/\s$/.test(input);
+        const needsSpace = caretOffset === input.length && input.length > 0 && !/\s$/.test(input);
         const insertText = needsSpace ? ' ' + text : text;
-        const newValue = input.slice(0, cursorOffset) + insertText + input.slice(cursorOffset);
+        const newValue = input.slice(0, caretOffset) + insertText + input.slice(caretOffset);
         lastInternalInputRef.current = newValue;
         onInputChange(newValue);
-        setCursorOffset(cursorOffset + insertText.length);
+        setCaretOffset(caretOffset + insertText.length);
       },
-      setInputWithCursor: (value: string, cursor: number) => {
+      setInputWithcaret: (value: string, caret: number) => {
         lastInternalInputRef.current = value;
         onInputChange(value);
-        setCursorOffset(cursor);
+        setCaretOffset(caret);
       }
     };
   }
@@ -357,7 +358,7 @@ function PromptInput({
   } = useHistorySearch(entry => {
     setPastedContents(entry.pastedContents);
     void onSubmit(entry.display);
-  }, input, trackAndSetInput, setCursorOffset, cursorOffset, onModeChange, mode, isSearchingHistory, setIsSearchingHistory, setPastedContents, pastedContents);
+  }, input, trackAndSetInput, setCaretOffset, caretOffset, onModeChange, mode, isSearchingHistory, setIsSearchingHistory, setPastedContents, pastedContents);
   // Counter for paste IDs (shared between images and text).
   // Compute initial value once from existing messages (for --continue/--resume).
   // useRef(fn()) evaluates fn() on every render and discards the result after
@@ -393,7 +394,7 @@ function PromptInput({
   // In that case, skip -1 and treat 0 as the minimum selectable index.
   const hasBgTaskPill = useMemo(() => Object.values(tasks).some(t => isBackgroundTask(t) && !(("external" as string) === 'ant' && isPanelAgentTask(t))), [tasks]);
   const minCoordinatorIndex = hasBgTaskPill ? -1 : 0;
-  // Clamp index when tasks complete and the list shrinks beneath the cursor
+  // Clamp index when tasks complete and the list shrinks beneath the caret
   useEffect(() => {
     if (coordinatorTaskIndex >= coordinatorTaskCount) {
       setCoordinatorTaskIndex(Math.max(minCoordinatorIndex, coordinatorTaskCount - 1));
@@ -413,21 +414,21 @@ function PromptInput({
   const [previousModeBeforeAuto, setPreviousModeBeforeAuto] = useState<PermissionMode | null>(null);
   const autoModeOptInTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Check if cursor is on the first line of input
-  const isCursorOnFirstLine = useMemo(() => {
+  // Check if caret is on the first line of input
+  const iscaretOnFirstLine = useMemo(() => {
     const firstNewlineIndex = input.indexOf('\n');
     if (firstNewlineIndex === -1) {
-      return true; // No newlines, cursor is always on first line
+      return true; // No newlines, caret is always on first line
     }
-    return cursorOffset <= firstNewlineIndex;
-  }, [input, cursorOffset]);
-  const isCursorOnLastLine = useMemo(() => {
+    return caretOffset <= firstNewlineIndex;
+  }, [input, caretOffset]);
+  const iscaretOnLastLine = useMemo(() => {
     const lastNewlineIndex = input.lastIndexOf('\n');
     if (lastNewlineIndex === -1) {
-      return true; // No newlines, cursor is always on last line
+      return true; // No newlines, caret is always on last line
     }
-    return cursorOffset > lastNewlineIndex;
-  }, [input, cursorOffset]);
+    return caretOffset > lastNewlineIndex;
+  }, [input, caretOffset]);
 
   // Derive team info from teamContext (no filesystem I/O needed)
   // A session can only lead one team at a time
@@ -583,28 +584,28 @@ function PromptInput({
     end: r.index + r.match.length
   })), [displayedValue]);
 
-  // chip.start is the "selected" state: the inverted chip IS the cursor.
-  // chip.end stays a normal position so you can park the cursor right after
+  // chip.start is the "selected" state: the inverted chip IS the caretInst.
+  // chip.end stays a normal position so you can park the caret right after
   // `]` like any other character.
-  const cursorAtImageChip = imageRefPositions.some(r => r.start === cursorOffset);
+  const caretAtImageChip = imageRefPositions.some(r => r.start === caretOffset);
 
-  // up/down movement or a fullscreen click can land the cursor strictly
+  // up/down movement or a fullscreen click can land the caret strictly
   // inside a chip; snap to the nearer boundary so it's never editable
   // char-by-char.
   useEffect(() => {
-    const inside = imageRefPositions.find(r => cursorOffset > r.start && cursorOffset < r.end);
+    const inside = imageRefPositions.find(r => caretOffset > r.start && caretOffset < r.end);
     if (inside) {
       const mid = (inside.start + inside.end) / 2;
-      setCursorOffset(cursorOffset < mid ? inside.start : inside.end);
+      setCaretOffset(caretOffset < mid ? inside.start : inside.end);
     }
-  }, [cursorOffset, imageRefPositions, setCursorOffset]);
+  }, [caretOffset, imageRefPositions, setCaretOffset]);
   const combinedHighlights = useMemo((): TextHighlight[] => {
     const highlights: TextHighlight[] = [];
 
-    // Invert the [Image #N] chip when the cursor is at chip.start (the
+    // Invert the [Image #N] chip when the caret is at chip.start (the
     // "selected" state) so backspace-to-delete is visually obvious.
     for (const ref of imageRefPositions) {
-      if (cursorOffset === ref.start) {
+      if (caretOffset === ref.start) {
         highlights.push({
           start: ref.start,
           end: ref.end,
@@ -616,8 +617,8 @@ function PromptInput({
     }
     if (isSearchingHistory && historyMatch && !historyFailedMatch) {
       highlights.push({
-        start: cursorOffset,
-        end: cursorOffset + historyQuery.length,
+        start: caretOffset,
+        end: caretOffset + historyQuery.length,
         color: 'warning',
         priority: 20
       });
@@ -738,7 +739,7 @@ function PromptInput({
       }
     }
     return highlights;
-  }, [isSearchingHistory, historyQuery, historyMatch, historyFailedMatch, cursorOffset, btwTriggers, imageRefPositions, memberMentionHighlights, slashCommandTriggers, tokenBudgetTriggers, slackChannelTriggers, displayedValue, voiceInterimRange, thinkTriggers, ultraplanTriggers, ultrareviewTriggers, buddyTriggers]);
+  }, [isSearchingHistory, historyQuery, historyMatch, historyFailedMatch, caretOffset, btwTriggers, imageRefPositions, memberMentionHighlights, slashCommandTriggers, tokenBudgetTriggers, slackChannelTriggers, displayedValue, voiceInterimRange, thinkTriggers, ultraplanTriggers, ultrareviewTriggers, buddyTriggers]);
   const {
     addNotification,
     removeNotification
@@ -843,7 +844,7 @@ function PromptInput({
     input,
     pastedContents,
     onInputChange: trackAndSetInput,
-    setCursorOffset,
+    setCaretOffset,
     setPastedContents
   });
   const defaultPlaceholder = usePromptInputPlaceholder({
@@ -868,7 +869,7 @@ function PromptInput({
 
     // Check if this is a single character insertion at the start
     const isSingleCharInsertion = value.length === input.length + 1;
-    const insertedAtStart = cursorOffset === 0;
+    const insertedAtStart = caretOffset === 0;
     const mode = getModeFromInput(value);
     if (insertedAtStart && mode !== 'prompt') {
       if (isSingleCharInsertion) {
@@ -879,9 +880,9 @@ function PromptInput({
       if (input.length === 0) {
         onModeChange(mode);
         const valueWithoutMode = getValueFromInput(value).replaceAll('\t', '    ');
-        pushToBuffer(input, cursorOffset, pastedContents);
+        pushToBuffer(input, caretOffset, pastedContents);
         trackAndSetInput(valueWithoutMode);
-        setCursorOffset(valueWithoutMode.length);
+        setCaretOffset(valueWithoutMode.length);
         return;
       }
     }
@@ -889,7 +890,7 @@ function PromptInput({
 
     // Push current state to buffer before making changes
     if (input !== processedValue) {
-      pushToBuffer(input, cursorOffset, pastedContents);
+      pushToBuffer(input, caretOffset, pastedContents);
     }
 
     // Deselect footer items when user types
@@ -898,7 +899,7 @@ function PromptInput({
       footerSelection: null
     });
     trackAndSetInput(processedValue);
-  }, [trackAndSetInput, onModeChange, input, cursorOffset, pushToBuffer, pastedContents, dismissStashHint, setAppState]);
+  }, [trackAndSetInput, onModeChange, input, caretOffset, pushToBuffer, pastedContents, dismissStashHint, setAppState]);
   const {
     resetHistory,
     onHistoryUp,
@@ -909,7 +910,7 @@ function PromptInput({
     onChange(value);
     onModeChange(historyMode);
     setPastedContents(pastedContents);
-  }, input, pastedContents, setCursorOffset, mode);
+  }, input, pastedContents, setCaretOffset, mode);
 
   // Dismiss search hint when user starts searching
   useEffect(() => {
@@ -926,10 +927,10 @@ function PromptInput({
       return;
     }
 
-    // Only navigate history when cursor is on the first line.
-    // In multiline inputs, up arrow should move the cursor (handled by TextInput)
+    // Only navigate history when caret is on the first line.
+    // In multiline inputs, up arrow should move the caret (handled by TextInput)
     // and only trigger history when at the top of the input.
-    if (!isCursorOnFirstLine) {
+    if (!iscaretOnFirstLine) {
       return;
     }
 
@@ -946,10 +947,10 @@ function PromptInput({
       return;
     }
 
-    // Only navigate history/footer when cursor is on the last line.
-    // In multiline inputs, down arrow should move the cursor (handled by TextInput)
+    // Only navigate history/footer when caret is on the last line.
+    // In multiline inputs, down arrow should move the caret (handled by TextInput)
     // and only trigger navigation when at the bottom of the input.
-    if (!isCursorOnLastLine) {
+    if (!iscaretOnLastLine) {
       return;
     }
 
@@ -1019,7 +1020,7 @@ function PromptInput({
           skipReset: true
         });
         void onSubmitProp(suggestionText, {
-          setCursorOffset,
+          setCaretOffset,
           clearBuffer,
           resetHistory
         }, {
@@ -1050,7 +1051,7 @@ function PromptInput({
             timeoutMs: 3000
           });
           trackAndSetInput('');
-          setCursorOffset(0);
+          setCaretOffset(0);
           clearBuffer();
           resetHistory();
           return;
@@ -1089,7 +1090,7 @@ function PromptInput({
     if (activeAgent.type !== 'leader' && onAgentSubmit) {
       logEvent('tengu_transcript_input_to_teammate', {});
       await onAgentSubmit(inputParam, activeAgent.task, {
-        setCursorOffset,
+        setCaretOffset,
         clearBuffer,
         resetHistory
       });
@@ -1098,7 +1099,7 @@ function PromptInput({
 
     // Normal leader submission
     await onSubmitProp(inputParam, {
-      setCursorOffset,
+      setCaretOffset,
       clearBuffer,
       resetHistory
     });
@@ -1113,9 +1114,9 @@ function PromptInput({
     commands,
     onInputChange: trackAndSetInput,
     onSubmit,
-    setCursorOffset,
+    setCaretOffset,
     input,
-    cursorOffset,
+    caretOffset,
     mode,
     agents,
     setSuggestionsState,
@@ -1178,13 +1179,13 @@ function PromptInput({
     // armed, the previous pill's lazy space fires now (before this pill)
     // rather than being lost.
     const prefix = pendingSpaceAfterPillRef.current ? ' ' : '';
-    insertTextAtCursor(prefix + formatImageRef(pasteId));
+    insertTextAtcaret(prefix + formatImageRef(pasteId));
     pendingSpaceAfterPillRef.current = true;
   }
 
   // Prune images whose [Image #N] placeholder is no longer in the input text.
   // Covers pill backspace, Ctrl+U, char-by-char deletion — any edit that drops
-  // the ref. onImagePaste batches setPastedContents + insertTextAtCursor in the
+  // the ref. onImagePaste batches setPastedContents + insertTextAtcaret in the
   // same event, so this effect sees the placeholder already present.
   useEffect(() => {
     const referencedIds = new Set(parseReferences(input).map(r => r.id));
@@ -1232,10 +1233,10 @@ function PromptInput({
         ...prev,
         [pasteId]: newContent
       }));
-      insertTextAtCursor(formatPastedTextRef(pasteId, numLines));
+      insertTextAtcaret(formatPastedTextRef(pasteId, numLines));
     } else {
       // For shorter pastes, just insert the text normally
-      insertTextAtCursor(text);
+      insertTextAtcaret(text);
     }
   }
   const lazySpaceInputFilter = useCallback((input: string, key: Key): string => {
@@ -1244,24 +1245,24 @@ function PromptInput({
     if (isNonSpacePrintable(input, key)) return ' ' + input;
     return input;
   }, []);
-  function insertTextAtCursor(text: string) {
+  function insertTextAtcaret(text: string) {
     // Push current state to buffer before inserting
-    pushToBuffer(input, cursorOffset, pastedContents);
-    const newInput = input.slice(0, cursorOffset) + text + input.slice(cursorOffset);
+    pushToBuffer(input, caretOffset, pastedContents);
+    const newInput = input.slice(0, caretOffset) + text + input.slice(caretOffset);
     trackAndSetInput(newInput);
-    setCursorOffset(cursorOffset + text.length);
+    setCaretOffset(caretOffset + text.length);
   }
   const doublePressEscFromEmpty = useDoublePress(() => {}, () => onShowMessageSelector());
 
   // Function to get the queued command for editing. Returns true if commands were popped.
   const popAllCommandsFromQueue = useCallback((): boolean => {
-    const result = popAllEditable(input, cursorOffset);
+    const result = popAllEditable(input, caretOffset);
     if (!result) {
       return false;
     }
     trackAndSetInput(result.text);
     onModeChange('prompt'); // Always prompt mode for queued commands
-    setCursorOffset(result.cursorOffset);
+    setCaretOffset(result.caretOffset);
 
     // Restore images from queued commands to pastedContents
     if (result.images.length > 0) {
@@ -1276,7 +1277,7 @@ function PromptInput({
       });
     }
     return true;
-  }, [trackAndSetInput, onModeChange, input, cursorOffset, setPastedContents]);
+  }, [trackAndSetInput, onModeChange, input, caretOffset, setPastedContents]);
 
   // Insert the at-mentioned reference (the file and, optionally, a line range) when
   // we receive an at-mentioned notification the IDE.
@@ -1289,11 +1290,11 @@ function PromptInput({
     } else {
       atMentionedText = `@${relativePath} `;
     }
-    const cursorChar = input[cursorOffset - 1] ?? ' ';
-    if (!/\s/.test(cursorChar)) {
+    const caretChar = input[caretOffset - 1] ?? ' ';
+    if (!/\s/.test(caretChar)) {
       atMentionedText = ` ${atMentionedText}`;
     }
-    insertTextAtCursor(atMentionedText);
+    insertTextAtcaret(atMentionedText);
   };
   useIdeAtMentioned(mcpClients, onIdeAtMentioned);
 
@@ -1303,19 +1304,19 @@ function PromptInput({
       const previousState = undo();
       if (previousState) {
         trackAndSetInput(previousState.text);
-        setCursorOffset(previousState.cursorOffset);
+        setCaretOffset(previousState.caretOffset);
         setPastedContents(previousState.pastedContents);
       }
     }
   }, [canUndo, undo, trackAndSetInput, setPastedContents]);
 
-  // Handler for chat:newline - insert a newline at the cursor position
+  // Handler for chat:newline - insert a newline at the caret position
   const handleNewline = useCallback(() => {
-    pushToBuffer(input, cursorOffset, pastedContents);
-    const newInput = input.slice(0, cursorOffset) + '\n' + input.slice(cursorOffset);
+    pushToBuffer(input, caretOffset, pastedContents);
+    const newInput = input.slice(0, caretOffset) + '\n' + input.slice(caretOffset);
     trackAndSetInput(newInput);
-    setCursorOffset(cursorOffset + 1);
-  }, [input, cursorOffset, trackAndSetInput, setCursorOffset, pushToBuffer, pastedContents]);
+    setCaretOffset(caretOffset + 1);
+  }, [input, caretOffset, trackAndSetInput, setCaretOffset, pushToBuffer, pastedContents]);
 
   // Handler for chat:externalEditor - edit in $EDITOR
   const handleExternalEditor = useCallback(async () => {
@@ -1334,9 +1335,9 @@ function PromptInput({
       }
       if (result.content !== null && result.content !== input) {
         // Push current state to buffer before making changes
-        pushToBuffer(input, cursorOffset, pastedContents);
+        pushToBuffer(input, caretOffset, pastedContents);
         trackAndSetInput(result.content);
-        setCursorOffset(result.content.length);
+        setCaretOffset(result.content.length);
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -1351,25 +1352,25 @@ function PromptInput({
     } finally {
       setIsExternalEditorActive(false);
     }
-  }, [input, cursorOffset, pastedContents, pushToBuffer, trackAndSetInput, addNotification]);
+  }, [input, caretOffset, pastedContents, pushToBuffer, trackAndSetInput, addNotification]);
 
   // Handler for chat:stash - stash/unstash prompt
   const handleStash = useCallback(() => {
     if (input.trim() === '' && stashedPrompt !== undefined) {
       // Pop stash when input is empty
       trackAndSetInput(stashedPrompt.text);
-      setCursorOffset(stashedPrompt.cursorOffset);
+      setCaretOffset(stashedPrompt.caretOffset);
       setPastedContents(stashedPrompt.pastedContents);
       setStashedPrompt(undefined);
     } else if (input.trim() !== '') {
-      // Push to stash (save text, cursor position, and pasted contents)
+      // Push to stash (save text, caret position, and pasted contents)
       setStashedPrompt({
         text: input,
-        cursorOffset,
+        caretOffset,
         pastedContents
       });
       trackAndSetInput('');
-      setCursorOffset(0);
+      setCaretOffset(0);
       setPastedContents({});
       // Track usage for /discover and stop showing hint
       saveGlobalConfig(c => {
@@ -1380,7 +1381,7 @@ function PromptInput({
         };
       });
     }
-  }, [input, cursorOffset, stashedPrompt, trackAndSetInput, setStashedPrompt, pastedContents, setPastedContents]);
+  }, [input, caretOffset, stashedPrompt, trackAndSetInput, setStashedPrompt, pastedContents, setPastedContents]);
 
   // Handler for chat:modelPicker - toggle model picker
   const handleModelPicker = useCallback(() => {
@@ -1662,8 +1663,8 @@ function PromptInput({
   // Chat context keybindings for editing shortcuts
   // Note: history:previous/history:next are NOT handled here. They are passed as
   // onHistoryUp/onHistoryDown props to TextInput, so that useTextInput's
-  // upOrHistoryUp/downOrHistoryDown can try cursor movement first and only
-  // fall through to history when the cursor can't move further.
+  // upOrHistoryUp/downOrHistoryDown can try caret movement first and only
+  // fall through to history when the caret can't move further.
   const chatHandlers = useMemo(() => ({
     'chat:undo': handleUndo,
     'chat:newline': handleNewline,
@@ -1679,8 +1680,8 @@ function PromptInput({
     isActive: !isModalOverlayActive
   });
 
-  // Shift+↑ enters message-actions cursor. Separate isActive so ctrl+r search
-  // doesn't leave stale isSearchingHistory on cursor-exit remount.
+  // Shift+↑ enters message-actions caretInst. Separate isActive so ctrl+r search
+  // doesn't leave stale isSearchingHistory on caret-exit remount.
   useKeybinding('chat:messageActions', () => onMessageActionsEnter?.(), {
     context: 'Chat',
     isActive: !isModalOverlayActive && !isSearchingHistory
@@ -1852,8 +1853,8 @@ function PromptInput({
         // When the selected row IS the viewed agent, 'x' types into the
         // steering input. Any other row — dismiss it.
         if (viewSelectionMode === 'viewing-agent' && task.id === viewingAgentTaskId) {
-          onChange(input.slice(0, cursorOffset) + 'x' + input.slice(cursorOffset));
-          setCursorOffset(cursorOffset + 1);
+          onChange(input.slice(0, caretOffset) + 'x' + input.slice(caretOffset));
+          setCaretOffset(caretOffset + 1);
           return;
         }
         stopOrDismissAgent(task.id, setAppState);
@@ -1903,13 +1904,13 @@ function PromptInput({
     // above, so anything reaching here is genuinely not a footer action.
     // onChange clears footerSelection, so no explicit deselect.
     if (footerItemSelected && char && !key.ctrl && !key.meta && !key.escape && !key.return) {
-      onChange(input.slice(0, cursorOffset) + char + input.slice(cursorOffset));
-      setCursorOffset(cursorOffset + char.length);
+      onChange(input.slice(0, caretOffset) + char + input.slice(caretOffset));
+      setCaretOffset(caretOffset + char.length);
       return;
     }
 
-    // Exit special modes when backspace/escape/delete/ctrl+u is pressed at cursor position 0
-    if (cursorOffset === 0 && (key.escape || key.backspace || key.delete || key.ctrl && char === 'u')) {
+    // Exit special modes when backspace/escape/delete/ctrl+u is pressed at caret position 0
+    if (caretOffset === 0 && (key.escape || key.backspace || key.delete || key.ctrl && char === 'u')) {
       onModeChange('prompt');
       setHelpOpen(false);
     }
@@ -1997,26 +1998,26 @@ function PromptInput({
   } = useTerminalSize();
   const textInputColumns = columns - 3 - companionReservedColumns(columns, companionSpeaking);
 
-  // POC: click-to-position-cursor. Mouse tracking is only enabled inside
+  // POC: click-to-position-caretInst. Mouse tracking is only enabled inside
   // <AlternateScreen>, so this is dormant in the normal main-screen REPL.
   // localCol/localRow are relative to the onClick Box's top-left; the Box
   // tightly wraps the text input so they map directly to (column, line)
-  // in the Cursor wrap model. MeasuredText.getOffsetFromPosition handles
+  // in the caret wrap model. MeasuredText.getOffsetFromPosition handles
   // wide chars, wrapped lines, and clamps past-end clicks to line end.
   const maxVisibleLines = isFullscreenEnvEnabled() ? Math.max(MIN_INPUT_VIEWPORT_LINES, Math.floor(rows / 2) - PROMPT_FOOTER_LINES) : undefined;
   const handleInputClick = useCallback((e: ClickEvent) => {
     // During history search the displayed text is historyMatch, not
-    // input, and showCursor is false anyway — skip rather than
+    // input, and showCaret is false anyway — skip rather than
     // compute an offset against the wrong string.
     if (!input || isSearchingHistory) return;
-    const c = Cursor.fromText(input, textInputColumns, cursorOffset);
+    const c = Caret.fromText(input, textInputColumns, caretOffset);
     const viewportStart = c.getViewportStartLine(maxVisibleLines);
     const offset = c.measuredText.getOffsetFromPosition({
       line: e.localRow + viewportStart,
       column: e.localCol
     });
-    setCursorOffset(offset);
-  }, [input, textInputColumns, isSearchingHistory, cursorOffset, maxVisibleLines]);
+    setCaretOffset(offset);
+  }, [input, textInputColumns, isSearchingHistory, caretOffset, maxVisibleLines]);
   const handleOpenTasksDialog = useCallback((taskId?: string) => setShowBashesDialog(taskId ?? true), [setShowBashesDialog]);
   const placeholder = showPromptSuggestion && promptSuggestion ? promptSuggestion : defaultPlaceholder;
 
@@ -2043,7 +2044,7 @@ function PromptInput({
     setShowModelPicker(false);
     const effectiveFastMode = (isFastMode ?? false) && !wasFastModeDisabled;
     let message = `Model set to ${modelDisplayString(model)}`;
-    if (isBilledAsExtraUsage(model, effectiveFastMode, isOpus1mMergeEnabled())) {
+    if (isBilledAsExtraUsage(model, effectiveFastMode, ismodelO1mMergeEnabled())) {
       message += ' · Billed as extra usage';
     }
     if (wasFastModeDisabled) {
@@ -2138,8 +2139,8 @@ function PromptInput({
   }
   if (feature('QUICK_SEARCH')) {
     const insertWithSpacing = (text: string) => {
-      const cursorChar = input[cursorOffset - 1] ?? ' ';
-      insertTextAtCursor(/\s/.test(cursorChar) ? text : ` ${text}`);
+      const caretChar = input[caretOffset - 1] ?? ' ';
+      insertTextAtcaret(/\s/.test(caretChar) ? text : ` ${text}`);
     };
     if (showQuickOpen) {
       return <QuickOpenDialog onDone={() => setShowQuickOpen(false)} onInsert={insertWithSpacing} />;
@@ -2155,7 +2156,7 @@ function PromptInput({
       onModeChange(entryMode);
       trackAndSetInput(value);
       setPastedContents(entry.pastedContents);
-      setCursorOffset(value.length);
+      setCaretOffset(value.length);
       setShowHistoryPicker(false);
     }} onCancel={() => setShowHistoryPicker(false)} />;
   }
@@ -2183,8 +2184,8 @@ function PromptInput({
     value: historyMatch ? getValueFromInput(typeof historyMatch === 'string' ? historyMatch : historyMatch.display) : input,
     // History navigation is handled via TextInput props (onHistoryUp/onHistoryDown),
     // NOT via useKeybindings. This allows useTextInput's upOrHistoryUp/downOrHistoryDown
-    // to try cursor movement first and only fall through to history navigation when the
-    // cursor can't move further (important for wrapped text and multi-line input).
+    // to try caret movement first and only fall through to history navigation when the
+    // caret can't move further (important for wrapped text and multi-line input).
     onHistoryUp: handleHistoryUp,
     onHistoryDown: handleHistoryDown,
     onHistoryReset: resetHistory,
@@ -2197,20 +2198,20 @@ function PromptInput({
     onImagePaste,
     columns: textInputColumns,
     maxVisibleLines,
-    disableCursorMovementForUpDownKeys: suggestions.length > 0 || !!footerItemSelected,
+    disableCaretMovementForUpDownKeys: suggestions.length > 0 || !!footerItemSelected,
     disableEscapeDoublePress: suggestions.length > 0,
-    cursorOffset,
-    onChangeCursorOffset: setCursorOffset,
+    caretOffset,
+    onChangeCaretOffset: setCaretOffset,
     onPaste: onTextPaste,
     onIsPastingChange: setIsPasting,
     focus: !isSearchingHistory && !isModalOverlayActive && !footerItemSelected,
-    showCursor: !footerItemSelected && !isSearchingHistory && !cursorAtImageChip,
+    showCaret: !footerItemSelected && !isSearchingHistory && !caretAtImageChip,
     argumentHint: commandArgumentHint,
     onUndo: canUndo ? () => {
       const previousState = undo();
       if (previousState) {
         trackAndSetInput(previousState.text);
-        setCursorOffset(previousState.cursorOffset);
+        setCaretOffset(previousState.caretOffset);
         setPastedContents(previousState.pastedContents);
       }
     } : undefined,

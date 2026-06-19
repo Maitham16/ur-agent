@@ -144,7 +144,7 @@ export function isMouseTrackingEnabled(): boolean {
 /**
  * Whether mouse click handling is disabled (clicks/drags ignored, wheel still
  * works). Set UR_CODE_DISABLE_MOUSE_CLICKS=1 to prevent accidental clicks
- * from triggering cursor positioning, text selection, or message expansion.
+ * from triggering caret positioning, text selection, or message expansion.
  *
  * Fullscreen-specific — only reachable when UR_CODE_NO_FLICKER is active.
  */

@@ -1511,7 +1511,7 @@ function walkString(
   varScope: Map<string, string>,
 ): string | ParseForSecurityResult {
   let result = ''
-  let cursor = -1
+  let caret = -1
   // SECURITY: Track whether the string contains a runtime-unknown
   // placeholder ($() output or unknown-value tracked var) vs any literal
   // content. A string that is ONLY a placeholder (`"$(cmd)"`, `"$VAR"`
@@ -1526,21 +1526,21 @@ function walkString(
   for (const child of node.children) {
     if (!child) continue
     // Index gap between this child and the previous one = dropped newline(s).
-    // Ignore the gap before the first non-delimiter child (cursor === -1).
+    // Ignore the gap before the first non-delimiter child (caret === -1).
     // Skip gap-fill for `"` delimiters: a gap before the closing `"` is the
     // tree-sitter whitespace-only-string quirk (space/tab, not newline) — let
     // the Fix C check below catch it as too-complex instead of mis-filling
     // with `\n` and diverging from bash.
-    if (cursor !== -1 && child.startIndex > cursor && child.type !== '"') {
-      result += '\n'.repeat(child.startIndex - cursor)
+    if (caret !== -1 && child.startIndex > caret && child.type !== '"') {
+      result += '\n'.repeat(child.startIndex - caret)
       sawLiteralContent = true
     }
-    cursor = child.endIndex
+    caret = child.endIndex
     switch (child.type) {
       case '"':
-        // Reset cursor after opening quote so the gap between `"` and the
+        // Reset caret after opening quote so the gap between `"` and the
         // first content child is captured.
-        cursor = child.endIndex
+        caret = child.endIndex
         break
       case 'string_content':
         // Bash double-quote escape rules (NOT the generic /\\(.)/g used for

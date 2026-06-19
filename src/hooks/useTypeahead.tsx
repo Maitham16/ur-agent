@@ -82,9 +82,9 @@ function buildResumeInputFromSuggestion(suggestion: SuggestionItem): string {
 type Props = {
   onInputChange: (value: string) => void;
   onSubmit: (value: string, isSubmittingSlashCommand?: boolean) => void;
-  setCursorOffset: (offset: number) => void;
+  setcaretOffset: (offset: number) => void;
   input: string;
-  cursorOffset: number;
+  caretOffset: number;
   commands: Command[];
   mode: string;
   agents: AgentDefinition[];
@@ -176,9 +176,9 @@ export function formatReplacementValue(options: {
 /**
  * Apply a shell completion suggestion by replacing the current word
  */
-export function applyShellSuggestion(suggestion: SuggestionItem, input: string, cursorOffset: number, onInputChange: (value: string) => void, setCursorOffset: (offset: number) => void, completionType: ShellCompletionType | undefined): void {
-  const beforeCursor = input.slice(0, cursorOffset);
-  const lastSpaceIndex = beforeCursor.lastIndexOf(' ');
+export function applyShellSuggestion(suggestion: SuggestionItem, input: string, caretOffset: number, onInputChange: (value: string) => void, setcaretOffset: (offset: number) => void, completionType: ShellCompletionType | undefined): void {
+  const beforecaret = input.slice(0, caretOffset);
+  const lastSpaceIndex = beforecaret.lastIndexOf(' ');
   const wordStart = lastSpaceIndex + 1;
 
   // Prepare the replacement text based on completion type
@@ -190,32 +190,32 @@ export function applyShellSuggestion(suggestion: SuggestionItem, input: string, 
   } else {
     replacementText = suggestion.displayText;
   }
-  const newInput = input.slice(0, wordStart) + replacementText + input.slice(cursorOffset);
+  const newInput = input.slice(0, wordStart) + replacementText + input.slice(caretOffset);
   onInputChange(newInput);
-  setCursorOffset(wordStart + replacementText.length);
+  setcaretOffset(wordStart + replacementText.length);
 }
 const DM_MEMBER_RE = /(^|\s)@[\w-]*$/;
-function applyTriggerSuggestion(suggestion: SuggestionItem, input: string, cursorOffset: number, triggerRe: RegExp, onInputChange: (value: string) => void, setCursorOffset: (offset: number) => void): void {
-  const m = input.slice(0, cursorOffset).match(triggerRe);
+function applyTriggerSuggestion(suggestion: SuggestionItem, input: string, caretOffset: number, triggerRe: RegExp, onInputChange: (value: string) => void, setcaretOffset: (offset: number) => void): void {
+  const m = input.slice(0, caretOffset).match(triggerRe);
   if (!m || m.index === undefined) return;
   const prefixStart = m.index + (m[1]?.length ?? 0);
   const before = input.slice(0, prefixStart);
-  const newInput = before + suggestion.displayText + ' ' + input.slice(cursorOffset);
+  const newInput = before + suggestion.displayText + ' ' + input.slice(caretOffset);
   onInputChange(newInput);
-  setCursorOffset(before.length + suggestion.displayText.length + 1);
+  setcaretOffset(before.length + suggestion.displayText.length + 1);
 }
 let currentShellCompletionAbortController: AbortController | null = null;
 
 /**
  * Generate bash shell completion suggestions
  */
-async function generateBashSuggestions(input: string, cursorOffset: number): Promise<SuggestionItem[]> {
+async function generateBashSuggestions(input: string, caretOffset: number): Promise<SuggestionItem[]> {
   try {
     if (currentShellCompletionAbortController) {
       currentShellCompletionAbortController.abort();
     }
     currentShellCompletionAbortController = new AbortController();
-    const suggestions = await getShellCompletions(input, cursorOffset, currentShellCompletionAbortController.signal);
+    const suggestions = await getShellCompletions(input, caretOffset, currentShellCompletionAbortController.signal);
     return suggestions;
   } catch {
     // Silent failure - don't break UX
@@ -233,11 +233,11 @@ async function generateBashSuggestions(input: string, cursorOffset: number): Pro
  * @param tokenStartPos The start position of the token being replaced
  * @param tokenLength The length of the token being replaced
  * @param isDirectory Whether the suggestion is a directory (adds / suffix) or file (adds space)
- * @returns Object with the new input text and cursor position
+ * @returns Object with the new input text and caret position
  */
 export function applyDirectorySuggestion(input: string, suggestionId: string, tokenStartPos: number, tokenLength: number, isDirectory: boolean): {
   newInput: string;
-  cursorPos: number;
+  caretPos: number;
 } {
   const suffix = isDirectory ? '/' : ' ';
   const before = input.slice(0, tokenStartPos);
@@ -248,18 +248,18 @@ export function applyDirectorySuggestion(input: string, suggestionId: string, to
   const newInput = before + replacement + after;
   return {
     newInput,
-    cursorPos: before.length + replacement.length
+    caretPos: before.length + replacement.length
   };
 }
 
 /**
- * Extract a completable token at the cursor position
+ * Extract a completable token at the caret position
  * @param text The input text
- * @param cursorPos The cursor position
+ * @param caretPos The caret position
  * @param includeAtSymbol Whether to consider @ symbol as part of the token
  * @returns The completable token and its start position, or null if not found
  */
-export function extractCompletionToken(text: string, cursorPos: number, includeAtSymbol = false): {
+export function extractCompletionToken(text: string, caretPos: number, includeAtSymbol = false): {
   token: string;
   startPos: number;
   isQuoted?: boolean;
@@ -267,17 +267,17 @@ export function extractCompletionToken(text: string, cursorPos: number, includeA
   // Empty input check
   if (!text) return null;
 
-  // Get text up to cursor
-  const textBeforeCursor = text.substring(0, cursorPos);
+  // Get text up to caret
+  const textBeforecaret = text.substring(0, caretPos);
 
   // Check for quoted @ mention first (e.g., @"my file with spaces")
   if (includeAtSymbol) {
     const quotedAtRegex = /@"([^"]*)"?$/;
-    const quotedMatch = textBeforeCursor.match(quotedAtRegex);
+    const quotedMatch = textBeforecaret.match(quotedAtRegex);
     if (quotedMatch && quotedMatch.index !== undefined) {
-      // Include any remaining quoted content after cursor until closing quote or end
-      const textAfterCursor = text.substring(cursorPos);
-      const afterQuotedMatch = textAfterCursor.match(/^[^"]*"?/);
+      // Include any remaining quoted content after caret until closing quote or end
+      const textAftercaret = text.substring(caretPos);
+      const afterQuotedMatch = textAftercaret.match(/^[^"]*"?/);
       const quotedSuffix = afterQuotedMatch ? afterQuotedMatch[0] : '';
       return {
         token: quotedMatch[0] + quotedSuffix,
@@ -289,13 +289,13 @@ export function extractCompletionToken(text: string, cursorPos: number, includeA
 
   // Fast path for @ tokens: use lastIndexOf to avoid expensive $ anchor scan
   if (includeAtSymbol) {
-    const atIdx = textBeforeCursor.lastIndexOf('@');
-    if (atIdx >= 0 && (atIdx === 0 || /\s/.test(textBeforeCursor[atIdx - 1]!))) {
-      const fromAt = textBeforeCursor.substring(atIdx);
+    const atIdx = textBeforecaret.lastIndexOf('@');
+    if (atIdx >= 0 && (atIdx === 0 || /\s/.test(textBeforecaret[atIdx - 1]!))) {
+      const fromAt = textBeforecaret.substring(atIdx);
       const atHeadMatch = fromAt.match(AT_TOKEN_HEAD_RE);
       if (atHeadMatch && atHeadMatch[0].length === fromAt.length) {
-        const textAfterCursor = text.substring(cursorPos);
-        const afterMatch = textAfterCursor.match(PATH_CHAR_HEAD_RE);
+        const textAftercaret = text.substring(caretPos);
+        const afterMatch = textAftercaret.match(PATH_CHAR_HEAD_RE);
         const tokenSuffix = afterMatch ? afterMatch[0] : '';
         return {
           token: atHeadMatch[0] + tokenSuffix,
@@ -306,17 +306,17 @@ export function extractCompletionToken(text: string, cursorPos: number, includeA
     }
   }
 
-  // Non-@ token or cursor outside @ token — use $ anchor on (short) tail
+  // Non-@ token or caret outside @ token — use $ anchor on (short) tail
   const tokenRegex = includeAtSymbol ? TOKEN_WITH_AT_RE : TOKEN_WITHOUT_AT_RE;
-  const match = textBeforeCursor.match(tokenRegex);
+  const match = textBeforecaret.match(tokenRegex);
   if (!match || match.index === undefined) {
     return null;
   }
 
-  // Check if cursor is in the MIDDLE of a token (more word characters after cursor)
+  // Check if caret is in the MIDDLE of a token (more word characters after caret)
   // If so, extend the token to include all characters until whitespace or end of string
-  const textAfterCursor = text.substring(cursorPos);
-  const afterMatch = textAfterCursor.match(PATH_CHAR_HEAD_RE);
+  const textAftercaret = text.substring(caretPos);
+  const afterMatch = textAftercaret.match(PATH_CHAR_HEAD_RE);
   const tokenSuffix = afterMatch ? afterMatch[0] : '';
   return {
     token: match[0] + tokenSuffix,
@@ -355,9 +355,9 @@ export function useTypeahead({
   commands,
   onInputChange,
   onSubmit,
-  setCursorOffset,
+  setcaretOffset,
   input,
-  cursorOffset,
+  caretOffset,
   mode,
   agents,
   setSuggestionsState,
@@ -403,7 +403,7 @@ export function useTypeahead({
   // that occurs when using useState + useEffect (effect runs after render).
   const syncPromptGhostText = useMemo((): InlineGhostText | undefined => {
     if (mode !== 'prompt' || suppressSuggestions) return undefined;
-    const midInputCommand = findMidInputSlashCommand(input, cursorOffset);
+    const midInputCommand = findMidInputSlashCommand(input, caretOffset);
     if (!midInputCommand) return undefined;
     const match = getBestCommandMatch(midInputCommand.partialCommand, commands);
     if (!match) return undefined;
@@ -412,15 +412,15 @@ export function useTypeahead({
       fullCommand: match.fullCommand,
       insertPosition: midInputCommand.startPos + 1 + midInputCommand.partialCommand.length
     };
-  }, [input, cursorOffset, mode, commands, suppressSuggestions]);
+  }, [input, caretOffset, mode, commands, suppressSuggestions]);
 
   // Merged ghost text: prompt mode uses synchronous useMemo, bash mode uses async useState
   const effectiveGhostText = suppressSuggestions ? undefined : mode === 'prompt' ? syncPromptGhostText : inlineGhostText;
 
-  // Use a ref for cursorOffset to avoid re-triggering suggestions on cursor movement alone
+  // Use a ref for caretOffset to avoid re-triggering suggestions on caret movement alone
   // We only want to re-fetch suggestions when the actual search token changes
-  const cursorOffsetRef = useRef(cursorOffset);
-  cursorOffsetRef.current = cursorOffset;
+  const caretOffsetRef = useRef(caretOffset);
+  caretOffsetRef.current = caretOffset;
 
   // Track the latest search token to discard stale results from slow async operations
   const latestSearchTokenRef = useRef<string | null>(null);
@@ -531,9 +531,9 @@ export function useTypeahead({
 
   // Handle immediate suggestion logic (cheap operations)
   // biome-ignore lint/correctness/useExhaustiveDependencies: store is a stable context ref, read imperatively at call-time
-  const updateSuggestions = useCallback(async (value: string, inputCursorOffset?: number): Promise<void> => {
-    // Use provided cursor offset or fall back to ref (avoids dependency on cursorOffset)
-    const effectiveCursorOffset = inputCursorOffset ?? cursorOffsetRef.current;
+  const updateSuggestions = useCallback(async (value: string, inputcaretOffset?: number): Promise<void> => {
+    // Use provided caret offset or fall back to ref (avoids dependency on caretOffset)
+    const effectivecaretOffset = inputcaretOffset ?? caretOffsetRef.current;
     if (suppressSuggestions) {
       debouncedFetchFileSuggestions.cancel();
       clearSuggestions();
@@ -545,7 +545,7 @@ export function useTypeahead({
     // Note: ghost text for prompt mode is computed synchronously via syncPromptGhostText useMemo.
     // We only need to clear dropdown suggestions here when ghost text is active.
     if (mode === 'prompt') {
-      const midInputCommand = findMidInputSlashCommand(value, effectiveCursorOffset);
+      const midInputCommand = findMidInputSlashCommand(value, effectivecaretOffset);
       if (midInputCommand) {
         const match = getBestCommandMatch(midInputCommand.partialCommand, commands);
         if (match) {
@@ -594,7 +594,7 @@ export function useTypeahead({
     // Check for @ to trigger team member / named subagent suggestions
     // Must check before @ file symbol to prevent conflict
     // Skip in bash mode - @ has no special meaning in shell commands
-    const atMatch = mode !== 'bash' ? value.substring(0, effectiveCursorOffset).match(/(^|\s)@([\w-]*)$/) : null;
+    const atMatch = mode !== 'bash' ? value.substring(0, effectivecaretOffset).match(/(^|\s)@([\w-]*)$/) : null;
     if (atMatch) {
       const partialName = (atMatch[2] ?? '').toLowerCase();
       // Imperative read — reading at call-time fixes staleness for
@@ -639,7 +639,7 @@ export function useTypeahead({
 
     // Check for # to trigger Slack channel suggestions (requires Slack MCP server)
     if (mode === 'prompt') {
-      const hashMatch = value.substring(0, effectiveCursorOffset).match(HASH_CHANNEL_RE);
+      const hashMatch = value.substring(0, effectivecaretOffset).match(HASH_CHANNEL_RE);
       if (hashMatch && hasSlackMcpServer(store.getState().mcp.clients)) {
         debouncedFetchSlackChannels(hashMatch[2]!);
         return;
@@ -651,16 +651,16 @@ export function useTypeahead({
 
     // Check for @ symbol to trigger file suggestions (including quoted paths)
     // Includes colon for MCP resources (e.g., server:resource/path)
-    const hasAtSymbol = value.substring(0, effectiveCursorOffset).match(HAS_AT_SYMBOL_RE);
+    const hasAtSymbol = value.substring(0, effectivecaretOffset).match(HAS_AT_SYMBOL_RE);
 
     // First, check for slash command suggestions (higher priority than @ symbol)
-    // Only show slash command selector if cursor is not on the "/" character itself
-    // Also don't show if cursor is at end of line with whitespace before it
+    // Only show slash command selector if caret is not on the "/" character itself
+    // Also don't show if caret is at end of line with whitespace before it
     // Don't show slash commands in bash mode
-    const isAtEndWithWhitespace = effectiveCursorOffset === value.length && effectiveCursorOffset > 0 && value.length > 0 && value[effectiveCursorOffset - 1] === ' ';
+    const isAtEndWithWhitespace = effectivecaretOffset === value.length && effectivecaretOffset > 0 && value.length > 0 && value[effectivecaretOffset - 1] === ' ';
 
     // Handle directory completion for commands
-    if (mode === 'prompt' && isCommandInput(value) && effectiveCursorOffset > 0) {
+    if (mode === 'prompt' && isCommandInput(value) && effectivecaretOffset > 0) {
       const parsedCommand = extractCommandNameAndArgs(value);
       if (parsedCommand && parsedCommand.commandName === 'add-dir' && parsedCommand.args) {
         const {
@@ -728,7 +728,7 @@ export function useTypeahead({
     }
 
     // Determine whether to display the argument hint and command suggestions.
-    if (mode === 'prompt' && isCommandInput(value) && effectiveCursorOffset > 0 && !hasCommandWithArguments(isAtEndWithWhitespace, value)) {
+    if (mode === 'prompt' && isCommandInput(value) && effectivecaretOffset > 0 && !hasCommandWithArguments(isAtEndWithWhitespace, value)) {
       let commandArgumentHint: string | undefined = undefined;
       if (value.length > 1) {
         // We have a partial or complete command without arguments
@@ -809,7 +809,7 @@ export function useTypeahead({
     if (suggestionType === 'agent' && suggestionsRef.current.some((s: SuggestionItem) => s.id?.startsWith('dm-'))) {
       // If we had team member suggestions but the input no longer has @
       // we need to clear the suggestions.
-      const hasAt = value.substring(0, effectiveCursorOffset).match(/(^|\s)@([\w-]*)$/);
+      const hasAt = value.substring(0, effectivecaretOffset).match(/(^|\s)@([\w-]*)$/);
       if (!hasAt) {
         clearSuggestions();
       }
@@ -819,7 +819,7 @@ export function useTypeahead({
     // Skip @ autocomplete in bash mode - @ has no special meaning in shell commands
     if (hasAtSymbol && mode !== 'bash') {
       // Get the @ token (including the @ symbol)
-      const completionToken = extractCompletionToken(value, effectiveCursorOffset, true);
+      const completionToken = extractCompletionToken(value, effectivecaretOffset, true);
       if (completionToken && completionToken.token.startsWith('@')) {
         const searchToken = extractSearchToken(completionToken);
 
@@ -857,7 +857,7 @@ export function useTypeahead({
 
     // If we have active file suggestions or the input changed, check for file suggestions
     if (suggestionType === 'file') {
-      const completionToken = extractCompletionToken(value, effectiveCursorOffset, true);
+      const completionToken = extractCompletionToken(value, effectivecaretOffset, true);
       if (completionToken) {
         const searchToken = extractSearchToken(completionToken);
         // Skip if we already fetched for this exact token
@@ -888,8 +888,8 @@ export function useTypeahead({
   allCommandsMaxWidth]);
 
   // Update suggestions when input changes
-  // Note: We intentionally don't depend on cursorOffset here - cursor movement alone
-  // shouldn't re-trigger suggestions. The cursorOffsetRef is used to get the current
+  // Note: We intentionally don't depend on caretOffset here - caret movement alone
+  // shouldn't re-trigger suggestions. The caretOffsetRef is used to get the current
   // position when needed without causing re-renders.
   useEffect(() => {
     // If suggestions were dismissed for this exact input, don't re-trigger
@@ -916,21 +916,21 @@ export function useTypeahead({
       if (mode === 'bash') {
         // Replace the input with the full command from history
         onInputChange(effectiveGhostText.fullCommand);
-        setCursorOffset(effectiveGhostText.fullCommand.length);
+        setcaretOffset(effectiveGhostText.fullCommand.length);
         setInlineGhostText(undefined);
         return;
       }
 
       // Find the mid-input command to get its position (for prompt mode)
-      const midInputCommand = findMidInputSlashCommand(input, cursorOffset);
+      const midInputCommand = findMidInputSlashCommand(input, caretOffset);
       if (midInputCommand) {
         // Replace the partial command with the full command + space
         const before = input.slice(0, midInputCommand.startPos);
         const after = input.slice(midInputCommand.startPos + midInputCommand.token.length);
         const newInput = before + '/' + effectiveGhostText.fullCommand + ' ' + after;
-        const newCursorOffset = midInputCommand.startPos + 1 + effectiveGhostText.fullCommand.length + 1;
+        const newcaretOffset = midInputCommand.startPos + 1 + effectiveGhostText.fullCommand.length + 1;
         onInputChange(newInput);
-        setCursorOffset(newCursorOffset);
+        setcaretOffset(newcaretOffset);
         return;
       }
     }
@@ -946,7 +946,7 @@ export function useTypeahead({
         if (suggestion) {
           applyCommandSuggestion(suggestion, false,
           // don't execute on tab
-          commands, onInputChange, setCursorOffset, onSubmit);
+          commands, onInputChange, setcaretOffset, onSubmit);
           clearSuggestions();
         }
       } else if (suggestionType === 'custom-title' && suggestions.length > 0) {
@@ -954,7 +954,7 @@ export function useTypeahead({
         if (suggestion) {
           const newInput = buildResumeInputFromSuggestion(suggestion);
           onInputChange(newInput);
-          setCursorOffset(newInput.length);
+          setcaretOffset(newInput.length);
           clearSuggestions();
         }
       } else if (suggestionType === 'directory' && suggestions.length > 0) {
@@ -970,7 +970,7 @@ export function useTypeahead({
             const cmdSuffix = isPathMetadata(suggestion.metadata) && suggestion.metadata.type === 'directory' ? '/' : ' ';
             newInput = commandPart + suggestion.id + cmdSuffix;
             onInputChange(newInput);
-            setCursorOffset(newInput.length);
+            setcaretOffset(newInput.length);
             if (isPathMetadata(suggestion.metadata) && suggestion.metadata.type === 'directory') {
               // For directories, fetch new suggestions for the updated path
               setSuggestionsState(prev => ({
@@ -984,27 +984,27 @@ export function useTypeahead({
           } else {
             // General path completion: replace the path token in input with @-prefixed path
             // Try to get token with @ prefix first to check if already prefixed
-            const completionTokenWithAt = extractCompletionToken(input, cursorOffset, true);
-            const completionToken = completionTokenWithAt ?? extractCompletionToken(input, cursorOffset, false);
+            const completionTokenWithAt = extractCompletionToken(input, caretOffset, true);
+            const completionToken = completionTokenWithAt ?? extractCompletionToken(input, caretOffset, false);
             if (completionToken) {
               const isDir = isPathMetadata(suggestion.metadata) && suggestion.metadata.type === 'directory';
               const result = applyDirectorySuggestion(input, suggestion.id, completionToken.startPos, completionToken.token.length, isDir);
               newInput = result.newInput;
               onInputChange(newInput);
-              setCursorOffset(result.cursorPos);
+              setcaretOffset(result.caretPos);
               if (isDir) {
                 // For directories, fetch new suggestions for the updated path
                 setSuggestionsState(prev => ({
                   ...prev,
                   commandArgumentHint: undefined
                 }));
-                void updateSuggestions(newInput, result.cursorPos);
+                void updateSuggestions(newInput, result.caretPos);
               } else {
                 // For files, clear suggestions
                 clearSuggestions();
               }
             } else {
-              // No completion token found (e.g., cursor after space) - just clear suggestions
+              // No completion token found (e.g., caret after space) - just clear suggestions
               // without modifying input to avoid data loss
               clearSuggestions();
             }
@@ -1016,23 +1016,23 @@ export function useTypeahead({
           const metadata = suggestion.metadata as {
             completionType: ShellCompletionType;
           } | undefined;
-          applyShellSuggestion(suggestion, input, cursorOffset, onInputChange, setCursorOffset, metadata?.completionType);
+          applyShellSuggestion(suggestion, input, caretOffset, onInputChange, setcaretOffset, metadata?.completionType);
           clearSuggestions();
         }
       } else if (suggestionType === 'agent' && suggestions.length > 0 && suggestions[index]?.id?.startsWith('dm-')) {
         const suggestion = suggestions[index];
         if (suggestion) {
-          applyTriggerSuggestion(suggestion, input, cursorOffset, DM_MEMBER_RE, onInputChange, setCursorOffset);
+          applyTriggerSuggestion(suggestion, input, caretOffset, DM_MEMBER_RE, onInputChange, setcaretOffset);
           clearSuggestions();
         }
       } else if (suggestionType === 'slack-channel' && suggestions.length > 0) {
         const suggestion = suggestions[index];
         if (suggestion) {
-          applyTriggerSuggestion(suggestion, input, cursorOffset, HASH_CHANNEL_RE, onInputChange, setCursorOffset);
+          applyTriggerSuggestion(suggestion, input, caretOffset, HASH_CHANNEL_RE, onInputChange, setcaretOffset);
           clearSuggestions();
         }
       } else if (suggestionType === 'file' && suggestions.length > 0) {
-        const completionToken = extractCompletionToken(input, cursorOffset, true);
+        const completionToken = extractCompletionToken(input, caretOffset, true);
         if (!completionToken) {
           clearSuggestions();
           return;
@@ -1066,10 +1066,10 @@ export function useTypeahead({
             isQuoted: completionToken.isQuoted,
             isComplete: false // partial completion
           });
-          applyFileSuggestion(replacementValue, input, completionToken.token, completionToken.startPos, onInputChange, setCursorOffset);
+          applyFileSuggestion(replacementValue, input, completionToken.token, completionToken.startPos, onInputChange, setcaretOffset);
           // Don't clear suggestions so user can continue typing or select a specific option
           // Instead, update for the new prefix
-          void updateSuggestions(input.replace(completionToken.token, replacementValue), cursorOffset);
+          void updateSuggestions(input.replace(completionToken.token, replacementValue), caretOffset);
         } else if (index < suggestions.length) {
           // Otherwise, apply the selected suggestion
           const suggestion = suggestions[index];
@@ -1083,7 +1083,7 @@ export function useTypeahead({
               isQuoted: completionToken.isQuoted,
               isComplete: true // complete suggestion
             });
-            applyFileSuggestion(replacementValue, input, completionToken.token, completionToken.startPos, onInputChange, setCursorOffset);
+            applyFileSuggestion(replacementValue, input, completionToken.token, completionToken.startPos, onInputChange, setcaretOffset);
             clearSuggestions();
           }
         }
@@ -1094,7 +1094,7 @@ export function useTypeahead({
       if (mode === 'bash') {
         suggestionType = 'shell';
         // This should be very fast, taking <10ms
-        const bashSuggestions = await generateBashSuggestions(input, cursorOffset);
+        const bashSuggestions = await generateBashSuggestions(input, caretOffset);
         if (bashSuggestions.length === 1) {
           // If single suggestion, apply it immediately
           const suggestion = bashSuggestions[0];
@@ -1102,7 +1102,7 @@ export function useTypeahead({
             const metadata = suggestion.metadata as {
               completionType: ShellCompletionType;
             } | undefined;
-            applyShellSuggestion(suggestion, input, cursorOffset, onInputChange, setCursorOffset, metadata?.completionType);
+            applyShellSuggestion(suggestion, input, caretOffset, onInputChange, setcaretOffset, metadata?.completionType);
           }
           suggestionItems = [];
         } else {
@@ -1111,7 +1111,7 @@ export function useTypeahead({
       } else {
         suggestionType = 'file';
         // If no suggestions, fetch file and MCP resource suggestions
-        const completionInfo = extractCompletionToken(input, cursorOffset, true);
+        const completionInfo = extractCompletionToken(input, caretOffset, true);
         if (completionInfo) {
           // If token starts with @, search without the @ prefix
           const isAtSymbol = completionInfo.token.startsWith('@');
@@ -1132,7 +1132,7 @@ export function useTypeahead({
         setMaxColumnWidth(undefined);
       }
     }
-  }, [suggestions, selectedSuggestion, input, suggestionType, commands, mode, onInputChange, setCursorOffset, onSubmit, clearSuggestions, cursorOffset, updateSuggestions, mcpResources, setSuggestionsState, agents, debouncedFetchFileSuggestions, debouncedFetchSlackChannels, effectiveGhostText]);
+  }, [suggestions, selectedSuggestion, input, suggestionType, commands, mode, onInputChange, setcaretOffset, onSubmit, clearSuggestions, caretOffset, updateSuggestions, mcpResources, setSuggestionsState, agents, debouncedFetchFileSuggestions, debouncedFetchSlackChannels, effectiveGhostText]);
 
   // Handle enter key press - apply and execute suggestions
   const handleEnter = useCallback(() => {
@@ -1142,7 +1142,7 @@ export function useTypeahead({
       if (suggestion) {
         applyCommandSuggestion(suggestion, true,
         // execute on return
-        commands, onInputChange, setCursorOffset, onSubmit);
+        commands, onInputChange, setcaretOffset, onSubmit);
         debouncedFetchFileSuggestions.cancel();
         clearSuggestions();
       }
@@ -1151,7 +1151,7 @@ export function useTypeahead({
       if (suggestion) {
         const newInput = buildResumeInputFromSuggestion(suggestion);
         onInputChange(newInput);
-        setCursorOffset(newInput.length);
+        setcaretOffset(newInput.length);
         onSubmit(newInput, /* isSubmittingSlashCommand */true);
         debouncedFetchFileSuggestions.cancel();
         clearSuggestions();
@@ -1162,23 +1162,23 @@ export function useTypeahead({
         const metadata = suggestion.metadata as {
           completionType: ShellCompletionType;
         } | undefined;
-        applyShellSuggestion(suggestion, input, cursorOffset, onInputChange, setCursorOffset, metadata?.completionType);
+        applyShellSuggestion(suggestion, input, caretOffset, onInputChange, setcaretOffset, metadata?.completionType);
         debouncedFetchFileSuggestions.cancel();
         clearSuggestions();
       }
     } else if (suggestionType === 'agent' && selectedSuggestion < suggestions.length && suggestion?.id?.startsWith('dm-')) {
-      applyTriggerSuggestion(suggestion, input, cursorOffset, DM_MEMBER_RE, onInputChange, setCursorOffset);
+      applyTriggerSuggestion(suggestion, input, caretOffset, DM_MEMBER_RE, onInputChange, setcaretOffset);
       debouncedFetchFileSuggestions.cancel();
       clearSuggestions();
     } else if (suggestionType === 'slack-channel' && selectedSuggestion < suggestions.length) {
       if (suggestion) {
-        applyTriggerSuggestion(suggestion, input, cursorOffset, HASH_CHANNEL_RE, onInputChange, setCursorOffset);
+        applyTriggerSuggestion(suggestion, input, caretOffset, HASH_CHANNEL_RE, onInputChange, setcaretOffset);
         debouncedFetchSlackChannels.cancel();
         clearSuggestions();
       }
     } else if (suggestionType === 'file' && selectedSuggestion < suggestions.length) {
       // Extract completion token directly when needed
-      const completionInfo = extractCompletionToken(input, cursorOffset, true);
+      const completionInfo = extractCompletionToken(input, caretOffset, true);
       if (completionInfo) {
         if (suggestion) {
           const hasAtPrefix = completionInfo.token.startsWith('@');
@@ -1191,7 +1191,7 @@ export function useTypeahead({
             isQuoted: completionInfo.isQuoted,
             isComplete: true // complete suggestion
           });
-          applyFileSuggestion(replacementValue, input, completionInfo.token, completionInfo.startPos, onInputChange, setCursorOffset);
+          applyFileSuggestion(replacementValue, input, completionInfo.token, completionInfo.startPos, onInputChange, setcaretOffset);
           debouncedFetchFileSuggestions.cancel();
           clearSuggestions();
         }
@@ -1208,22 +1208,22 @@ export function useTypeahead({
         }
 
         // General path completion: replace the path token
-        const completionTokenWithAt = extractCompletionToken(input, cursorOffset, true);
-        const completionToken = completionTokenWithAt ?? extractCompletionToken(input, cursorOffset, false);
+        const completionTokenWithAt = extractCompletionToken(input, caretOffset, true);
+        const completionToken = completionTokenWithAt ?? extractCompletionToken(input, caretOffset, false);
         if (completionToken) {
           const isDir = isPathMetadata(suggestion.metadata) && suggestion.metadata.type === 'directory';
           const result = applyDirectorySuggestion(input, suggestion.id, completionToken.startPos, completionToken.token.length, isDir);
           onInputChange(result.newInput);
-          setCursorOffset(result.cursorPos);
+          setcaretOffset(result.caretPos);
         }
-        // If no completion token found (e.g., cursor after space), don't modify input
+        // If no completion token found (e.g., caret after space), don't modify input
         // to avoid data loss - just clear suggestions
 
         debouncedFetchFileSuggestions.cancel();
         clearSuggestions();
       }
     }
-  }, [suggestions, selectedSuggestion, suggestionType, commands, input, cursorOffset, mode, onInputChange, setCursorOffset, onSubmit, clearSuggestions, debouncedFetchFileSuggestions, debouncedFetchSlackChannels]);
+  }, [suggestions, selectedSuggestion, suggestionType, commands, input, caretOffset, mode, onInputChange, setcaretOffset, onSubmit, clearSuggestions, debouncedFetchFileSuggestions, debouncedFetchSlackChannels]);
 
   // Handler for autocomplete:accept - accepts current suggestion via Tab or Right Arrow
   const handleAutocompleteAccept = useCallback(() => {
@@ -1284,10 +1284,10 @@ export function useTypeahead({
       onModeChange(detectedMode);
       const stripped = getValueFromInput(text);
       onInputChange(stripped);
-      setCursorOffset(stripped.length);
+      setcaretOffset(stripped.length);
     } else {
       onInputChange(text);
-      setCursorOffset(text.length);
+      setcaretOffset(text.length);
     }
   }
 

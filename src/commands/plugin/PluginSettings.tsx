@@ -757,7 +757,7 @@ export function PluginSettings(t0) {
   }
   const [activeTab, setActiveTab] = useState(t2);
   const [inputValue, setInputValue] = useState(viewState.type === "add-marketplace" ? viewState.initialValue || "" : "");
-  const [cursorOffset, setCursorOffset] = useState(0);
+  const [caretOffset, setcaretOffset] = useState(0);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const [childSearchActive, setChildSearchActive] = useState(false);
@@ -955,10 +955,10 @@ export function PluginSettings(t0) {
   }
   if (viewState.type === "add-marketplace") {
     let t16;
-    if ($[34] !== cliMode || $[35] !== cursorOffset || $[36] !== error || $[37] !== inputValue || $[38] !== markPluginsChanged || $[39] !== result) {
-      t16 = <AddMarketplace inputValue={inputValue} setInputValue={setInputValue} cursorOffset={cursorOffset} setCursorOffset={setCursorOffset} error={error} setError={setError} result={result} setResult={setResult} setViewState={setViewState} onAddComplete={markPluginsChanged} cliMode={cliMode} />;
+    if ($[34] !== cliMode || $[35] !== caretOffset || $[36] !== error || $[37] !== inputValue || $[38] !== markPluginsChanged || $[39] !== result) {
+      t16 = <AddMarketplace inputValue={inputValue} setInputValue={setInputValue} caretOffset={caretOffset} setcaretOffset={setcaretOffset} error={error} setError={setError} result={result} setResult={setResult} setViewState={setViewState} onAddComplete={markPluginsChanged} cliMode={cliMode} />;
       $[34] = cliMode;
-      $[35] = cursorOffset;
+      $[35] = caretOffset;
       $[36] = error;
       $[37] = inputValue;
       $[38] = markPluginsChanged;

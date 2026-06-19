@@ -204,7 +204,7 @@ export function LogSelector(t0) {
   }
   const currentCwd = t6;
   const [renameValue, setRenameValue] = React.useState("");
-  const [renameCursorOffset, setRenameCursorOffset] = React.useState(0);
+  const [renamecaretOffset, setRenamecaretOffset] = React.useState(0);
   let t7;
   if ($[6] === Symbol.for("react.memo_cache_sentinel")) {
     t7 = new Set();
@@ -276,7 +276,7 @@ export function LogSelector(t0) {
   const {
     query: searchQuery,
     setQuery: setSearchQuery,
-    cursorOffset: searchCursorOffset
+    caretOffset: searchcaretOffset
   } = useSearchInput(t14);
   const deferredSearchQuery = React.useDeferredValue(searchQuery);
   const [debouncedDeepSearchQuery, setDebouncedDeepSearchQuery] = React.useState("");
@@ -1280,10 +1280,10 @@ export function LogSelector(t0) {
   }
   const t61 = viewMode === "search";
   let t62;
-  if ($[176] !== isTerminalFocused || $[177] !== searchCursorOffset || $[178] !== searchQuery || $[179] !== t61) {
-    t62 = <SearchBox query={searchQuery} isFocused={t61} isTerminalFocused={isTerminalFocused} cursorOffset={searchCursorOffset} />;
+  if ($[176] !== isTerminalFocused || $[177] !== searchcaretOffset || $[178] !== searchQuery || $[179] !== t61) {
+    t62 = <SearchBox query={searchQuery} isFocused={t61} isTerminalFocused={isTerminalFocused} caretOffset={searchcaretOffset} />;
     $[176] = isTerminalFocused;
-    $[177] = searchCursorOffset;
+    $[177] = searchcaretOffset;
     $[178] = searchQuery;
     $[179] = t61;
     $[180] = t62;
@@ -1354,8 +1354,8 @@ export function LogSelector(t0) {
     t69 = $[201];
   }
   let t70;
-  if ($[202] !== agenticSearchState.status || $[203] !== branchFilterEnabled || $[204] !== columns || $[205] !== displayedLogs || $[206] !== expandedGroupSessionIds || $[207] !== flatOptions || $[208] !== focusedLog || $[209] !== focusedNode?.id || $[210] !== handleFlatOptionsSelectFocus || $[211] !== handleRenameSubmit || $[212] !== handleTreeSelectFocus || $[213] !== isAgenticSearchOptionFocused || $[214] !== onCancel || $[215] !== onSelect || $[216] !== renameCursorOffset || $[217] !== renameValue || $[218] !== treeNodes || $[219] !== viewMode || $[220] !== visibleCount) {
-    t70 = agenticSearchState.status === "searching" ? null : viewMode === "rename" && focusedLog ? <Box paddingLeft={2} flexDirection="column"><Text bold={true}>Rename session:</Text><Box paddingTop={1}><TextInput value={renameValue} onChange={setRenameValue} onSubmit={handleRenameSubmit} placeholder={getLogDisplayTitle(focusedLog, "Enter new session name")} columns={columns} cursorOffset={renameCursorOffset} onChangeCursorOffset={setRenameCursorOffset} showCursor={true} /></Box></Box> : isResumeWithRenameEnabled ? <TreeSelect nodes={treeNodes} onSelect={node_0 => {
+  if ($[202] !== agenticSearchState.status || $[203] !== branchFilterEnabled || $[204] !== columns || $[205] !== displayedLogs || $[206] !== expandedGroupSessionIds || $[207] !== flatOptions || $[208] !== focusedLog || $[209] !== focusedNode?.id || $[210] !== handleFlatOptionsSelectFocus || $[211] !== handleRenameSubmit || $[212] !== handleTreeSelectFocus || $[213] !== isAgenticSearchOptionFocused || $[214] !== onCancel || $[215] !== onSelect || $[216] !== renamecaretOffset || $[217] !== renameValue || $[218] !== treeNodes || $[219] !== viewMode || $[220] !== visibleCount) {
+    t70 = agenticSearchState.status === "searching" ? null : viewMode === "rename" && focusedLog ? <Box paddingLeft={2} flexDirection="column"><Text bold={true}>Rename session:</Text><Box paddingTop={1}><TextInput value={renameValue} onChange={setRenameValue} onSubmit={handleRenameSubmit} placeholder={getLogDisplayTitle(focusedLog, "Enter new session name")} columns={columns} caretOffset={renamecaretOffset} onChangeCaretOffset={setRenamecaretOffset} showCaret={true} /></Box></Box> : isResumeWithRenameEnabled ? <TreeSelect nodes={treeNodes} onSelect={node_0 => {
       onSelect(node_0.value.log);
     }} onFocus={handleTreeSelectFocus} onCancel={onCancel} focusNodeId={focusedNode?.id} visibleOptionCount={visibleCount} layout="expanded" isDisabled={viewMode === "search" || isAgenticSearchOptionFocused} hideIndexes={false} isNodeExpanded={nodeId => {
       if (viewMode === "search" || branchFilterEnabled) {
@@ -1399,7 +1399,7 @@ export function LogSelector(t0) {
     $[213] = isAgenticSearchOptionFocused;
     $[214] = onCancel;
     $[215] = onSelect;
-    $[216] = renameCursorOffset;
+    $[216] = renamecaretOffset;
     $[217] = renameValue;
     $[218] = treeNodes;
     $[219] = viewMode;

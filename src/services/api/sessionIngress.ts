@@ -275,7 +275,7 @@ type TeleportEventsResponse = {
   }>
   // Unset when there are no more pages — this IS the end-of-stream
   // signal (no separate has_more field).
-  next_cursor?: string
+  next_caret?: string
 }
 
 /**
@@ -283,8 +283,8 @@ type TeleportEventsResponse = {
  * getSessionLogsViaOAuth once session-ingress is retired.
  *
  * The server dispatches per-session: Spanner for v2-native sessions,
- * threadstore for pre-backfill session_* IDs. The cursor is opaque to us —
- * echo it back until next_cursor is unset.
+ * threadstore for pre-backfill session_* IDs. The caret is opaque to us —
+ * echo it back until next_caret is unset.
  *
  * Paginated (500/page default, server max 1000). session-ingress's one-shot
  * 50k is gone; we loop.
@@ -303,18 +303,18 @@ export async function getTeleportEvents(
   logForDebugging(`[teleport] Fetching events from: ${baseUrl}`)
 
   const all: Entry[] = []
-  let cursor: string | undefined
+  let caret: string | undefined
   let pages = 0
 
   // Infinite-loop guard: 1000/page × 100 pages = 100k events. Larger than
   // session-ingress's 50k one-shot. If we hit this, something's wrong
-  // (server not advancing cursor) — bail rather than hang.
+  // (server not advancing caret) — bail rather than hang.
   const maxPages = 100
 
   while (pages < maxPages) {
     const params: Record<string, string | number> = { limit: 1000 }
-    if (cursor !== undefined) {
-      params.cursor = cursor
+    if (caret !== undefined) {
+      params.caret = caret
     }
 
     let response
@@ -370,7 +370,7 @@ export async function getTeleportEvents(
       return null
     }
 
-    const { data, next_cursor } = response.data
+    const { data, next_caret } = response.data
     if (!Array.isArray(data)) {
       logError(
         new Error(
@@ -392,12 +392,12 @@ export async function getTeleportEvents(
     pages++
     // == null covers both `null` and `undefined` — the proto omits the
     // field at end-of-stream, but some serializers emit `null`. Strict
-    // `=== undefined` would loop forever on `null` (cursor=null in query
+    // `=== undefined` would loop forever on `null` (caret=null in query
     // params stringifies to "null", which the server rejects or echoes).
-    if (next_cursor == null) {
+    if (next_caret == null) {
       break
     }
-    cursor = next_cursor
+    caret = next_caret
   }
 
   if (pages >= maxPages) {

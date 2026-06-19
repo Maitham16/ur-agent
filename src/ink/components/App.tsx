@@ -15,10 +15,10 @@ import { isXtermJs, setXtversionName, supportsExtendedKeys } from '../terminal.j
 import { getTerminalFocused, setTerminalFocused } from '../terminal-focus-state.js';
 import { TerminalQuerier, xtversion } from '../terminal-querier.js';
 import { DISABLE_KITTY_KEYBOARD, DISABLE_MODIFY_OTHER_KEYS, ENABLE_KITTY_KEYBOARD, ENABLE_MODIFY_OTHER_KEYS, FOCUS_IN, FOCUS_OUT } from '../termio/csi.js';
-import { DBP, DFE, DISABLE_MOUSE_TRACKING, EBP, EFE, HIDE_CURSOR, SHOW_CURSOR } from '../termio/dec.js';
+import { DBP, DFE, DISABLE_MOUSE_TRACKING, EBP, EFE, HIDE_caret, SHOW_caret } from '../termio/dec.js';
 import AppContext from './AppContext.js';
 import { ClockProvider } from './ClockContext.js';
-import CursorDeclarationContext, { type CursorDeclarationSetter } from './CursorDeclarationContext.js';
+import caretDeclarationContext, { type caretDeclarationSetter } from './caretDeclarationContext.js';
 import ErrorOverview from './ErrorOverview.js';
 import StdinContext from './StdinContext.js';
 import { TerminalFocusProvider } from './TerminalFocusContext.js';
@@ -64,7 +64,7 @@ type Props = {
   // Open a hyperlink URL in the browser. Called after the timer fires.
   readonly onOpenHyperlink: (url: string) => void;
   // Called on double/triple-click PRESS at (col, row). count=2 selects
-  // the word under the cursor; count=3 selects the line. Ink reads the
+  // the word under the caret; count=3 selects the line. Ink reads the
   // screen buffer to find word/line boundaries and mutates selection,
   // setting isDragging=true so a subsequent drag extends by word/line.
   readonly onMultiClick: (col: number, row: number, count: 2 | 3) => void;
@@ -77,11 +77,11 @@ type Props = {
   // fullscreen) re-enters alt-screen + mouse tracking. Idempotent on the
   // terminal side. Optional so testing.tsx doesn't need to stub it.
   readonly onStdinResume?: () => void;
-  // Receives the declared native-cursor position from useDeclaredCursor
-  // so ink.tsx can park the terminal cursor there after each frame.
+  // Receives the declared native-caret position from useDeclaredCaret
+  // so ink.tsx can park the terminal caret there after each frame.
   // Enables IME composition at the input caret and lets screen readers /
   // magnifiers track the input. Optional so testing.tsx doesn't stub it.
-  readonly onCursorDeclaration?: CursorDeclarationSetter;
+  readonly oncaretDeclaration?: caretDeclarationSetter;
   // Dispatch a keyboard event through the DOM tree. Called for each
   // parsed key alongside the legacy EventEmitter path.
   readonly dispatchKeyboardEvent: (parsedKey: ParsedKey) => void;
@@ -97,7 +97,7 @@ type State = {
 
 // Root component for all Ink apps
 // It renders stdin and stdout contexts, so that children can access them if needed
-// It also handles Ctrl+C exiting and cursor visibility
+// It also handles Ctrl+C exiting and caret visibility
 export default class App extends PureComponent<Props, State> {
   static displayName = 'InternalApp';
   static getDerivedStateFromError(error: Error) {
@@ -174,9 +174,9 @@ export default class App extends PureComponent<Props, State> {
         }}>
             <TerminalFocusProvider>
               <ClockProvider>
-                <CursorDeclarationContext.Provider value={this.props.onCursorDeclaration ?? (() => {})}>
+                <caretDeclarationContext.Provider value={this.props.oncaretDeclaration ?? (() => {})}>
                   {this.state.error ? <ErrorOverview error={this.state.error as Error} /> : this.props.children}
-                </CursorDeclarationContext.Provider>
+                </caretDeclarationContext.Provider>
               </ClockProvider>
             </TerminalFocusProvider>
           </StdinContext.Provider>
@@ -184,14 +184,14 @@ export default class App extends PureComponent<Props, State> {
       </TerminalSizeContext.Provider>;
   }
   override componentDidMount() {
-    // In accessibility mode, keep the native cursor visible for screen magnifiers and other tools
+    // In accessibility mode, keep the native caret visible for screen magnifiers and other tools
     if (this.props.stdout.isTTY && !isEnvTruthy(process.env.UR_CODE_ACCESSIBILITY)) {
-      this.props.stdout.write(HIDE_CURSOR);
+      this.props.stdout.write(HIDE_caret);
     }
   }
   override componentWillUnmount() {
     if (this.props.stdout.isTTY) {
-      this.props.stdout.write(SHOW_CURSOR);
+      this.props.stdout.write(SHOW_caret);
     }
 
     // Clear any pending timers
@@ -434,13 +434,13 @@ export default class App extends PureComponent<Props, State> {
       this.handleSetRawMode(false);
     }
 
-    // Show cursor, disable focus reporting, and disable mouse tracking
+    // Show caret, disable focus reporting, and disable mouse tracking
     // before suspending. DISABLE_MOUSE_TRACKING is a no-op if tracking
     // wasn't enabled, so it's safe to emit unconditionally — without
     // it, SGR mouse sequences would appear as garbled text at the
     // shell prompt while suspended.
     if (this.props.stdout.isTTY) {
-      this.props.stdout.write(SHOW_CURSOR + DFE + DISABLE_MOUSE_TRACKING);
+      this.props.stdout.write(SHOW_caret + DFE + DISABLE_MOUSE_TRACKING);
     }
 
     // Emit suspend event for UR to handle. Mostly just has a notification
@@ -455,10 +455,10 @@ export default class App extends PureComponent<Props, State> {
         }
       }
 
-      // Hide cursor (unless in accessibility mode) and re-enable focus reporting after resuming
+      // Hide caret (unless in accessibility mode) and re-enable focus reporting after resuming
       if (this.props.stdout.isTTY) {
         if (!isEnvTruthy(process.env.UR_CODE_ACCESSIBILITY)) {
-          this.props.stdout.write(HIDE_CURSOR);
+          this.props.stdout.write(HIDE_caret);
         }
         // Re-enable focus reporting to restore terminal state
         this.props.stdout.write(EFE);
@@ -495,7 +495,7 @@ function processKeysInBatch(app: App, items: ParsedInput[], _unused1: undefined,
   // This is called from the central input handler to avoid having multiple
   // stdin listeners that can cause race conditions and dropped input.
   // Terminal responses (kind: 'response') are automated, not user input.
-  // Mode-1003 no-button motion is also excluded — passive cursor drift is
+  // Mode-1003 no-button motion is also excluded — passive caret drift is
   // not engagement (would suppress idle notifications + defer housekeeping).
   if (items.some(i => i.kind === 'key' || i.kind === 'mouse' && !((i.button & 0x20) !== 0 && (i.button & 0x03) === 3))) {
     updateLastInteractionTime();
@@ -603,7 +603,7 @@ export function handleMouseEvent(app: App, m: ParsedMouse): void {
       return;
     }
     // Lost-release fallback for mode-1002-only terminals: a fresh press
-    // while isDragging=true means the previous release was dropped (cursor
+    // while isDragging=true means the previous release was dropped (caret
     // left the window). Finish that selection so copy-on-select fires
     // before startSelection/onMultiClick clobbers it. Mode-1003 terminals
     // hit the no-button-motion recovery above instead, so this is rare.
@@ -670,7 +670,7 @@ export function handleMouseEvent(app: App, m: ParsedMouse): void {
   // highlight. The anchor check guards against an orphaned release (no
   // prior press — e.g. button was held when mouse tracking was enabled).
   if (!hasSelection(sel) && sel.anchor) {
-    // Single click: dispatch DOM click immediately (cursor repositioning
+    // Single click: dispatch DOM click immediately (caret repositioning
     // etc. are latency-sensitive). If no DOM handler consumed it, defer
     // the hyperlink check so a second click can cancel it.
     if (!app.props.onClickAt(col, row)) {
@@ -678,7 +678,7 @@ export function handleMouseEvent(app: App, m: ParsedMouse): void {
       // still reflects what the user clicked — deferring only the
       // browser-open so double-click can cancel it.
       const url = app.props.getHyperlinkAt(col, row);
-      // xterm.js (VS Code, Cursor, Windsurf, etc.) has its own OSC 8 link
+      // xterm.js (VS Code, caret, Windsurf, etc.) has its own OSC 8 link
       // handler that fires on Cmd+click *without consuming the mouse event*
       // (Linkifier._handleMouseUp calls link.activate() but never
       // preventDefault/stopPropagation). The click is also forwarded to the

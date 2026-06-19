@@ -115,18 +115,18 @@ export function HighlightedThinkingText(t0) {
         break bb0;
       }
       parts = [];
-      let cursor = 0;
+      let caret = 0;
       for (const t of triggers) {
-        if (t.start > cursor) {
-          parts.push(<Text key={`plain-${cursor}`} color="text">{text.slice(cursor, t.start)}</Text>);
+        if (t.start > caret) {
+          parts.push(<Text key={`plain-${caret}`} color="text">{text.slice(caret, t.start)}</Text>);
         }
         for (let i = t.start; i < t.end; i++) {
           parts.push(<Text key={`rb-${i}`} color={getRainbowColor(i - t.start)}>{text[i]}</Text>);
         }
-        cursor = t.end;
+        caret = t.end;
       }
-      if (cursor < text.length) {
-        parts.push(<Text key={`plain-${cursor}`} color="text">{text.slice(cursor)}</Text>);
+      if (caret < text.length) {
+        parts.push(<Text key={`plain-${caret}`} color="text">{text.slice(caret)}</Text>);
       }
     }
     $[15] = pointerColor;

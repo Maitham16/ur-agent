@@ -77,22 +77,22 @@ function isNewCommandContext(
 /**
  * Parse input to extract completion context
  */
-function parseInputContext(input: string, cursorOffset: number): InputContext {
-  const beforeCursor = input.slice(0, cursorOffset)
+function parseInputContext(input: string, caretOffset: number): InputContext {
+  const beforecaret = input.slice(0, caretOffset)
 
   // Check if it's a variable prefix, before expanding with shell-quote
-  const varMatch = beforeCursor.match(/\$[a-zA-Z_][a-zA-Z0-9_]*$/)
+  const varMatch = beforecaret.match(/\$[a-zA-Z_][a-zA-Z0-9_]*$/)
   if (varMatch) {
     return { prefix: varMatch[0], completionType: 'variable' }
   }
 
   // Parse with shell-quote
-  const parseResult = tryParseShellCommand(beforeCursor)
+  const parseResult = tryParseShellCommand(beforecaret)
   if (!parseResult.success) {
     // Fallback to simple parsing
-    const tokens = beforeCursor.split(/\s+/)
+    const tokens = beforecaret.split(/\s+/)
     const prefix = tokens[tokens.length - 1] || ''
-    const isFirstToken = tokens.length === 1 && !beforeCursor.includes(' ')
+    const isFirstToken = tokens.length === 1 && !beforecaret.includes(' ')
     const completionType = isFirstToken
       ? 'command'
       : getCompletionTypeFromPrefix(prefix)
@@ -112,7 +112,7 @@ function parseInputContext(input: string, cursorOffset: number): InputContext {
   }
 
   // If there's a trailing space, the user is starting a new argument
-  if (beforeCursor.endsWith(' ')) {
+  if (beforecaret.endsWith(' ')) {
     // After first token (command) with space = file argument expected
     return { prefix: '', completionType: 'file' }
   }
@@ -220,7 +220,7 @@ async function getCompletionsForShell(
  */
 export async function getShellCompletions(
   input: string,
-  cursorOffset: number,
+  caretOffset: number,
   abortSignal: AbortSignal,
 ): Promise<SuggestionItem[]> {
   const shellType = getShellType()
@@ -231,7 +231,7 @@ export async function getShellCompletions(
   }
 
   try {
-    const { prefix, completionType } = parseInputContext(input, cursorOffset)
+    const { prefix, completionType } = parseInputContext(input, caretOffset)
 
     if (!prefix) {
       return []

@@ -120,13 +120,13 @@ export function colorsEqual(a: Color, b: Color): boolean {
 }
 
 // =============================================================================
-// Cursor Actions
+// caret Actions
 // =============================================================================
 
-export type CursorDirection = 'up' | 'down' | 'forward' | 'back'
+export type caretDirection = 'up' | 'down' | 'forward' | 'back'
 
-export type CursorAction =
-  | { type: 'move'; direction: CursorDirection; count: number }
+export type caretAction =
+  | { type: 'move'; direction: caretDirection; count: number }
   | { type: 'position'; row: number; col: number }
   | { type: 'column'; col: number }
   | { type: 'row'; row: number }
@@ -223,7 +223,7 @@ export type Grapheme = {
 /** All possible parsed actions */
 export type Action =
   | { type: 'text'; graphemes: Grapheme[]; style: TextStyle }
-  | { type: 'cursor'; action: CursorAction }
+  | { type: 'caret'; action: caretAction }
   | { type: 'erase'; action: EraseAction }
   | { type: 'scroll'; action: ScrollAction }
   | { type: 'mode'; action: ModeAction }

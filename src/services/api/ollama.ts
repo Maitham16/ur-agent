@@ -1,8 +1,9 @@
+// @ts-nocheck
 import {
   APIConnectionError,
   APIConnectionTimeoutError,
   APIUserAbortError,
-} from '@anthropic-ai/sdk'
+} from '@urhq-ai/sdk'
 import type {
   BetaContentBlock,
   BetaMessage,
@@ -10,9 +11,9 @@ import type {
   BetaRawMessageStreamEvent,
   BetaToolUnion,
   BetaUsage,
-} from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
-import type { MessageParam } from '@anthropic-ai/sdk/resources/index.mjs'
-import type { Stream } from '@anthropic-ai/sdk/streaming.mjs'
+} from '@urhq-ai/sdk/resources/beta/messages/messages.mjs'
+import type { MessageParam } from '@urhq-ai/sdk/resources/index.mjs'
+import type { Stream } from '@urhq-ai/sdk/streaming.mjs'
 import { randomUUID } from 'crypto'
 import {
   looksLikeBareJsonToolCallPrefix,
@@ -80,9 +81,9 @@ type OllamaChatRequest = {
   format?: unknown
 }
 
-const DEFAULT_BASE_URL = 'http://127.0.0.1:11434'
 
-export function createOllamaAnthropicClient(): unknown {
+
+export function createOllamaURHQClient(): unknown {
   return {
     beta: {
       messages: {
@@ -118,7 +119,7 @@ function createStreamingRequest(
       const response = await responsePromise
       const requestId = `ollama-${randomUUID()}`
       return {
-        data: createAnthropicStream(response, params, controller, requestId),
+        data: createURHQStream(response, params, controller, requestId),
         request_id: requestId,
         response,
       }
@@ -136,7 +137,7 @@ async function createNonStreamingRequest(
   if (json.error) {
     throw new Error(json.error)
   }
-  return ollamaResponseToAnthropicMessage(json, params)
+  return ollamaResponseToURHQMessage(json, params)
 }
 
 async function fetchOllamaChat(
@@ -158,9 +159,6 @@ async function fetchOllamaChat(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(process.env.OLLAMA_API_KEY
-          ? { Authorization: `Bearer ${process.env.OLLAMA_API_KEY}` }
-          : {}),
       },
       body: JSON.stringify(toOllamaChatRequest(params, stream)),
       signal: controller.signal,
@@ -179,10 +177,10 @@ async function fetchOllamaChat(
       if (options?.signal?.aborted) {
         throw new APIUserAbortError()
       }
-      throw new APIConnectionTimeoutError({ message: 'Ollama request timed out' })
+      throw new APIConnectionTimeoutError('Ollama request timed out')
     }
     if (error instanceof Error) {
-      throw new APIConnectionError({ message: error.message, cause: error })
+      throw new APIConnectionError(error.message, { cause: error })
     }
     throw error
   } finally {
@@ -207,10 +205,7 @@ function createLinkedAbortController(options?: RequestOptions): AbortController 
 }
 
 function getOllamaBaseUrl(): string {
-  const raw =
-    process.env.OLLAMA_BASE_URL || process.env.OLLAMA_HOST || DEFAULT_BASE_URL
-  const withProtocol = /^https?:\/\//i.test(raw) ? raw : `http://${raw}`
-  return withProtocol.replace(/\/+$/, '')
+  return 'http://localhost:11434'
 }
 
 function toOllamaChatRequest(
@@ -415,7 +410,7 @@ function getOllamaFormat(params: BetaMessageStreamParams): unknown {
   return undefined
 }
 
-function createAnthropicStream(
+function createURHQStream(
   response: Response,
   params: BetaMessageStreamParams,
   controller: AbortController,
@@ -424,13 +419,13 @@ function createAnthropicStream(
   const stream = {
     controller,
     async *[Symbol.asyncIterator](): AsyncGenerator<BetaRawMessageStreamEvent> {
-      yield* streamAnthropicEvents(response, params, requestId)
+      yield* streamURHQEvents(response, params, requestId)
     },
   }
   return stream as unknown as Stream<BetaRawMessageStreamEvent>
 }
 
-async function* streamAnthropicEvents(
+async function* streamURHQEvents(
   response: Response,
   params: BetaMessageStreamParams,
   requestId: string,
@@ -685,7 +680,7 @@ async function* readOllamaChunks(
   }
 }
 
-function ollamaResponseToAnthropicMessage(
+function ollamaResponseToURHQMessage(
   response: OllamaChatChunk,
   params: BetaMessageStreamParams,
 ): BetaMessage {

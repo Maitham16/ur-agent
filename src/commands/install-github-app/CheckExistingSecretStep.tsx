@@ -20,7 +20,7 @@ export function CheckExistingSecretStep(t0) {
     onSecretNameChange,
     onSubmit
   } = t0;
-  const [cursorOffset, setCursorOffset] = useState(0);
+  const [caretOffset, setcaretOffset] = useState(0);
   const terminalSize = useTerminalSize();
   const [theme] = useTheme();
   let t1;
@@ -148,9 +148,9 @@ export function CheckExistingSecretStep(t0) {
     t14 = $[27];
   }
   let t15;
-  if ($[28] !== cursorOffset || $[29] !== onSecretNameChange || $[30] !== onSubmit || $[31] !== secretName || $[32] !== terminalSize || $[33] !== useExistingSecret) {
-    t15 = !useExistingSecret && <><Box marginBottom={1}><Text>Enter new secret name (alphanumeric with underscores):</Text></Box><TextInput value={secretName} onChange={onSecretNameChange} onSubmit={onSubmit} focus={true} placeholder="e.g., UR_API_KEY" columns={terminalSize.columns} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} showCursor={true} /></>;
-    $[28] = cursorOffset;
+  if ($[28] !== caretOffset || $[29] !== onSecretNameChange || $[30] !== onSubmit || $[31] !== secretName || $[32] !== terminalSize || $[33] !== useExistingSecret) {
+    t15 = !useExistingSecret && <><Box marginBottom={1}><Text>Enter new secret name (alphanumeric with underscores):</Text></Box><TextInput value={secretName} onChange={onSecretNameChange} onSubmit={onSubmit} focus={true} placeholder="e.g., UR_API_KEY" columns={terminalSize.columns} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} showCaret={true} /></>;
+    $[28] = caretOffset;
     $[29] = onSecretNameChange;
     $[30] = onSubmit;
     $[31] = secretName;

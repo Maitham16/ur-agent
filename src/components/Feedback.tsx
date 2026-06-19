@@ -10,7 +10,7 @@ import type { CommandResultDisplay } from '../commands.js';
 import { useTerminalSize } from '../hooks/useTerminalSize.js';
 import { Box, Text, useInput } from '../ink.js';
 import { useKeybinding } from '../keybindings/useKeybinding.js';
-import { queryHaiku } from '../services/api/claude.js';
+import { querymodelH } from '../services/api/ur.js';
 import { startsWithApiErrorPrefix } from '../services/api/errors.js';
 import type { Message } from '../types/message.js';
 import { checkAndRefreshOAuthTokenIfNeeded } from '../utils/auth.js';
@@ -158,7 +158,7 @@ export function Feedback({
   backgroundTasks = {}
 }: Props): React.ReactNode {
   const [step, setStep] = useState<Step>('userInput');
-  const [cursorOffset, setCursorOffset] = useState(0);
+  const [caretOffset, setcaretOffset] = useState(0);
   const [description, setDescription] = useState(initialDescription ?? '');
   const [feedbackId, setFeedbackId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -323,7 +323,7 @@ export function Feedback({
         }
       }} columns={textInputColumns} onSubmit={() => setStep('consent')} onExitMessage={() => onDone('Feedback cancelled', {
         display: 'system'
-      })} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} showCursor />
+      })} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} showCaret />
           {error && <Box flexDirection="column" gap={1}>
               <Text color="error">{error}</Text>
               <Text dimColor>
@@ -445,7 +445,7 @@ export function createGitHubIssueUrl(feedbackId: string, title: string, descript
 }
 async function generateTitle(description: string, abortSignal: AbortSignal): Promise<string> {
   try {
-    const response = await queryHaiku({
+    const response = await querymodelH({
       systemPrompt: asSystemPrompt(['Generate a concise, technical issue title (max 80 chars) for a public GitHub issue based on this bug report for UR.', 'UR is an agentic coding CLI.', 'The title should:', '- Include the type of issue [Bug] or [Feature Request] as the first thing in the title', '- Be concise, specific and descriptive of the actual problem', '- Use technical terminology appropriate for a software issue', '- For error messages, extract the key error (e.g., "Missing Tool Result Block" rather than the full message)', '- Be direct and clear for developers to understand the problem', '- If you cannot determine a clear issue, use "Bug Report: [brief description]"', '- Any provider API errors should be described generically', 'Your response will be directly used as the title of the Github issue, and as such should not contain any other commentary or explaination', 'Examples of good titles include: "[Bug] Auto-Compact triggers too soon", "[Bug] API Error: Missing Tool Result Block", "[Bug] Error: Invalid Model Name"']),
       userPrompt: description,
       signal: abortSignal,
@@ -539,7 +539,7 @@ async function submitFeedback(data: FeedbackData, signal?: AbortSignal): Promise
       'User-Agent': getUserAgent(),
       ...authResult.headers
     };
-    const response = await axios.post('https://api.anthropic.com/api/claude_cli_feedback', {
+    const response = await axios.post('https://api.urhq.com/api/ur_cli_feedback', {
       content: jsonStringify(data)
     }, {
       headers,

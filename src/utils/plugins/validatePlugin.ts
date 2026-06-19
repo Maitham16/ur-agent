@@ -262,7 +262,7 @@ export async function validatePluginManifest(
         path: 'name',
         message:
           `Plugin name "${manifest.name}" is not kebab-case. UR accepts ` +
-          `it, but the Claude.ai marketplace sync requires kebab-case ` +
+          `it, but the UR.ai marketplace sync requires kebab-case ` +
           `(lowercase letters, digits, and hyphens only, e.g., "my-plugin").`,
       })
     }

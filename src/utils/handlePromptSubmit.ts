@@ -85,7 +85,7 @@ type ExecuteUserInputParams = BaseExecutionParams & {
 }
 
 export type PromptInputHelpers = {
-  setCursorOffset: (offset: number) => void
+  setcaretOffset: (offset: number) => void
   clearBuffer: () => void
   resetHistory: () => void
 }
@@ -144,7 +144,7 @@ export async function handlePromptSubmit(
     skipSlashCommands,
   } = params
 
-  const { setCursorOffset, clearBuffer, resetHistory } = helpers
+  const { setcaretOffset, clearBuffer, resetHistory } = helpers
 
   // Queue processor path: commands are pre-validated and ready to execute.
   // Skip all input validation, reference parsing, and queuing logic.
@@ -258,7 +258,7 @@ export async function handlePromptSubmit(
 
       // Clear input
       onInputChange('')
-      setCursorOffset(0)
+      setcaretOffset(0)
       setPastedContents({})
       clearBuffer()
 
@@ -344,7 +344,7 @@ export async function handlePromptSubmit(
     })
 
     onInputChange('')
-    setCursorOffset(0)
+    setcaretOffset(0)
     setPastedContents({})
     resetHistory()
     clearBuffer()

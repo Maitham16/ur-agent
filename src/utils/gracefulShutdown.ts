@@ -21,7 +21,7 @@ import {
   DFE,
   DISABLE_MOUSE_TRACKING,
   EXIT_ALT_SCREEN,
-  SHOW_CURSOR,
+  SHOW_caret,
 } from '../ink/termio/dec.js'
 import {
   CLEAR_ITERM2_PROGRESS,
@@ -77,10 +77,10 @@ function cleanupTerminalModes(): void {
     // AGAIN inside forceExit() → process.exit(). Two problems with letting
     // that happen:
     //   1. If we write 1049l here and unmount writes it again later, the
-    //      second one triggers another DECRC — the cursor jumps back over
+    //      second one triggers another DECRC — the caret jumps back over
     //      the resume hint and the shell prompt lands on the wrong line.
     //   2. unmount()'s onRender() must run with altScreenActive=true (alt-
-    //      screen cursor math) AND on the alt buffer. Exiting alt-screen
+    //      screen caret math) AND on the alt buffer. Exiting alt-screen
     //      here first makes onRender() scribble a REPL frame onto main.
     // Calling unmount() now does the final render on the alt buffer,
     // unsubscribes from signal-exit, and writes 1049l exactly once.
@@ -102,7 +102,7 @@ function cleanupTerminalModes(): void {
     // (from its writeSync cleanup block + AlternateScreen's unmount cleanup).
     // Those redundant sequences land AFTER printResumeHint() and clobber the
     // resume hint on tmux (and possibly other terminals) by restoring the
-    // saved cursor position. Safe to skip full unmount: this function already
+    // saved caret position. Safe to skip full unmount: this function already
     // sends all the terminal-reset sequences, and the process is exiting.
     inst?.detachForShutdown()
     // Disable extended key reporting — always send both since terminals
@@ -113,8 +113,8 @@ function cleanupTerminalModes(): void {
     writeSync(1, DFE)
     // Disable bracketed paste mode
     writeSync(1, DBP)
-    // Show cursor
-    writeSync(1, SHOW_CURSOR)
+    // Show caret
+    writeSync(1, SHOW_caret)
     // Clear iTerm2 progress bar - prevents lingering progress indicator
     // that can cause bell sounds when returning to the terminal tab
     writeSync(1, CLEAR_ITERM2_PROGRESS)

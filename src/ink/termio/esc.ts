@@ -21,35 +21,35 @@ export function parseEsc(chars: string): Action | null {
     return { type: 'reset' }
   }
 
-  // Cursor save (DECSC)
+  // caret save (DECSC)
   if (first === '7') {
-    return { type: 'cursor', action: { type: 'save' } }
+    return { type: 'caret', action: { type: 'save' } }
   }
 
-  // Cursor restore (DECRC)
+  // caret restore (DECRC)
   if (first === '8') {
-    return { type: 'cursor', action: { type: 'restore' } }
+    return { type: 'caret', action: { type: 'restore' } }
   }
 
-  // Index - move cursor down (IND)
+  // Index - move caret down (IND)
   if (first === 'D') {
     return {
-      type: 'cursor',
+      type: 'caret',
       action: { type: 'move', direction: 'down', count: 1 },
     }
   }
 
-  // Reverse index - move cursor up (RI)
+  // Reverse index - move caret up (RI)
   if (first === 'M') {
     return {
-      type: 'cursor',
+      type: 'caret',
       action: { type: 'move', direction: 'up', count: 1 },
     }
   }
 
   // Next line (NEL)
   if (first === 'E') {
-    return { type: 'cursor', action: { type: 'nextLine', count: 1 } }
+    return { type: 'caret', action: { type: 'nextLine', count: 1 } }
   }
 
   // Horizontal tab set (HTS)

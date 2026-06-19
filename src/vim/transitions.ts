@@ -107,7 +107,7 @@ function handleNormalInput(
   if (SIMPLE_MOTIONS.has(input)) {
     return {
       execute: () => {
-        const target = resolveMotion(input, ctx.cursor, count)
+        const target = resolveMotion(input, ctx.caret, count)
         ctx.setOffset(target.offset)
       },
     }
@@ -149,9 +149,9 @@ function handleNormalInput(
         // count=1 means no count given, go to last line
         // otherwise go to line N
         if (count === 1) {
-          ctx.setOffset(ctx.cursor.startOfLastLine().offset)
+          ctx.setOffset(ctx.caret.startOfLastLine().offset)
         } else {
-          ctx.setOffset(ctx.cursor.goToLine(count).offset)
+          ctx.setOffset(ctx.caret.goToLine(count).offset)
         }
       },
     }
@@ -166,27 +166,27 @@ function handleNormalInput(
     return { execute: () => ctx.onUndo?.() }
   }
   if (input === 'i') {
-    return { execute: () => ctx.enterInsert(ctx.cursor.offset) }
+    return { execute: () => ctx.enterInsert(ctx.caret.offset) }
   }
   if (input === 'I') {
     return {
       execute: () =>
-        ctx.enterInsert(ctx.cursor.firstNonBlankInLogicalLine().offset),
+        ctx.enterInsert(ctx.caret.firstNonBlankInLogicalLine().offset),
     }
   }
   if (input === 'a') {
     return {
       execute: () => {
-        const newOffset = ctx.cursor.isAtEnd()
-          ? ctx.cursor.offset
-          : ctx.cursor.right().offset
+        const newOffset = ctx.caret.isAtEnd()
+          ? ctx.caret.offset
+          : ctx.caret.right().offset
         ctx.enterInsert(newOffset)
       },
     }
   }
   if (input === 'A') {
     return {
-      execute: () => ctx.enterInsert(ctx.cursor.endOfLogicalLine().offset),
+      execute: () => ctx.enterInsert(ctx.caret.endOfLogicalLine().offset),
     }
   }
   if (input === 'o') {
@@ -252,7 +252,7 @@ function fromIdle(input: string, ctx: TransitionContext): TransitionResult {
   }
   if (input === '0') {
     return {
-      execute: () => ctx.setOffset(ctx.cursor.startOfLogicalLine().offset),
+      execute: () => ctx.setOffset(ctx.caret.startOfLogicalLine().offset),
     }
   }
 
@@ -373,7 +373,7 @@ function fromFind(
 ): TransitionResult {
   return {
     execute: () => {
-      const result = ctx.cursor.findCharacter(input, state.find, state.count)
+      const result = ctx.caret.findCharacter(input, state.find, state.count)
       if (result !== null) {
         ctx.setOffset(result)
         ctx.setLastFind(state.find, input)
@@ -390,7 +390,7 @@ function fromG(
   if (input === 'j' || input === 'k') {
     return {
       execute: () => {
-        const target = resolveMotion(`g${input}`, ctx.cursor, state.count)
+        const target = resolveMotion(`g${input}`, ctx.caret, state.count)
         ctx.setOffset(target.offset)
       },
     }
@@ -411,7 +411,7 @@ function fromG(
       }
     }
     return {
-      execute: () => ctx.setOffset(ctx.cursor.startOfFirstLine().offset),
+      execute: () => ctx.setOffset(ctx.caret.startOfFirstLine().offset),
     }
   }
   return { next: { type: 'idle' } }
@@ -442,7 +442,7 @@ function fromReplace(
 ): TransitionResult {
   // Backspace/Delete arrive as empty input in literal-char states. In vim,
   // r<BS> cancels the replace; without this guard, executeReplace("") would
-  // delete the character under the cursor instead.
+  // delete the character under the caret instead.
   if (input === '') return { next: { type: 'idle' } }
   return { execute: () => executeReplace(input, state.count, ctx) }
 }
@@ -483,7 +483,7 @@ function executeRepeatFind(
     findType = flipMap[findType]
   }
 
-  const result = ctx.cursor.findCharacter(lastFind.char, findType, count)
+  const result = ctx.caret.findCharacter(lastFind.char, findType, count)
   if (result !== null) {
     ctx.setOffset(result)
   }

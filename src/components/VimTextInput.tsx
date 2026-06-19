@@ -27,7 +27,7 @@ export default function VimTextInput(props) {
   const t9 = props.focus;
   const t10 = props.mask;
   const t11 = props.multiline;
-  const t12 = props.showCursor ? " " : "";
+  const t12 = props.showCaret ? " " : "";
   const t13 = props.highlightPastedText;
   const t14 = isTerminalFocused ? chalk.inverse : _temp;
   let t15;
@@ -39,7 +39,7 @@ export default function VimTextInput(props) {
     t15 = $[1];
   }
   let t16;
-  if ($[2] !== props.columns || $[3] !== props.cursorOffset || $[4] !== props.disableCursorMovementForUpDownKeys || $[5] !== props.disableEscapeDoublePress || $[6] !== props.focus || $[7] !== props.highlightPastedText || $[8] !== props.inputFilter || $[9] !== props.mask || $[10] !== props.maxVisibleLines || $[11] !== props.multiline || $[12] !== props.onChange || $[13] !== props.onChangeCursorOffset || $[14] !== props.onClearInput || $[15] !== props.onExit || $[16] !== props.onExitMessage || $[17] !== props.onHistoryDown || $[18] !== props.onHistoryReset || $[19] !== props.onHistoryUp || $[20] !== props.onImagePaste || $[21] !== props.onModeChange || $[22] !== props.onSubmit || $[23] !== props.onUndo || $[24] !== props.value || $[25] !== t12 || $[26] !== t14 || $[27] !== t15) {
+  if ($[2] !== props.columns || $[3] !== props.caretOffset || $[4] !== props.disableCaretMovementForUpDownKeys || $[5] !== props.disableEscapeDoublePress || $[6] !== props.focus || $[7] !== props.highlightPastedText || $[8] !== props.inputFilter || $[9] !== props.mask || $[10] !== props.maxVisibleLines || $[11] !== props.multiline || $[12] !== props.onChange || $[13] !== props.onChangeCaretOffset || $[14] !== props.onClearInput || $[15] !== props.onExit || $[16] !== props.onExitMessage || $[17] !== props.onHistoryDown || $[18] !== props.onHistoryReset || $[19] !== props.onHistoryUp || $[20] !== props.onImagePaste || $[21] !== props.onModeChange || $[22] !== props.onSubmit || $[23] !== props.onUndo || $[24] !== props.value || $[25] !== t12 || $[26] !== t14 || $[27] !== t15) {
     t16 = {
       value: t0,
       onChange: t1,
@@ -53,24 +53,24 @@ export default function VimTextInput(props) {
       focus: t9,
       mask: t10,
       multiline: t11,
-      cursorChar: t12,
+      caretChar: t12,
       highlightPastedText: t13,
       invert: t14,
       themeText: t15,
       columns: props.columns,
       maxVisibleLines: props.maxVisibleLines,
       onImagePaste: props.onImagePaste,
-      disableCursorMovementForUpDownKeys: props.disableCursorMovementForUpDownKeys,
+      disableCaretMovementForUpDownKeys: props.disableCaretMovementForUpDownKeys,
       disableEscapeDoublePress: props.disableEscapeDoublePress,
-      externalOffset: props.cursorOffset,
-      onOffsetChange: props.onChangeCursorOffset,
+      externalOffset: props.caretOffset,
+      onOffsetChange: props.onChangeCaretOffset,
       inputFilter: props.inputFilter,
       onModeChange: props.onModeChange,
       onUndo: props.onUndo
     };
     $[2] = props.columns;
-    $[3] = props.cursorOffset;
-    $[4] = props.disableCursorMovementForUpDownKeys;
+    $[3] = props.caretOffset;
+    $[4] = props.disableCaretMovementForUpDownKeys;
     $[5] = props.disableEscapeDoublePress;
     $[6] = props.focus;
     $[7] = props.highlightPastedText;
@@ -79,7 +79,7 @@ export default function VimTextInput(props) {
     $[10] = props.maxVisibleLines;
     $[11] = props.multiline;
     $[12] = props.onChange;
-    $[13] = props.onChangeCursorOffset;
+    $[13] = props.onChangeCaretOffset;
     $[14] = props.onClearInput;
     $[15] = props.onExit;
     $[16] = props.onExitMessage;

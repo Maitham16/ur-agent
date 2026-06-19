@@ -51,8 +51,8 @@ export type Theme = {
   // Chrome colors
   chromeYellow: string
   // TUI V2 colors
-  clawd_body: string
-  clawd_background: string
+  house_body: string
+  house_background: string
   userMessageBackground: string
   userMessageBackgroundHover: string
   /** Message-actions selection. Cool shift toward `suggestion` blue; distinct from default AND userMessageBackground. */
@@ -159,8 +159,8 @@ const lightTheme: Theme = {
   // Chrome colors
   chromeYellow: 'rgb(251,188,4)', // Chrome yellow
   // TUI V2 colors
-  clawd_body: 'rgb(124,58,237)', // UR purple
-  clawd_background: 'rgb(0,0,0)',
+  house_body: 'rgb(124,58,237)', // UR purple
+  house_background: 'rgb(0,0,0)',
   userMessageBackground: 'rgb(240, 240, 240)', // Slightly darker grey for optimal contrast
   userMessageBackgroundHover: 'rgb(252, 252, 252)', // ≥250 to quantize distinct from base at 256-color level
   messageActionsBackground: 'rgb(232, 236, 244)', // cool gray — darker than userMsg 240 (visible on white), slight blue toward `suggestion`
@@ -241,8 +241,8 @@ const lightAnsiTheme: Theme = {
   // Chrome colors
   chromeYellow: 'ansi:yellow', // Chrome yellow
   // TUI V2 colors
-  clawd_body: 'ansi:redBright',
-  clawd_background: 'ansi:black',
+  house_body: 'ansi:redBright',
+  house_background: 'ansi:black',
   userMessageBackground: 'ansi:white',
   userMessageBackgroundHover: 'ansi:whiteBright',
   messageActionsBackground: 'ansi:white',
@@ -279,7 +279,7 @@ const lightAnsiTheme: Theme = {
 const darkAnsiTheme: Theme = {
   autoAccept: 'ansi:magentaBright',
   bashBorder: 'ansi:magentaBright',
-  claude: 'ansi:redBright',
+  ur: 'ansi:redBright',
   urShimmer: 'ansi:yellowBright',
   urBlue_FOR_SYSTEM_SPINNER: 'ansi:blueBright',
   urBlueShimmer_FOR_SYSTEM_SPINNER: 'ansi:blueBright',
@@ -322,8 +322,8 @@ const darkAnsiTheme: Theme = {
   // Chrome colors
   chromeYellow: 'ansi:yellowBright', // Chrome yellow
   // TUI V2 colors
-  clawd_body: 'ansi:redBright',
-  clawd_background: 'ansi:black',
+  house_body: 'ansi:redBright',
+  house_background: 'ansi:black',
   userMessageBackground: 'ansi:blackBright',
   userMessageBackgroundHover: 'ansi:white',
   messageActionsBackground: 'ansi:blackBright',
@@ -403,8 +403,8 @@ const lightDaltonizedTheme: Theme = {
   // Chrome colors
   chromeYellow: 'rgb(251,188,4)', // Chrome yellow
   // TUI V2 colors
-  clawd_body: 'rgb(124,58,237)', // UR purple
-  clawd_background: 'rgb(0,0,0)',
+  house_body: 'rgb(124,58,237)', // UR purple
+  house_background: 'rgb(0,0,0)',
   userMessageBackground: 'rgb(220, 220, 220)', // Slightly darker grey for optimal contrast
   userMessageBackgroundHover: 'rgb(232, 232, 232)', // ≥230 to quantize distinct from base at 256-color level
   messageActionsBackground: 'rgb(210, 216, 226)', // cool gray — darker than userMsg 220, slight blue
@@ -441,8 +441,8 @@ const lightDaltonizedTheme: Theme = {
 const darkTheme: Theme = {
   autoAccept: 'rgb(175,135,255)', // Electric violet
   bashBorder: 'rgb(253,93,177)', // Bright pink
-  claude: 'rgb(215,119,87)', // UR orange
-  urShimmer: 'rgb(235,159,127)', // Lighter claude orange for shimmer effect
+  ur: 'rgb(215,119,87)', // UR orange
+  urShimmer: 'rgb(235,159,127)', // Lighter ur orange for shimmer effect
   urBlue_FOR_SYSTEM_SPINNER: 'rgb(147,165,255)', // Blue for system spinner
   urBlueShimmer_FOR_SYSTEM_SPINNER: 'rgb(177,195,255)', // Lighter blue for system spinner shimmer
   permission: 'rgb(177,185,249)', // Light blue-purple
@@ -484,8 +484,8 @@ const darkTheme: Theme = {
   // Chrome colors
   chromeYellow: 'rgb(251,188,4)', // Chrome yellow
   // TUI V2 colors
-  clawd_body: 'rgb(124,58,237)', // UR purple
-  clawd_background: 'rgb(0,0,0)',
+  house_body: 'rgb(124,58,237)', // UR purple
+  house_background: 'rgb(0,0,0)',
   userMessageBackground: 'rgb(55, 55, 55)', // Lighter grey for better visual contrast
   userMessageBackgroundHover: 'rgb(70, 70, 70)',
   messageActionsBackground: 'rgb(44, 50, 62)', // cool gray, slight blue
@@ -522,7 +522,7 @@ const darkTheme: Theme = {
 const darkDaltonizedTheme: Theme = {
   autoAccept: 'rgb(175,135,255)', // Electric violet
   bashBorder: 'rgb(51,153,255)', // Bright blue
-  claude: 'rgb(255,153,51)', // Orange adjusted for deuteranopia
+  ur: 'rgb(255,153,51)', // Orange adjusted for deuteranopia
   urShimmer: 'rgb(255,183,101)', // Lighter orange for shimmer effect
   urBlue_FOR_SYSTEM_SPINNER: 'rgb(153,204,255)', // Light blue for system spinner
   urBlueShimmer_FOR_SYSTEM_SPINNER: 'rgb(183,224,255)', // Lighter blue for system spinner shimmer
@@ -565,8 +565,8 @@ const darkDaltonizedTheme: Theme = {
   // Chrome colors
   chromeYellow: 'rgb(251,188,4)', // Chrome yellow
   // TUI V2 colors
-  clawd_body: 'rgb(124,58,237)', // UR purple
-  clawd_background: 'rgb(0,0,0)',
+  house_body: 'rgb(124,58,237)', // UR purple
+  house_background: 'rgb(0,0,0)',
   userMessageBackground: 'rgb(55, 55, 55)', // Lighter grey for better visual contrast
   userMessageBackgroundHover: 'rgb(70, 70, 70)',
   messageActionsBackground: 'rgb(44, 50, 62)', // cool gray, slight blue

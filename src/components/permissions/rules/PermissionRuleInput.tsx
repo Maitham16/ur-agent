@@ -24,7 +24,7 @@ export function PermissionRuleInput(t0) {
     ruleBehavior
   } = t0;
   const [inputValue, setInputValue] = useState("");
-  const [cursorOffset, setCursorOffset] = useState(0);
+  const [caretOffset, setcaretOffset] = useState(0);
   const exitState = useExitOnCtrlCDWithKeybindings();
   let t1;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
@@ -96,9 +96,9 @@ export function PermissionRuleInput(t0) {
     t7 = $[9];
   }
   let t8;
-  if ($[10] !== cursorOffset || $[11] !== handleSubmit || $[12] !== inputValue || $[13] !== textInputColumns) {
-    t8 = <Box flexDirection="column">{t7}<Box borderDimColor={true} borderStyle="round" marginY={1} paddingLeft={1}><TextInput showCursor={true} value={inputValue} onChange={setInputValue} onSubmit={handleSubmit} placeholder={`Enter permission rule${figures.ellipsis}`} columns={textInputColumns} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} /></Box></Box>;
-    $[10] = cursorOffset;
+  if ($[10] !== caretOffset || $[11] !== handleSubmit || $[12] !== inputValue || $[13] !== textInputColumns) {
+    t8 = <Box flexDirection="column">{t7}<Box borderDimColor={true} borderStyle="round" marginY={1} paddingLeft={1}><TextInput showCaret={true} value={inputValue} onChange={setInputValue} onSubmit={handleSubmit} placeholder={`Enter permission rule${figures.ellipsis}`} columns={textInputColumns} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} /></Box></Box>;
+    $[10] = caretOffset;
     $[11] = handleSubmit;
     $[12] = inputValue;
     $[13] = textInputColumns;

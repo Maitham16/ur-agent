@@ -74,7 +74,7 @@ export function DiscoverPlugins({
   const {
     query: searchQuery,
     setQuery: setSearchQuery,
-    cursorOffset: searchCursorOffset
+    caretOffset: searchcaretOffset
   } = useSearchInput({
     isActive: viewState === 'plugin-list' && isSearchMode && !loading,
     onExit: () => {
@@ -582,7 +582,7 @@ export function DiscoverPlugins({
 
       {/* Search box */}
       <Box marginBottom={1}>
-        <SearchBox query={searchQuery} isFocused={isSearchMode} isTerminalFocused={isTerminalFocused} width={terminalWidth - 4} cursorOffset={searchCursorOffset} />
+        <SearchBox query={searchQuery} isFocused={isSearchMode} isTerminalFocused={isTerminalFocused} width={terminalWidth - 4} caretOffset={searchcaretOffset} />
       </Box>
 
       {/* Warning banner */}

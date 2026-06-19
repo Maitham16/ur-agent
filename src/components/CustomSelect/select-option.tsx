@@ -33,10 +33,10 @@ export type SelectOptionProps = {
   readonly shouldShowUpArrow?: boolean;
 
   /**
-   * Whether ListItem should declare the terminal cursor position.
-   * Set false when a child declares its own cursor (e.g. BaseTextInput).
+   * Whether ListItem should declare the terminal caret position.
+   * Set false when a child declares its own caret (e.g. BaseTextInput).
    */
-  readonly declareCursor?: boolean;
+  readonly declareCaret?: boolean;
 };
 export function SelectOption(t0) {
   const $ = _c(8);
@@ -47,13 +47,13 @@ export function SelectOption(t0) {
     description,
     shouldShowDownArrow,
     shouldShowUpArrow,
-    declareCursor
+    declareCaret
   } = t0;
   let t1;
-  if ($[0] !== children || $[1] !== declareCursor || $[2] !== description || $[3] !== isFocused || $[4] !== isSelected || $[5] !== shouldShowDownArrow || $[6] !== shouldShowUpArrow) {
-    t1 = <ListItem isFocused={isFocused} isSelected={isSelected} description={description} showScrollDown={shouldShowDownArrow} showScrollUp={shouldShowUpArrow} styled={false} declareCursor={declareCursor}>{children}</ListItem>;
+  if ($[0] !== children || $[1] !== declareCaret || $[2] !== description || $[3] !== isFocused || $[4] !== isSelected || $[5] !== shouldShowDownArrow || $[6] !== shouldShowUpArrow) {
+    t1 = <ListItem isFocused={isFocused} isSelected={isSelected} description={description} showScrollDown={shouldShowDownArrow} showScrollUp={shouldShowUpArrow} styled={false} declareCaret={declareCaret}>{children}</ListItem>;
     $[0] = children;
-    $[1] = declareCursor;
+    $[1] = declareCaret;
     $[2] = description;
     $[3] = isFocused;
     $[4] = isSelected;

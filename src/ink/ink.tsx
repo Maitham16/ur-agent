@@ -14,7 +14,7 @@ import { logError } from 'src/utils/log.js';
 import { format } from 'util';
 import { colorize } from './colorize.js';
 import App from './components/App.js';
-import type { CursorDeclaration, CursorDeclarationSetter } from './components/CursorDeclarationContext.js';
+import type { caretDeclaration, caretDeclarationSetter } from './components/caretDeclarationContext.js';
 import { FRAME_INTERVAL_MS } from './constants.js';
 import * as dom from './dom.js';
 import { KeyboardEvent } from './events/keyboard-event.js';
@@ -35,34 +35,34 @@ import { CellWidth, CharPool, cellAt, createScreen, HyperlinkPool, isEmptyCellAt
 import { applySearchHighlight } from './searchHighlight.js';
 import { applySelectionOverlay, captureScrolledRows, clearSelection, createSelectionState, extendSelection, type FocusMove, findPlainTextUrlAt, getSelectedText, hasSelection, moveFocus, type SelectionState, selectLineAt, selectWordAt, shiftAnchor, shiftSelection, shiftSelectionForFollow, startSelection, updateSelection } from './selection.js';
 import { SYNC_OUTPUT_SUPPORTED, supportsExtendedKeys, type Terminal, writeDiffToTerminal } from './terminal.js';
-import { CURSOR_HOME, cursorMove, cursorPosition, DISABLE_KITTY_KEYBOARD, DISABLE_MODIFY_OTHER_KEYS, ENABLE_KITTY_KEYBOARD, ENABLE_MODIFY_OTHER_KEYS, ERASE_SCREEN } from './termio/csi.js';
-import { DBP, DFE, DISABLE_MOUSE_TRACKING, ENABLE_MOUSE_TRACKING, ENTER_ALT_SCREEN, EXIT_ALT_SCREEN, SHOW_CURSOR } from './termio/dec.js';
+import { caret_HOME, caretMove, caretPosition, DISABLE_KITTY_KEYBOARD, DISABLE_MODIFY_OTHER_KEYS, ENABLE_KITTY_KEYBOARD, ENABLE_MODIFY_OTHER_KEYS, ERASE_SCREEN } from './termio/csi.js';
+import { DBP, DFE, DISABLE_MOUSE_TRACKING, ENABLE_MOUSE_TRACKING, ENTER_ALT_SCREEN, EXIT_ALT_SCREEN, SHOW_caret } from './termio/dec.js';
 import { CLEAR_ITERM2_PROGRESS, CLEAR_TAB_STATUS, setClipboard, supportsTabStatus, wrapForMultiplexer } from './termio/osc.js';
 import { TerminalWriteProvider } from './useTerminalNotification.js';
 
-// Alt-screen: renderer.ts sets cursor.visible = !isTTY || screen.height===0,
+// Alt-screen: renderer.ts sets caret.visible = !isTTY || screen.height===0,
 // which is always false in alt-screen (TTY + content fills screen).
 // Reusing a frozen object saves 1 allocation per frame.
-const ALT_SCREEN_ANCHOR_CURSOR = Object.freeze({
+const ALT_SCREEN_ANCHOR_caret = Object.freeze({
   x: 0,
   y: 0,
   visible: false
 });
-const CURSOR_HOME_PATCH = Object.freeze({
+const caret_HOME_PATCH = Object.freeze({
   type: 'stdout' as const,
-  content: CURSOR_HOME
+  content: caret_HOME
 });
 const ERASE_THEN_HOME_PATCH = Object.freeze({
   type: 'stdout' as const,
-  content: ERASE_SCREEN + CURSOR_HOME
+  content: ERASE_SCREEN + caret_HOME
 });
 
-// Cached per-Ink-instance, invalidated on resize. frame.cursor.y for
+// Cached per-Ink-instance, invalidated on resize. frame.caret.y for
 // alt-screen is always terminalRows - 1 (renderer.ts).
 function makeAltScreenParkPatch(terminalRows: number) {
   return Object.freeze({
     type: 'stdout' as const,
-    content: cursorPosition(terminalRows, 1)
+    content: caretPosition(terminalRows, 1)
   });
 }
 export type Options = {
@@ -145,7 +145,7 @@ export default class Ink {
   // against this set and mutates it in place.
   private readonly hoveredNodes = new Set<dom.DOMElement>();
   // Set by <AlternateScreen> via setAltScreenActive(). Controls the
-  // renderer's cursor.y clamping (keeps cursor in-viewport to avoid
+  // renderer's caret.y clamping (keeps caret in-viewport to avoid
   // LF-induced scroll when screen.height === terminalRows) and gates
   // alt-screen-aware SIGCONT/resize/unmount handling.
   private altScreenActive = false;
@@ -164,17 +164,17 @@ export default class Ink {
   // render() takes; deferring into the atomic block means old content stays
   // visible until the new frame is fully ready.
   private needsEraseBeforePaint = false;
-  // Native cursor positioning: a component (via useDeclaredCursor) declares
-  // where the terminal cursor should be parked after each frame. Terminal
-  // emulators render IME preedit text at the physical cursor position, and
+  // Native caret positioning: a component (via useDeclaredCaret) declares
+  // where the terminal caret should be parked after each frame. Terminal
+  // emulators render IME preedit text at the physical caret position, and
   // screen readers / screen magnifiers track it — so parking at the text
   // input's caret makes CJK input appear inline and lets a11y tools follow.
-  private cursorDeclaration: CursorDeclaration | null = null;
-  // Main-screen: physical cursor position after the declared-cursor move,
-  // tracked separately from frame.cursor (which must stay at content-bottom
+  private caretDeclaration: caretDeclaration | null = null;
+  // Main-screen: physical caret position after the declared-caret move,
+  // tracked separately from frame.caret (which must stay at content-bottom
   // for log-update's relative-move invariants). Alt-screen doesn't need
   // this — every frame begins with CSI H. null = no move emitted last frame.
-  private displayCursor: {
+  private displaycaret: {
     x: number;
     y: number;
   } | null = null;
@@ -211,10 +211,10 @@ export default class Ink {
 
     // scheduleRender is called from the reconciler's resetAfterCommit, which
     // runs BEFORE React's layout phase (ref attach + useLayoutEffect). Any
-    // state set in layout effects — notably the cursorDeclaration from
-    // useDeclaredCursor — would lag one commit behind if we rendered
+    // state set in layout effects — notably the caretDeclaration from
+    // useDeclaredCaret — would lag one commit behind if we rendered
     // synchronously. Deferring to a microtask runs onRender after layout
-    // effects have committed, so the native cursor tracks the caret without
+    // effects have committed, so the native caret tracks the caret without
     // a one-keystroke lag. Same event-loop tick, so throughput is unchanged.
     // Test env uses onImmediateRender (direct onRender, no throttle) so
     // existing synchronous lastFrame() tests are unaffected.
@@ -302,10 +302,10 @@ export default class Ink {
     this.frontFrame = emptyFrame(this.frontFrame.viewport.height, this.frontFrame.viewport.width, this.stylePool, this.charPool, this.hyperlinkPool);
     this.backFrame = emptyFrame(this.backFrame.viewport.height, this.backFrame.viewport.width, this.stylePool, this.charPool, this.hyperlinkPool);
     this.log.reset();
-    // Physical cursor position is unknown after the shell took over during
-    // suspend. Clear displayCursor so the next frame's cursor preamble
+    // Physical caret position is unknown after the shell took over during
+    // suspend. Clear displaycaret so the next frame's caret preamble
     // doesn't emit a relative move from a stale park position.
-    this.displayCursor = null;
+    this.displaycaret = null;
   };
 
   // NOT debounced. A debounce opens a window where stdout.columns is NEW
@@ -378,10 +378,10 @@ export default class Ink {
     '\x1b[0m' +
     // reset attributes
     '\x1b[?25h' +
-    // show cursor
+    // show caret
     '\x1b[2J' +
     // clear screen
-    '\x1b[H' // cursor home
+    '\x1b[H' // caret home
     );
   }
 
@@ -403,12 +403,12 @@ export default class Ink {
     '\x1b[2J' +
     // clear screen (now alt if fullscreen)
     '\x1b[H' + (
-    // cursor home
+    // caret home
     this.altScreenMouseTracking ? ENABLE_MOUSE_TRACKING : '') + (
     // re-enable mouse (skip if UR_CODE_DISABLE_MOUSE)
     this.altScreenActive ? '' : '\x1b[?1049l') +
     // exit alt (non-fullscreen only)
-    '\x1b[?25l' // hide cursor (Ink manages)
+    '\x1b[?25l' // hide caret (Ink manages)
     );
     this.resumeStdin();
     if (this.altScreenActive) {
@@ -573,21 +573,21 @@ export default class Ink {
       };
     }
 
-    // Alt-screen: anchor the physical cursor to (0,0) before every diff.
-    // All cursor moves in log-update are RELATIVE to prev.cursor; if tmux
-    // (or any emulator) perturbs the physical cursor out-of-band (status
+    // Alt-screen: anchor the physical caret to (0,0) before every diff.
+    // All caret moves in log-update are RELATIVE to prev.caret; if tmux
+    // (or any emulator) perturbs the physical caret out-of-band (status
     // bar refresh, pane redraw, Cmd+K wipe), the relative moves drift and
-    // content creeps up 1 row/frame. CSI H resets the physical cursor;
-    // passing prev.cursor=(0,0) makes the diff compute from the same spot.
-    // Self-healing against any external cursor manipulation. Main-screen
-    // can't do this — cursor.y tracks scrollback rows CSI H can't reach.
+    // content creeps up 1 row/frame. CSI H resets the physical caret;
+    // passing prev.caret=(0,0) makes the diff compute from the same spot.
+    // Self-healing against any external caret manipulation. Main-screen
+    // can't do this — caret.y tracks scrollback rows CSI H can't reach.
     // The CSI H write is deferred until after the diff is computed so we
-    // can skip it for empty diffs (no writes → physical cursor unused).
+    // can skip it for empty diffs (no writes → physical caret unused).
     let prevFrame = this.frontFrame;
     if (this.altScreenActive) {
       prevFrame = {
         ...this.frontFrame,
-        cursor: ALT_SCREEN_ANCHOR_CURSOR
+        caret: ALT_SCREEN_ANCHOR_caret
       };
     }
     const tDiff = performance.now();
@@ -630,14 +630,14 @@ export default class Ink {
     const optimizeMs = performance.now() - tOptimize;
     const hasDiff = optimized.length > 0;
     if (this.altScreenActive && hasDiff) {
-      // Prepend CSI H to anchor the physical cursor to (0,0) so
+      // Prepend CSI H to anchor the physical caret to (0,0) so
       // log-update's relative moves compute from a known spot (self-healing
-      // against out-of-band cursor drift, see the ALT_SCREEN_ANCHOR_CURSOR
-      // comment above). Append CSI row;1 H to park the cursor at the bottom
-      // row (where the prompt input is) — without this, the cursor ends
+      // against out-of-band caret drift, see the ALT_SCREEN_ANCHOR_caret
+      // comment above). Append CSI row;1 H to park the caret at the bottom
+      // row (where the prompt input is) — without this, the caret ends
       // wherever the last diff write landed (a different row every frame),
-      // making iTerm2's cursor guide flicker as it chases the cursor.
-      // BSU/ESU protects content atomicity but iTerm2's guide tracks cursor
+      // making iTerm2's caret guide flicker as it chases the caret.
+      // BSU/ESU protects content atomicity but iTerm2's guide tracks caret
       // position independently. Parking at bottom (not 0,0) keeps the guide
       // where the user's attention is.
       //
@@ -653,41 +653,41 @@ export default class Ink {
         this.needsEraseBeforePaint = false;
         optimized.unshift(ERASE_THEN_HOME_PATCH);
       } else {
-        optimized.unshift(CURSOR_HOME_PATCH);
+        optimized.unshift(caret_HOME_PATCH);
       }
       optimized.push(this.altScreenParkPatch);
     }
 
-    // Native cursor positioning: park the terminal cursor at the declared
+    // Native caret positioning: park the terminal caret at the declared
     // position so IME preedit text renders inline and screen readers /
     // magnifiers can follow the input. nodeCache holds the absolute screen
     // rect populated by renderNodeToOutput this frame (including scrollTop
     // translation) — if the declared node didn't render (stale declaration
     // after remount, or scrolled out of view), it won't be in the cache
     // and no move is emitted.
-    const decl = this.cursorDeclaration;
+    const decl = this.caretDeclaration;
     const rect = decl !== null ? nodeCache.get(decl.node) : undefined;
     const target = decl !== null && rect !== undefined ? {
       x: rect.x + decl.relativeX,
       y: rect.y + decl.relativeY
     } : null;
-    const parked = this.displayCursor;
+    const parked = this.displaycaret;
 
-    // Preserve the empty-diff zero-write fast path: skip all cursor writes
+    // Preserve the empty-diff zero-write fast path: skip all caret writes
     // when nothing rendered AND the park target is unchanged.
     const targetMoved = target !== null && (parked === null || parked.x !== target.x || parked.y !== target.y);
     if (hasDiff || targetMoved || target === null && parked !== null) {
       // Main-screen preamble: log-update's relative moves assume the
-      // physical cursor is at prevFrame.cursor. If last frame parked it
+      // physical caret is at prevFrame.caret. If last frame parked it
       // elsewhere, move back before the diff runs. Alt-screen's CSI H
       // already resets to (0,0) so no preamble needed.
       if (parked !== null && !this.altScreenActive && hasDiff) {
-        const pdx = prevFrame.cursor.x - parked.x;
-        const pdy = prevFrame.cursor.y - parked.y;
+        const pdx = prevFrame.caret.x - parked.x;
+        const pdy = prevFrame.caret.y - parked.y;
         if (pdx !== 0 || pdy !== 0) {
           optimized.unshift({
             type: 'stdout',
-            content: cursorMove(pdx, pdy)
+            content: caretMove(pdx, pdy)
           });
         }
       }
@@ -699,45 +699,45 @@ export default class Ink {
           const col = Math.min(Math.max(target.x + 1, 1), terminalWidth);
           optimized.push({
             type: 'stdout',
-            content: cursorPosition(row, col)
+            content: caretPosition(row, col)
           });
         } else {
-          // After the diff (or preamble), cursor is at frame.cursor. If no
+          // After the diff (or preamble), caret is at frame.caret. If no
           // diff AND previously parked, it's still at the old park position
-          // (log-update wrote nothing). Otherwise it's at frame.cursor.
+          // (log-update wrote nothing). Otherwise it's at frame.caret.
           const from = !hasDiff && parked !== null ? parked : {
-            x: frame.cursor.x,
-            y: frame.cursor.y
+            x: frame.caret.x,
+            y: frame.caret.y
           };
           const dx = target.x - from.x;
           const dy = target.y - from.y;
           if (dx !== 0 || dy !== 0) {
             optimized.push({
               type: 'stdout',
-              content: cursorMove(dx, dy)
+              content: caretMove(dx, dy)
             });
           }
         }
-        this.displayCursor = target;
+        this.displaycaret = target;
       } else {
-        // Declaration cleared (input blur, unmount). Restore physical cursor
-        // to frame.cursor before forgetting the park position — otherwise
-        // displayCursor=null lies about where the cursor is, and the NEXT
+        // Declaration cleared (input blur, unmount). Restore physical caret
+        // to frame.caret before forgetting the park position — otherwise
+        // displaycaret=null lies about where the caret is, and the NEXT
         // frame's preamble (or log-update's relative moves) computes from a
         // wrong spot. The preamble above handles hasDiff; this handles
         // !hasDiff (e.g. accessibility mode where blur doesn't change
         // renderedValue since invert is identity).
         if (parked !== null && !this.altScreenActive && !hasDiff) {
-          const rdx = frame.cursor.x - parked.x;
-          const rdy = frame.cursor.y - parked.y;
+          const rdx = frame.caret.x - parked.x;
+          const rdy = frame.caret.y - parked.y;
           if (rdx !== 0 || rdy !== 0) {
             optimized.push({
               type: 'stdout',
-              content: cursorMove(rdx, rdy)
+              content: caretMove(rdx, rdy)
             });
           }
         }
-        this.displayCursor = null;
+        this.displaycaret = null;
       }
     }
     const tWrite = performance.now();
@@ -816,10 +816,10 @@ export default class Ink {
     this.frontFrame = emptyFrame(this.frontFrame.viewport.height, this.frontFrame.viewport.width, this.stylePool, this.charPool, this.hyperlinkPool);
     this.backFrame = emptyFrame(this.backFrame.viewport.height, this.backFrame.viewport.width, this.stylePool, this.charPool, this.hyperlinkPool);
     this.log.reset();
-    // Physical cursor position is unknown after external terminal corruption.
-    // Clear displayCursor so the cursor preamble doesn't emit a stale
+    // Physical caret position is unknown after external terminal corruption.
+    // Clear displaycaret so the caret preamble doesn't emit a stale
     // relative move from where we last parked it.
-    this.displayCursor = null;
+    this.displaycaret = null;
   }
 
   /**
@@ -832,7 +832,7 @@ export default class Ink {
    */
   forceRedraw(): void {
     if (!this.options.stdout.isTTY || this.isUnmounted || this.isPaused) return;
-    this.options.stdout.write(ERASE_SCREEN + CURSOR_HOME);
+    this.options.stdout.write(ERASE_SCREEN + caret_HOME);
     if (this.altScreenActive) {
       this.resetFramesForAltScreen();
     } else {
@@ -861,7 +861,7 @@ export default class Ink {
 
   /**
    * Called by the <AlternateScreen> component on mount/unmount.
-   * Controls cursor.y clamping in the renderer and gates alt-screen-aware
+   * Controls caret.y clamping in the renderer and gates alt-screen-aware
    * behavior in SIGCONT/resize/unmount handlers. Repaints on change so
    * the first alt-screen frame (and first main-screen frame on exit) is
    * a full redraw with no stale diff state.
@@ -935,7 +935,7 @@ export default class Ink {
    * cleanup block + updateContainerSync → AlternateScreen unmount cleanup.
    * The result is 2-3 redundant EXIT_ALT_SCREEN sequences landing on the
    * main screen AFTER printResumeHint(), which tmux (at least) interprets
-   * as restoring the saved cursor position — clobbering the resume hint.
+   * as restoring the saved caret position — clobbering the resume hint.
    */
   detachForShutdown(): void {
     this.isUnmounted = true;
@@ -970,7 +970,7 @@ export default class Ink {
    * stays true. ENTER_ALT_SCREEN is a terminal-side no-op if already in alt.
    */
   private reenterAltScreen(): void {
-    this.options.stdout.write(ENTER_ALT_SCREEN + ERASE_SCREEN + CURSOR_HOME + (this.altScreenMouseTracking ? ENABLE_MOUSE_TRACKING : ''));
+    this.options.stdout.write(ENTER_ALT_SCREEN + ERASE_SCREEN + caret_HOME + (this.altScreenMouseTracking ? ENABLE_MOUSE_TRACKING : ''));
     this.resetFramesForAltScreen();
   }
 
@@ -980,14 +980,14 @@ export default class Ink {
    * terminalRows; if prev.screen.height is 0 (emptyFrame's default),
    * log-update sees heightDelta > 0 ('growing') and calls renderFrameSlice,
    * whose trailing per-row CR+LF at the last row scrolls the alt screen,
-   * permanently desyncing the virtual and physical cursors by 1 row.
+   * permanently desyncing the virtual and physical carets by 1 row.
    *
    * With a rows×cols blank prev, heightDelta === 0 → standard diffEach
-   * → moveCursorTo (CSI cursorMove, no LF, no scroll).
+   * → movecaretTo (CSI caretMove, no LF, no scroll).
    *
    * viewport.height = rows + 1 matches the renderer's alt-screen output,
-   * preventing a spurious resize trigger on the first frame. cursor.y = 0
-   * matches the physical cursor after ENTER_ALT_SCREEN + CSI H (home).
+   * preventing a spurious resize trigger on the first frame. caret.y = 0
+   * matches the physical caret after ENTER_ALT_SCREEN + CSI H (home).
    */
   private resetFramesForAltScreen(): void {
     const rows = this.terminalRows;
@@ -998,7 +998,7 @@ export default class Ink {
         width: cols,
         height: rows + 1
       },
-      cursor: {
+      caret: {
         x: 0,
         y: 0,
         visible: true
@@ -1007,10 +1007,10 @@ export default class Ink {
     this.frontFrame = blank();
     this.backFrame = blank();
     this.log.reset();
-    // Defense-in-depth: alt-screen skips the cursor preamble anyway (CSI H
-    // resets), but a stale displayCursor would be misleading if we later
+    // Defense-in-depth: alt-screen skips the caret preamble anyway (CSI H
+    // resets), but a stale displaycaret would be misleading if we later
     // exit to main-screen without an intervening render.
-    this.displayCursor = null;
+    this.displaycaret = null;
     // Fresh frontFrame is blank rows×cols — blitting from it would copy
     // blanks over content. Next alt-screen frame must full-render.
     this.prevFrameContaminated = true;
@@ -1328,7 +1328,7 @@ export default class Ink {
 
   /**
    * Handle a double- or triple-click at (col, row): select the word or
-   * line under the cursor by reading the current screen buffer. Called on
+   * line under the caret by reading the current screen buffer. Called on
    * PRESS (not release) so the highlight appears immediately and drag can
    * extend the selection word-by-word / line-by-line. Falls back to
    * char-mode startSelection if the click lands on a noSelect cell.
@@ -1441,15 +1441,15 @@ export default class Ink {
   private writeRaw(data: string): void {
     this.options.stdout.write(data);
   }
-  private setCursorDeclaration: CursorDeclarationSetter = (decl, clearIfNode) => {
-    if (decl === null && clearIfNode !== undefined && this.cursorDeclaration?.node !== clearIfNode) {
+  private setcaretDeclaration: caretDeclarationSetter = (decl, clearIfNode) => {
+    if (decl === null && clearIfNode !== undefined && this.caretDeclaration?.node !== clearIfNode) {
       return;
     }
-    this.cursorDeclaration = decl;
+    this.caretDeclaration = decl;
   };
   render(node: ReactNode): void {
     this.currentNode = node;
-    const tree = <App stdin={this.options.stdin} stdout={this.options.stdout} stderr={this.options.stderr} exitOnCtrlC={this.options.exitOnCtrlC} onExit={this.unmount} terminalColumns={this.terminalColumns} terminalRows={this.terminalRows} selection={this.selection} onSelectionChange={this.notifySelectionChange} onClickAt={this.dispatchClick} onHoverAt={this.dispatchHover} getHyperlinkAt={this.getHyperlinkAt} onOpenHyperlink={this.openHyperlink} onMultiClick={this.handleMultiClick} onSelectionDrag={this.handleSelectionDrag} onStdinResume={this.reassertTerminalModes} onCursorDeclaration={this.setCursorDeclaration} dispatchKeyboardEvent={this.dispatchKeyboardEvent}>
+    const tree = <App stdin={this.options.stdin} stdout={this.options.stdout} stderr={this.options.stderr} exitOnCtrlC={this.options.exitOnCtrlC} onExit={this.unmount} terminalColumns={this.terminalColumns} terminalRows={this.terminalRows} selection={this.selection} onSelectionChange={this.notifySelectionChange} onClickAt={this.dispatchClick} onHoverAt={this.dispatchHover} getHyperlinkAt={this.getHyperlinkAt} onOpenHyperlink={this.openHyperlink} onMultiClick={this.handleMultiClick} onSelectionDrag={this.handleSelectionDrag} onStdinResume={this.reassertTerminalModes} oncaretDeclaration={this.setcaretDeclaration} dispatchKeyboardEvent={this.dispatchKeyboardEvent}>
         <TerminalWriteProvider value={this.writeRaw}>
           {node}
         </TerminalWriteProvider>
@@ -1504,8 +1504,8 @@ export default class Ink {
       writeSync(1, DFE);
       // Disable bracketed paste mode
       writeSync(1, DBP);
-      // Show cursor
-      writeSync(1, SHOW_CURSOR);
+      // Show caret
+      writeSync(1, SHOW_caret);
       // Clear iTerm2 progress bar
       writeSync(1, CLEAR_ITERM2_PROGRESS);
       // Clear tab status (OSC 21337) so a stale dot doesn't linger
@@ -1554,9 +1554,9 @@ export default class Ink {
       this.backFrame = this.frontFrame;
       this.frontFrame = emptyFrame(this.frontFrame.viewport.height, this.frontFrame.viewport.width, this.stylePool, this.charPool, this.hyperlinkPool);
       this.log.reset();
-      // frontFrame is reset, so frame.cursor on the next render is (0,0).
-      // Clear displayCursor so the preamble doesn't compute a stale delta.
-      this.displayCursor = null;
+      // frontFrame is reset, so frame.caret on the next render is (0,0).
+      // Clear displaycaret so the preamble doesn't compute a stale delta.
+      this.displaycaret = null;
     }
   }
 
@@ -1603,7 +1603,7 @@ export default class Ink {
    * Intercept process.stderr.write so stray writes (config.ts, hooks.ts,
    * third-party deps) don't corrupt the alt-screen buffer. patchConsole only
    * hooks console.* methods — direct stderr writes bypass it, land at the
-   * parked cursor, scroll the alt-screen, and desync frontFrame from the
+   * parked caret, scroll the alt-screen, and desync frontFrame from the
    * physical terminal. Next diff writes only changed-in-React cells at
    * absolute coords → interleaved garbage.
    *

@@ -425,7 +425,7 @@ function ModeIndicator({
   if (feature('VOICE_MODE') && voiceEnabled && voiceWarmingUp) {
     parts.push(<VoiceWarmupHint key="voice-warmup" />);
   } else if (isFullscreenEnvEnabled() && selectionHintHasContent) {
-    // xterm.js (VS Code/Cursor/Windsurf) force-selection modifier is
+    // xterm.js (VS Code/caret/Windsurf) force-selection modifier is
     // platform-specific and gated on macOS (SelectionService.shouldForceSelection):
     //   macOS:     altKey && macOptionClickForcesSelection (VS Code default: false)
     //   non-macOS: shiftKey

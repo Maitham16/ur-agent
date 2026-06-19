@@ -2,7 +2,7 @@ import { c as _c } from "react/compiler-runtime";
 import React from 'react';
 import { renderPlaceholder } from '../hooks/renderPlaceholder.js';
 import { usePasteHandler } from '../hooks/usePasteHandler.js';
-import { useDeclaredCursor } from '../ink/hooks/use-declared-cursor.js';
+import { useDeclaredCaret } from '../ink/hooks/use-declared-caret.js';
 import { Ansi, Box, Text, useInput } from '../ink.js';
 import type { BaseInputState, BaseTextInputProps } from '../types/textInputTypes.js';
 import type { TextHighlight } from '../utils/textHighlighting.js';
@@ -32,25 +32,25 @@ export function BaseTextInput(t0) {
   const {
     onInput,
     renderedValue,
-    cursorLine,
-    cursorColumn
+    caretLine,
+    caretColumn
   } = inputState;
-  const t1 = Boolean(props.focus && props.showCursor && terminalFocus);
+  const t1 = Boolean(props.focus && props.showCaret && terminalFocus);
   let t2;
-  if ($[0] !== cursorColumn || $[1] !== cursorLine || $[2] !== t1) {
+  if ($[0] !== caretColumn || $[1] !== caretLine || $[2] !== t1) {
     t2 = {
-      line: cursorLine,
-      column: cursorColumn,
+      line: caretLine,
+      column: caretColumn,
       active: t1
     };
-    $[0] = cursorColumn;
-    $[1] = cursorLine;
+    $[0] = caretColumn;
+    $[1] = caretLine;
     $[2] = t1;
     $[3] = t2;
   } else {
     t2 = $[3];
   }
-  const cursorRef = useDeclaredCursor(t2);
+  const caretRef = useDeclaredCaret(t2);
   const {
     wrappedOnInput,
     isPasting: t3
@@ -79,7 +79,7 @@ export function BaseTextInput(t0) {
   } = renderPlaceholder({
     placeholder: props.placeholder,
     value: props.value,
-    showCursor: props.showCursor,
+    showCaret: props.showCaret,
     focus: props.focus,
     terminalFocus,
     invert,
@@ -90,19 +90,19 @@ export function BaseTextInput(t0) {
   });
   const commandWithoutArgs = props.value && props.value.trim().indexOf(" ") === -1 || props.value && props.value.endsWith(" ");
   const showArgumentHint = Boolean(props.argumentHint && props.value && commandWithoutArgs && props.value.startsWith("/"));
-  const cursorFiltered = props.showCursor && props.highlights ? props.highlights.filter(h => h.dimColor || props.cursorOffset < h.start || props.cursorOffset >= h.end) : props.highlights;
+  const caretFiltered = props.showCaret && props.highlights ? props.highlights.filter(h => h.dimColor || props.caretOffset < h.start || props.caretOffset >= h.end) : props.highlights;
   const {
     viewportCharOffset,
     viewportCharEnd
   } = inputState;
-  const filteredHighlights = cursorFiltered && viewportCharOffset > 0 ? cursorFiltered.filter(h_0 => h_0.end > viewportCharOffset && h_0.start < viewportCharEnd).map(h_1 => ({
+  const filteredHighlights = caretFiltered && viewportCharOffset > 0 ? caretFiltered.filter(h_0 => h_0.end > viewportCharOffset && h_0.start < viewportCharEnd).map(h_1 => ({
     ...h_1,
     start: Math.max(0, h_1.start - viewportCharOffset),
     end: h_1.end - viewportCharOffset
-  })) : cursorFiltered;
+  })) : caretFiltered;
   const hasHighlights = filteredHighlights && filteredHighlights.length > 0;
   if (hasHighlights) {
-    return <Box ref={cursorRef}><HighlightedInput text={renderedValue} highlights={filteredHighlights} />{showArgumentHint && <Text dimColor={true}>{props.value?.endsWith(" ") ? "" : " "}{props.argumentHint}</Text>}{children}</Box>;
+    return <Box ref={caretRef}><HighlightedInput text={renderedValue} highlights={filteredHighlights} />{showArgumentHint && <Text dimColor={true}>{props.value?.endsWith(" ") ? "" : " "}{props.argumentHint}</Text>}{children}</Box>;
   }
   const T0 = Box;
   const T1 = Text;
@@ -122,10 +122,10 @@ export function BaseTextInput(t0) {
     t7 = $[9];
   }
   let t8;
-  if ($[10] !== T0 || $[11] !== cursorRef || $[12] !== t7) {
-    t8 = <T0 ref={cursorRef}>{t7}</T0>;
+  if ($[10] !== T0 || $[11] !== caretRef || $[12] !== t7) {
+    t8 = <T0 ref={caretRef}>{t7}</T0>;
     $[10] = T0;
-    $[11] = cursorRef;
+    $[11] = caretRef;
     $[12] = t7;
     $[13] = t8;
   } else {

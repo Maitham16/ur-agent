@@ -16,8 +16,8 @@ import { hueToRgb } from './Spinner/utils.js';
 // Block characters for waveform bars: space (silent) + 8 rising block elements.
 const BARS = ' \u2581\u2582\u2583\u2584\u2585\u2586\u2587\u2588';
 
-// Mini waveform cursor width
-const CURSOR_WAVEFORM_WIDTH = 1;
+// Mini waveform caret width
+const caret_WAVEFORM_WIDTH = 1;
 
 // Smoothing factor (0 = instant, 1 = frozen). Applied as EMA to
 // smooth both rises and falls for a steady, non-jittery bar.
@@ -28,7 +28,7 @@ const SMOOTH = 0.7;
 // 0.3-0.5. This multiplier lets the bar use the full range.
 const LEVEL_BOOST = 1.8;
 
-// Raw audio level threshold (pre-boost) below which the cursor is
+// Raw audio level threshold (pre-boost) below which the caret is
 // grey. computeLevel returns sqrt(rms/2000), so ambient mic noise
 // typically sits at 0.05-0.15. Speech starts around 0.2+.
 const SILENCE_THRESHOLD = 0.15;
@@ -49,7 +49,7 @@ export default function TextInput(props: Props): React.ReactNode {
   const audioLevels = feature('VOICE_MODE') ?
   // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
   useVoiceState(s_0 => s_0.voiceAudioLevels) : [];
-  const smoothedRef = useRef<number[]>(new Array(CURSOR_WAVEFORM_WIDTH).fill(0));
+  const smoothedRef = useRef<number[]>(new Array(caret_WAVEFORM_WIDTH).fill(0));
   const needsAnimation = isVoiceRecording && !reducedMotion;
   const [animRef, animTime] = feature('VOICE_MODE') ?
   // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
@@ -58,14 +58,14 @@ export default function TextInput(props: Props): React.ReactNode {
   // Show hint when terminal regains focus and clipboard has an image
   useClipboardImageHint(isTerminalFocused, !!props.onImagePaste);
 
-  // Cursor invert function: mini waveform during voice recording,
+  // caret invert function: mini waveform during voice recording,
   // standard chalk.inverse otherwise. No warmup pulse — the ~120ms
   // warmup window is too short for a 1s-period pulse to register, and
   // driving TextInput re-renders at 50ms during warmup (while spaces
   // are simultaneously arriving every 30-80ms) causes visible stutter.
-  const canShowCursor = isTerminalFocused && !accessibilityEnabled;
+  const canShowcaret = isTerminalFocused && !accessibilityEnabled;
   let invert: (text: string) => string;
-  if (!canShowCursor) {
+  if (!canShowcaret) {
     invert = (text: string) => text;
   } else if (isVoiceRecording && !reducedMotion) {
     // Single-bar waveform from the latest audio level
@@ -103,17 +103,17 @@ export default function TextInput(props: Props): React.ReactNode {
     focus: props.focus,
     mask: props.mask,
     multiline: props.multiline,
-    cursorChar: props.showCursor ? ' ' : '',
+    caretChar: props.showCaret ? ' ' : '',
     highlightPastedText: props.highlightPastedText,
     invert,
     themeText: color('text', theme),
     columns: props.columns,
     maxVisibleLines: props.maxVisibleLines,
     onImagePaste: props.onImagePaste,
-    disableCursorMovementForUpDownKeys: props.disableCursorMovementForUpDownKeys,
+    disableCaretMovementForUpDownKeys: props.disableCaretMovementForUpDownKeys,
     disableEscapeDoublePress: props.disableEscapeDoublePress,
-    externalOffset: props.cursorOffset,
-    onOffsetChange: props.onChangeCursorOffset,
+    externalOffset: props.caretOffset,
+    onOffsetChange: props.onChangeCaretOffset,
     inputFilter: props.inputFilter,
     inlineGhostText: props.inlineGhostText,
     dim: chalk.dim

@@ -95,7 +95,7 @@ export function FuzzyPicker<T>({
   const [focusedIndex, setFocusedIndex] = useState(0);
 
   // Cap visibleCount so the picker never exceeds the terminal height. When it
-  // overflows, each re-render (arrow key, ctrl+p) mis-positions the cursor-up
+  // overflows, each re-render (arrow key, ctrl+p) mis-positions the caret-up
   // by the overflow amount and a previously-drawn line flashes blank.
   const visibleCount = Math.max(MIN_VISIBLE, Math.min(requestedVisible, rows - CHROME_ROWS - (matchLabel ? 1 : 0)));
 
@@ -112,7 +112,7 @@ export function FuzzyPicker<T>({
   // a held backspace doesn't eject the user from the dialog.
   const {
     query,
-    cursorOffset
+    caretOffset
   } = useSearchInput({
     isActive: true,
     onExit: () => {},
@@ -169,7 +169,7 @@ export function FuzzyPicker<T>({
   const windowStart = clamp(focusedIndex - visibleCount + 1, 0, items.length - visibleCount);
   const visible = items.slice(windowStart, windowStart + visibleCount);
   const emptyText = typeof emptyMessage === 'function' ? emptyMessage(query) : emptyMessage;
-  const searchBox = <SearchBox query={query} cursorOffset={cursorOffset} placeholder={placeholder} isFocused isTerminalFocused={isTerminalFocused} />;
+  const searchBox = <SearchBox query={query} caretOffset={caretOffset} placeholder={placeholder} isFocused isTerminalFocused={isTerminalFocused} />;
   const listBlock = <List visible={visible} windowStart={windowStart} visibleCount={visibleCount} total={items.length} focusedIndex={focusedIndex} direction={direction} getKey={getKey} renderItem={renderItem} emptyText={emptyText} />;
   const preview = renderPreview && focused ? <Box flexDirection="column" flexGrow={1}>
         {renderPreview(focused)}

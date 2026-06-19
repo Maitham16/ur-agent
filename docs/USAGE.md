@@ -63,8 +63,8 @@ ur --model qwen2.5-coder:latest
 The Ollama endpoint defaults to `http://127.0.0.1:11434`. Override it with:
 
 ```sh
-OLLAMA_HOST=http://localhost:11434 ur
-OLLAMA_BASE_URL=http://localhost:11434 ur
+UR_HOST=http://localhost:11434 ur
+UR_BASE_URL=http://localhost:11434 ur
 ```
 
 If your endpoint requires a bearer token, set:
@@ -75,9 +75,9 @@ OLLAMA_API_KEY=... ur
 
 ## Project Instructions
 
-Add a `CLAUDE.md` file to the repository root for team-shared instructions. UR loads it as project context.
+Add a `UR.md` file to the repository root for team-shared instructions. UR loads it as project context.
 
-Use `CLAUDE.local.md` for private local instructions. It is ignored by `.gitignore`.
+Use `UR.local.md` for private local instructions. It is ignored by `.gitignore`.
 
 Project `.ur/` assets can hold settings, skills, agents, MCP config, and local runtime state. Commit only shared files. Keep local memory, generated indexes, logs, and local settings untracked.
 

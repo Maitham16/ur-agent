@@ -4,8 +4,8 @@ import { env } from '../utils/env.js'
 import { gte } from '../utils/semver.js'
 import { getClearTerminalSequence } from './clearTerminal.js'
 import type { Diff } from './frame.js'
-import { cursorMove, cursorTo, eraseLines } from './termio/csi.js'
-import { BSU, ESU, HIDE_CURSOR, SHOW_CURSOR } from './termio/dec.js'
+import { caretMove, caretTo, eraseLines } from './termio/csi.js'
+import { BSU, ESU, HIDE_caret, SHOW_caret } from './termio/dec.js'
 import { link } from './termio/osc.js'
 
 export type Progress = {
@@ -135,7 +135,7 @@ export function setXtversionName(name: string): void {
   if (xtversionName === undefined) xtversionName = name
 }
 
-/** True if running in an xterm.js-based terminal (VS Code, Cursor, Windsurf
+/** True if running in an xterm.js-based terminal (VS Code, caret, Windsurf
  *  integrated terminals). Combines TERM_PROGRAM env check (fast, sync, but
  *  not forwarded over SSH) with the XTVERSION probe result (async, survives
  *  SSH — query/reply goes through the pty). Early calls may miss the probe
@@ -168,13 +168,13 @@ export function supportsExtendedKeys(): boolean {
   return EXTENDED_KEYS_TERMINALS.includes(env.terminal ?? '')
 }
 
-/** True if the terminal scrolls the viewport when it receives cursor-up
+/** True if the terminal scrolls the viewport when it receives caret-up
  *  sequences that reach above the visible area. On Windows, conhost's
- *  SetConsoleCursorPosition follows the cursor into scrollback
+ *  SetConsolecaretPosition follows the caret into scrollback
  *  (microsoft/terminal#14774), yanking users to the top of their buffer
  *  mid-stream. WT_SESSION catches WSL-in-Windows-Terminal where platform
  *  is linux but output still routes through conhost. */
-export function hasCursorUpViewportYankBug(): boolean {
+export function hascaretUpViewportYankBug(): boolean {
   return process.platform === 'win32' || !!process.env.WT_SESSION
 }
 
@@ -218,17 +218,17 @@ export function writeDiffToTerminal(
       case 'clearTerminal':
         buffer += getClearTerminalSequence()
         break
-      case 'cursorHide':
-        buffer += HIDE_CURSOR
+      case 'caretHide':
+        buffer += HIDE_caret
         break
-      case 'cursorShow':
-        buffer += SHOW_CURSOR
+      case 'caretShow':
+        buffer += SHOW_caret
         break
-      case 'cursorMove':
-        buffer += cursorMove(patch.x, patch.y)
+      case 'caretMove':
+        buffer += caretMove(patch.x, patch.y)
         break
-      case 'cursorTo':
-        buffer += cursorTo(patch.col)
+      case 'caretTo':
+        buffer += caretTo(patch.col)
         break
       case 'carriageReturn':
         buffer += '\r'

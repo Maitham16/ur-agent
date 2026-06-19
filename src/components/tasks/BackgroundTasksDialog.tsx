@@ -216,7 +216,7 @@ export function BackgroundTasksDialog({
       dreamTasks,
       teammateTasks: [...leaderItem, ...teammates],
       // Order MUST match JSX render order (teammates \u2192 bash \u2192 monitorMcp \u2192
-      // remote \u2192 agent \u2192 workflows \u2192 dream) so \u2193/\u2191 navigation moves the cursor
+      // remote \u2192 agent \u2192 workflows \u2192 dream) so \u2193/\u2191 navigation moves the caret
       // visually downward.
       allSelectableItems: [...leaderItem, ...teammates, ...bash, ...monitorMcp, ...remote, ...agent, ...workflows, ...dreamTasks]
     };

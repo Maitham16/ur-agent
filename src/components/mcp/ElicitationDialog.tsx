@@ -217,7 +217,7 @@ function ElicitationFormDialog({
     }
     return '';
   });
-  const [textInputCursorOffset, setTextInputCursorOffset] = useState(textInputValue.length);
+  const [textInputcaretOffset, setTextInputcaretOffset] = useState(textInputValue.length);
   const [resolvingFields, setResolvingFields] = useState<Set<string>>(() => new Set());
   // Accordion state (shared by multi-select and single-select enum)
   const [expandedAccordion, setExpandedAccordion] = useState<string | undefined>();
@@ -261,7 +261,7 @@ function ElicitationFormDialog({
   const syncTextInput = useCallback((fieldIndex: number | undefined) => {
     if (fieldIndex === undefined) {
       setTextInputValue('');
-      setTextInputCursorOffset(0);
+      setTextInputcaretOffset(0);
       return;
     }
     const field = schemaFields[fieldIndex];
@@ -269,7 +269,7 @@ function ElicitationFormDialog({
       const val_0 = formValues[field.name];
       const text = val_0 !== undefined ? String(val_0) : '';
       setTextInputValue(text);
-      setTextInputCursorOffset(text.length);
+      setTextInputcaretOffset(text.length);
     }
   }, [schemaFields, formValues]);
   function validateMultiSelect(fieldName: string, schema_0: PrimitiveSchemaDefinition) {
@@ -361,7 +361,7 @@ function ElicitationFormDialog({
     setField(fieldName_2, undefined);
     updateValidationError(fieldName_2);
     setTextInputValue('');
-    setTextInputCursorOffset(0);
+    setTextInputcaretOffset(0);
   }
   function commitTextField(fieldName_3: string, schema_1: PrimitiveSchemaDefinition, value_0: string) {
     const trimmedValue = value_0.trim();
@@ -409,7 +409,7 @@ function ElicitationFormDialog({
         setTextInputValue(prev_3 => {
           // Only replace if the field is still showing the raw input
           if (prev_3 === rawValue) {
-            setTextInputCursorOffset(isoText.length);
+            setTextInputcaretOffset(isoText.length);
             return isoText;
           }
           return prev_3;
@@ -474,7 +474,7 @@ function ElicitationFormDialog({
     if (isEditingTextField && currentField) {
       const val_1 = formValues[currentField.name];
       setTextInputValue(val_1 !== undefined ? String(val_1) : '');
-      setTextInputCursorOffset(0);
+      setTextInputcaretOffset(0);
     }
     onResponse('cancel');
   }, {
@@ -912,7 +912,7 @@ function ElicitationFormDialog({
           }
         } else if (isTextField(schema_6)) {
           if (isActive) {
-            valueContent = <TextInput value={textInputValue} onChange={handleTextInputChange} onSubmit={handleTextInputSubmit} placeholder={`Type something\u{2026}`} columns={Math.min(columns - 20, 60)} cursorOffset={textInputCursorOffset} onChangeCursorOffset={setTextInputCursorOffset} focus showCursor />;
+            valueContent = <TextInput value={textInputValue} onChange={handleTextInputChange} onSubmit={handleTextInputSubmit} placeholder={`Type something\u{2026}`} columns={Math.min(columns - 20, 60)} caretOffset={textInputcaretOffset} onChangeCaretOffset={setTextInputcaretOffset} focus showCaret />;
           } else {
             const displayValue = hasValue && isDateTimeSchema(schema_6) ? formatDateDisplay(String(value_3), schema_6) : String(value_3);
             valueContent = hasValue ? <Text>{displayValue}</Text> : <Text dimColor italic>

@@ -15,11 +15,11 @@ function isCommandAvailable(command: string): boolean {
 }
 
 // GUI editors that open in a separate window and can be spawned detached
-// without fighting the TUI for stdin. VS Code forks (cursor, windsurf, codium)
+// without fighting the TUI for stdin. VS Code forks (caret, windsurf, codium)
 // are listed explicitly since none contain 'code' as a substring.
 const GUI_EDITORS = [
   'code',
-  'cursor',
+  'caret',
   'windsurf',
   'codium',
   'subl',
@@ -34,7 +34,7 @@ const GUI_EDITORS = [
 const PLUS_N_EDITORS = /\b(vi|vim|nvim|nano|emacs|pico|micro|helix|hx)\b/
 
 // VS Code and forks use -g file:line. subl uses bare file:line (no -g).
-const VSCODE_FAMILY = new Set(['code', 'cursor', 'windsurf', 'codium'])
+const VSCODE_FAMILY = new Set(['code', 'caret', 'windsurf', 'codium'])
 
 /**
  * Classify the editor as GUI or not. Returns the matched GUI family name
@@ -98,7 +98,7 @@ export function openFileInExternalEditor(
     const detachedOpts: SpawnOptions = { detached: true, stdio: 'ignore' }
     let child
     if (process.platform === 'win32') {
-      // shell: true on win32 so code.cmd / cursor.cmd / windsurf.cmd resolve —
+      // shell: true on win32 so code.cmd / caret.cmd / windsurf.cmd resolve —
       // CreateProcess can't execute .cmd/.bat directly. Assemble quoted command
       // string; cmd.exe doesn't expand $() or backticks inside double quotes.
       // Quote each arg so paths with spaces survive the shell join.

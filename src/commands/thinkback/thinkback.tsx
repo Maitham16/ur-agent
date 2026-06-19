@@ -27,8 +27,8 @@ import { installSelectedPlugins } from '../../utils/plugins/pluginStartupCheck.j
 
 // Marketplace and plugin identifiers - varies by user type
 const INTERNAL_MARKETPLACE_NAME = 'ur-marketplace';
-const INTERNAL_MARKETPLACE_REPO = 'anthropics/ur-marketplace';
-const OFFICIAL_MARKETPLACE_REPO = 'anthropics/claude-plugins-official';
+const INTERNAL_MARKETPLACE_REPO = 'urhqs/ur-marketplace';
+const OFFICIAL_MARKETPLACE_REPO = 'urhqs/ur-plugins-official';
 function getMarketplaceName(): string {
   return "external" === 'ant' ? INTERNAL_MARKETPLACE_NAME : OFFICIAL_MARKETPLACE_NAME;
 }
@@ -67,7 +67,7 @@ export async function playAnimation(skillDir: string): Promise<{
   // Both files are prerequisites for the node subprocess. Read them here
   // (not at call sites) so all callers get consistent error messaging. The
   // subprocess runs with reject: false, so a missing file would otherwise
-  // silently return success. Using readFile (not access) per CLAUDE.md.
+  // silently return success. Using readFile (not access) per UR.md.
   //
   // Non-ENOENT errors (EACCES etc) are logged and returned as failures rather
   // than thrown — the old pathExists-based code never threw, and one caller
@@ -347,7 +347,7 @@ function ThinkbackMenu(t0) {
   }
   let t4;
   if ($[8] !== hasGenerated) {
-    t4 = !hasGenerated && <Box flexDirection="column"><Text>Relive your year of coding with Claude.</Text><Text dimColor={true}>{"We'll create a personalized ASCII animation celebrating your journey."}</Text></Box>;
+    t4 = !hasGenerated && <Box flexDirection="column"><Text>Relive your year of coding with UR.</Text><Text dimColor={true}>{"We'll create a personalized ASCII animation celebrating your journey."}</Text></Box>;
     $[8] = hasGenerated;
     $[9] = t4;
   } else {

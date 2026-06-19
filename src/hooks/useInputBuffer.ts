@@ -3,7 +3,7 @@ import type { PastedContent } from '../utils/config.js'
 
 export type BufferEntry = {
   text: string
-  cursorOffset: number
+  caretOffset: number
   pastedContents: Record<number, PastedContent>
   timestamp: number
 }
@@ -16,7 +16,7 @@ export type UseInputBufferProps = {
 export type UseInputBufferResult = {
   pushToBuffer: (
     text: string,
-    cursorOffset: number,
+    caretOffset: number,
     pastedContents?: Record<number, PastedContent>,
   ) => void
   undo: () => BufferEntry | undefined
@@ -36,7 +36,7 @@ export function useInputBuffer({
   const pushToBuffer = useCallback(
     (
       text: string,
-      cursorOffset: number,
+      caretOffset: number,
       pastedContents: Record<number, PastedContent> = {},
     ) => {
       const now = Date.now()
@@ -53,7 +53,7 @@ export function useInputBuffer({
           pushToBuffer,
           debounceMs,
           text,
-          cursorOffset,
+          caretOffset,
           pastedContents,
         )
         return
@@ -75,7 +75,7 @@ export function useInputBuffer({
         // Add new entry
         const updatedBuffer = [
           ...newBuffer,
-          { text, cursorOffset, pastedContents, timestamp: now },
+          { text, caretOffset, pastedContents, timestamp: now },
         ]
 
         // Limit buffer size

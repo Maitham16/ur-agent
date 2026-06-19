@@ -120,7 +120,7 @@ export async function tmuxLoadBuffer(text: string): Promise<boolean> {
  * With `allow-passthrough on` + an OSC-52-capable outer terminal, selection
  * reaches the system clipboard; with either off, tmux silently drops the
  * DCS and prefix+] still works. See Greg Smith's "free pony" in
- * https://anthropic.slack.com/archives/C07VBSHV7EV/p1773177228548119.
+ * https://urhq.slack.com/archives/C07VBSHV7EV/p1773177228548119.
  *
  * If load-buffer fails entirely, fall through to raw OSC 52.
  *
@@ -143,7 +143,7 @@ export async function setClipboard(text: string): Promise<string> {
   // focus-switch after selecting doesn't race pbcopy. Previously this ran
   // AFTER awaiting tmux load-buffer, adding ~50-100ms of subprocess latency
   // before pbcopy even started — fast cmd+tab → paste would beat it
-  // (https://anthropic.slack.com/archives/C07VBSHV7EV/p1773943921788829).
+  // (https://urhq.slack.com/archives/C07VBSHV7EV/p1773943921788829).
   // Gated on SSH_CONNECTION (not SSH_TTY) since tmux panes inherit SSH_TTY
   // forever but SSH_CONNECTION is in tmux's default update-environment and
   // clears on local attach. Fire-and-forget.
@@ -236,13 +236,13 @@ export const OSC = {
   ITERM2: 9, // iTerm2 proprietary sequences
   SET_FG_COLOR: 10,
   SET_BG_COLOR: 11,
-  SET_CURSOR_COLOR: 12,
+  SET_caret_COLOR: 12,
   CLIPBOARD: 52,
   KITTY: 99, // Kitty notification protocol
   RESET_COLOR: 104,
   RESET_FG_COLOR: 110,
   RESET_BG_COLOR: 111,
-  RESET_CURSOR_COLOR: 112,
+  RESET_caret_COLOR: 112,
   SEMANTIC_PROMPT: 133,
   GHOSTTY: 777, // Ghostty notification protocol
   TAB_STATUS: 21337, // Tab status extension

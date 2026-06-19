@@ -27,7 +27,7 @@ function HistorySearchInput(t0) {
   const t3 = stringWidth(value) + 1;
   let t4;
   if ($[2] !== onChange || $[3] !== t3 || $[4] !== value) {
-    t4 = <TextInput value={value} onChange={onChange} cursorOffset={value.length} onChangeCursorOffset={_temp} columns={t3} focus={true} showCursor={true} multiline={false} dimColor={true} />;
+    t4 = <TextInput value={value} onChange={onChange} caretOffset={value.length} onChangeCaretOffset={_temp} columns={t3} focus={true} showCaret={true} multiline={false} dimColor={true} />;
     $[2] = onChange;
     $[3] = t3;
     $[4] = value;

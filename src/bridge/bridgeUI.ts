@@ -107,7 +107,7 @@ export function createBridgeLogger(options: {
       count += Math.max(1, Math.ceil(width / cols))
     }
     // The trailing \n in "line\n" produces an empty last element — don't count it
-    // because the cursor sits at the start of the next line, not a new visual row.
+    // because the caret sits at the start of the next line, not a new visual row.
     if (text.endsWith('\n')) {
       count--
     }
@@ -124,9 +124,9 @@ export function createBridgeLogger(options: {
   function clearStatusLines(): void {
     if (statusLineCount <= 0) return
     logForDebugging(`[bridge:ui] clearStatusLines count=${statusLineCount}`)
-    // Move cursor up to the start of the status block, then erase everything below
-    write(`\x1b[${statusLineCount}A`) // cursor up N lines
-    write('\x1b[J') // erase from cursor to end of screen
+    // Move caret up to the start of the status block, then erase everything below
+    write(`\x1b[${statusLineCount}A`) // caret up N lines
+    write('\x1b[J') // erase from caret to end of screen
     statusLineCount = 0
   }
 

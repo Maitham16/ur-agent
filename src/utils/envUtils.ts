@@ -49,7 +49,7 @@ export function isEnvDefinedFalsy(
 /**
  * --bare / UR_CODE_SIMPLE — skip hooks, LSP, plugin sync, skill dir-walk,
  * attribution, background prefetches, and ALL keychain/credential reads.
- * Auth is strictly ANTHROPIC_API_KEY env or apiKeyHelper from --settings.
+ * Auth is strictly UR_API_KEY env or apiKeyHelper from --settings.
  * Explicit CLI flags (--plugin-dir, --add-dir, --mcp-config) still honored.
  * ~30 gates across the codebase.
  *
@@ -134,15 +134,6 @@ export function isRunningOnHomespace(): boolean {
  * Used for telemetry to measure auto-mode usage in sensitive environments.
  */
 export function isInProtectedNamespace(): boolean {
-  // USER_TYPE is build-time --define'd; in external builds this block is
-  // DCE'd so the require() and namespace allowlist never appear in the bundle.
-  if (process.env.USER_TYPE === 'ant') {
-    /* eslint-disable @typescript-eslint/no-require-imports */
-    return (
-      require('./protectedNamespace.js') as typeof import('./protectedNamespace.js')
-    ).checkProtectedNamespace()
-    /* eslint-enable @typescript-eslint/no-require-imports */
-  }
   return false
 }
 
@@ -150,18 +141,18 @@ export function isInProtectedNamespace(): boolean {
 /**
  * Model prefix → env var for Vertex region overrides.
  * Order matters: more specific prefixes must come before less specific ones
- * (e.g., 'ur-opus-4-1' before 'ur-opus-4').
+ * (e.g., 'ur-modelO-4-1' before 'ur-modelO-4').
  */
 const VERTEX_REGION_OVERRIDES: ReadonlyArray<[string, string]> = [
-  ['claude-haiku-4-5', 'VERTEX_REGION_CLAUDE_HAIKU_4_5'],
-  ['claude-3-5-haiku', 'VERTEX_REGION_CLAUDE_3_5_HAIKU'],
-  ['claude-3-5-sonnet', 'VERTEX_REGION_CLAUDE_3_5_SONNET'],
-  ['claude-3-7-sonnet', 'VERTEX_REGION_CLAUDE_3_7_SONNET'],
-  ['claude-opus-4-1', 'VERTEX_REGION_CLAUDE_4_1_OPUS'],
-  ['claude-opus-4', 'VERTEX_REGION_CLAUDE_4_0_OPUS'],
-  ['claude-sonnet-4-6', 'VERTEX_REGION_CLAUDE_4_6_SONNET'],
-  ['claude-sonnet-4-5', 'VERTEX_REGION_CLAUDE_4_5_SONNET'],
-  ['claude-sonnet-4', 'VERTEX_REGION_CLAUDE_4_0_SONNET'],
+  ['ur-modelH-4-5', 'VERTEX_REGION_UR_modelH_4_5'],
+  ['ur-3-5-modelH', 'VERTEX_REGION_UR_3_5_modelH'],
+  ['ur-3-5-modelS', 'VERTEX_REGION_UR_3_5_modelS'],
+  ['ur-3-7-modelS', 'VERTEX_REGION_UR_3_7_modelS'],
+  ['ur-modelO-4-1', 'VERTEX_REGION_UR_4_1_modelO'],
+  ['ur-modelO-4', 'VERTEX_REGION_UR_4_0_modelO'],
+  ['ur-modelS-4-6', 'VERTEX_REGION_UR_4_6_modelS'],
+  ['ur-modelS-4-5', 'VERTEX_REGION_UR_4_5_modelS'],
+  ['ur-modelS-4', 'VERTEX_REGION_UR_4_0_modelS'],
 ]
 
 /**

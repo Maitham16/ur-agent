@@ -33,7 +33,7 @@ type Props = {
 // pendingScrollDelta accumulator + proportional drain in
 // render-node-to-output handles smooth catch-up on big bursts.
 //
-// xterm.js (VS Code/Cursor/Windsurf integrated terminals) sends exactly 1
+// xterm.js (VS Code/caret/Windsurf integrated terminals) sends exactly 1
 // event per wheel notch — no pre-amplification. A separate exponential
 // decay curve (below) compensates for the lower event rate, with burst
 // detection and gap-dependent caps tuned to VS Code's event patterns.
@@ -109,7 +109,7 @@ const WHEEL_DECAY_IDLE_MS = 500;
  * keys (shift/opt/cmd + arrow/home/end/page*). In native macOS contexts,
  * shift+nav extends selection, and cmd/opt+nav are often intercepted by
  * the terminal emulator for scrollback nav — neither disturbs selection.
- * Bare arrows DO clear (user's cursor moves, native deselects). Wheel is
+ * Bare arrows DO clear (user's caret moves, native deselects). Wheel is
  * excluded — scroll:lineUp/Down already clears via the keybinding path.
  */
 export function shouldClearSelectionOnKey(key: Key): boolean {

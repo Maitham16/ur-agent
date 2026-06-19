@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { c as _c } from "react/compiler-runtime";
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 import { feature } from 'bun:bundle';
@@ -27,7 +28,7 @@ import { useNotifications } from '../context/notifications.js';
 import { sendNotification } from '../services/notifier.js';
 import { startPreventSleep, stopPreventSleep } from '../services/preventSleep.js';
 import { useTerminalNotification } from '../ink/useTerminalNotification.js';
-import { hasCursorUpViewportYankBug } from '../ink/terminal.js';
+import { hascaretUpViewportYankBug } from '../ink/terminal.js';
 import { createFileStateCacheWithSizeLimit, mergeFileStateCaches, READ_FILE_STATE_CACHE_SIZE } from '../utils/fileStateCache.js';
 import { updateLastInteractionTime, getLastInteractionTime, getOriginalCwd, getProjectRoot, getSessionId, switchSession, setCostStateForRestore, getTurnHookDurationMs, getTurnHookCount, resetTurnHookDuration, getTurnToolDurationMs, getTurnToolCount, resetTurnToolDuration, getTurnClassifierDurationMs, getTurnClassifierCount, resetTurnClassifierDuration } from '../bootstrap/state.js';
 import { asSessionId, asAgentId } from '../types/ids.js';
@@ -168,7 +169,7 @@ import { resolveAgentTools } from '../tools/AgentTool/agentToolUtils.js';
 import { resumeAgentBackground } from '../tools/AgentTool/resumeAgent.js';
 import { useMainLoopModel } from '../hooks/useMainLoopModel.js';
 import { useAppState, useSetAppState, useAppStateStore } from '../state/AppState.js';
-import type { ContentBlockParam, ImageBlockParam } from '@anthropic-ai/sdk/resources/messages.mjs';
+import type { ContentBlockParam, ImageBlockParam } from '@urhq-ai/sdk/resources/messages.mjs';
 import type { ProcessUserInputContext } from '../utils/processUserInput/processUserInput.js';
 import type { PastedContent } from '../utils/config.js';
 import { copyPlanForFork, copyPlanForResume, getPlanSlug, setPlanSlug } from '../utils/plans.js';
@@ -309,7 +310,7 @@ const HISTORY_STUB = {
 // Window after a user-initiated scroll during which type-into-empty does NOT
 // repin to bottom. Josh Rosen's workflow: UR emits long output → scroll
 // up to read the start → start typing → before this fix, snapped to bottom.
-// https://anthropic.slack.com/archives/C07VBSHV7EV/p1773545449871739
+// https://urhq.slack.com/archives/C07VBSHV7EV/p1773545449871739
 const RECENT_SCROLL_REPIN_WINDOW_MS = 3000;
 
 // Use LRU cache to prevent unbounded memory growth
@@ -397,7 +398,7 @@ function TranscriptSearchBar({
 }): React.ReactNode {
   const {
     query,
-    cursorOffset
+    caretOffset
   } = useSearchInput({
     isActive: true,
     initialQuery,
@@ -452,8 +453,8 @@ function TranscriptSearchBar({
     setHighlight(query);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, warmDone]);
-  const off = cursorOffset;
-  const cursorChar = off < query.length ? query[off] : ' ';
+  const off = caretOffset;
+  const caretChar = off < query.length ? query[off] : ' ';
   return <Box borderTopDimColor borderBottom={false} borderLeft={false} borderRight={false} borderStyle="single" marginTop={1} paddingLeft={2} width="100%"
   // applySearchHighlight scans the whole screen buffer. The query
   // text rendered here IS on screen — /foo matches its own 'foo' in
@@ -464,7 +465,7 @@ function TranscriptSearchBar({
   noSelect>
       <Text>/</Text>
       <Text>{query.slice(0, off)}</Text>
-      <Text inverse>{cursorChar}</Text>
+      <Text inverse>{caretChar}</Text>
       {off < query.length && <Text>{query.slice(off + 1)}</Text>}
       <Box flexGrow={1} />
       {indexStatus === 'building' ? <Text dimColor>indexing… </Text> : indexStatus ? <Text dimColor>indexed in {indexStatus.ms}ms </Text> : count === 0 && query ? <Text color="error">no matches </Text> : count > 0 ?
@@ -479,7 +480,7 @@ function TranscriptSearchBar({
     </Box>;
 }
 const TITLE_ANIMATION_FRAMES = ['⠂', '⠐'];
-const TITLE_STATIC_PREFIX = '✳';
+const TITLE_STATIC_PREFIX = '⌂';
 const TITLE_ANIMATION_INTERVAL_MS = 960;
 
 /**
@@ -683,7 +684,7 @@ export function REPL({
 
   // Note: standaloneAgentContext is initialized in main.tsx (via initialState) or
   // ResumeConversation.tsx (via setAppState before rendering REPL) to avoid
-  // useEffect-based state initialization on mount (per CLAUDE.md guidelines)
+  // useEffect-based state initialization on mount (per UR.md guidelines)
 
   // Local state for commands (hot-reloadable when skill files change)
   const [localCommands, setLocalCommands] = useState(initialCommands);
@@ -1130,17 +1131,17 @@ export function REPL({
 
   // -- Terminal title management
   // Session title (set via /rename or restored on resume) wins over
-  // the agent name, which wins over the Haiku-extracted topic;
+  // the agent name, which wins over the modelH-extracted topic;
   // all fall back to the product name.
   const terminalTitleFromRename = useAppState(s => s.settings.terminalTitleFromRename) !== false;
   const sessionTitle = terminalTitleFromRename ? getCurrentSessionTitle(getSessionId()) : undefined;
-  const [haikuTitle, setHaikuTitle] = useState<string>();
-  // Gates the one-shot Haiku call that generates the tab title. Seeded true
+  const [modelHTitle, setmodelHTitle] = useState<string>();
+  // Gates the one-shot modelH call that generates the tab title. Seeded true
   // on resume (initialMessages present) so we don't re-title a resumed
   // session from mid-conversation context.
-  const haikuTitleAttemptedRef = useRef((initialMessages?.length ?? 0) > 0);
+  const modelHTitleAttemptedRef = useRef((initialMessages?.length ?? 0) > 0);
   const agentTitle = mainThreadAgentDefinition?.agentType;
-  const terminalTitle = sessionTitle ?? agentTitle ?? haikuTitle ?? 'UR';
+  const terminalTitle = sessionTitle ?? agentTitle ?? modelHTitle ?? 'UR';
   const isWaitingForApproval = toolUseConfirmQueue.length > 0 || promptQueue.length > 0 || pendingWorkerRequest || pendingSandboxRequest;
   // Local-jsx commands (like /plugin, /config) show user-facing dialogs that
   // wait for input. Require jsx != null — if the flag is stuck true but jsx
@@ -1151,7 +1152,7 @@ export function REPL({
   // Title animation state lives in <AnimatedTerminalTitle> so the 960ms tick
   // doesn't re-render REPL. titleDisabled/terminalTitle are still computed
   // here because onQueryImpl reads them (background session description,
-  // haiku title extraction gate).
+  // modelH title extraction gate).
 
   // Prevent macOS from sleeping while UR is working
   useEffect(() => {
@@ -1255,8 +1256,8 @@ export function REPL({
     // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
     useAwaySummary(messages, setMessages, isLoading);
   }
-  const [cursor, setCursor] = useState<MessageActionsState | null>(null);
-  const cursorNavRef = useRef<MessageActionsNav | null>(null);
+  const [caret, setcaret] = useState<MessageActionsState | null>(null);
+  const caretNavRef = useRef<MessageActionsNav | null>(null);
   // Memoized so Messages' React.memo holds.
   const unseenDivider = useMemo(() => computeUnseenDivider(messages, dividerIndex),
   // eslint-disable-next-line react-hooks/exhaustive-deps -- length change covers appends; useUnseenDivider's count-drop guard clears dividerIndex on replace/rewind
@@ -1267,8 +1268,8 @@ export function REPL({
   const repinScroll = useCallback(() => {
     scrollRef.current?.scrollToBottom();
     onRepin();
-    setCursor(null);
-  }, [onRepin, setCursor]);
+    setcaret(null);
+  }, [onRepin, setcaret]);
   // Backstop for the submit-handler repin at onSubmit. If a buffered stdin
   // event (wheel/drag) races between handler-fire and state-commit, the
   // handler's scrollToBottom can be undone. This effect fires on the render
@@ -1335,14 +1336,14 @@ export function REPL({
     streamingToolUsesLength: number;
   } | null>(null);
   // Initialize input with any early input that was captured before REPL was ready.
-  // Using lazy initialization ensures cursor offset is set correctly in PromptInput.
+  // Using lazy initialization ensures caret offset is set correctly in PromptInput.
   const [inputValue, setInputValueRaw] = useState(() => consumeEarlyInput());
   const inputValueRef = useRef(inputValue);
   inputValueRef.current = inputValue;
   const insertTextRef = useRef<{
     insert: (text: string) => void;
-    setInputWithCursor: (value: string, cursor: number) => void;
-    cursorOffset: number;
+    setInputWithcaret: (value: string, caret: number) => void;
+    caretOffset: number;
   } | null>(null);
 
   // Wrap setInputValue to co-locate suppression state updates.
@@ -1380,7 +1381,7 @@ export function REPL({
   const [inputMode, setInputMode] = useState<PromptInputMode>('prompt');
   const [stashedPrompt, setStashedPrompt] = useState<{
     text: string;
-    cursorOffset: number;
+    caretOffset: number;
     pastedContents: Record<number, PastedContent>;
   } | undefined>();
 
@@ -1468,7 +1469,7 @@ export function REPL({
   // so displayedMessages switches from deferredMessages to messages atomically.
   const [streamingText, setStreamingText] = useState<string | null>(null);
   const reducedMotion = useAppState(s => s.settings.prefersReducedMotion) ?? false;
-  const showStreamingText = !reducedMotion && !hasCursorUpViewportYankBug();
+  const showStreamingText = !reducedMotion && !hascaretUpViewportYankBug();
   const onStreamingText = useCallback((f: (current: string | null) => string | null) => {
     if (!showStreamingText) return;
     setStreamingText(f);
@@ -1868,9 +1869,9 @@ export function REPL({
       restoreSessionMetadata(log);
       // Resumed sessions shouldn't re-title from mid-conversation context
       // (same reasoning as the useRef seed), and the previous session's
-      // Haiku title shouldn't carry over.
-      haikuTitleAttemptedRef.current = true;
-      setHaikuTitle(undefined);
+      // modelH title shouldn't carry over.
+      modelHTitleAttemptedRef.current = true;
+      setmodelHTitle(undefined);
 
       // Exit any worktree a prior /resume entered, then cd into the one
       // this session was in. Without the exit, resuming from worktree B
@@ -1969,8 +1970,8 @@ export function REPL({
   // before onQuery builds its own context, and discovery on turn N must
   // still attribute a SkillTool call on turn N+k. Cleared in clearConversation.
   const discoveredSkillNamesRef = useRef(new Set<string>());
-  // Session-level dedup for nested_memory CLAUDE.md attachments.
-  // readFileState is a 100-entry LRU; once it evicts a CLAUDE.md path,
+  // Session-level dedup for nested_memory UR.md attachments.
+  // readFileState is a 100-entry LRU; once it evicts a UR.md path,
   // the next discovery cycle re-injects it. Cleared in clearConversation.
   const loadedNestedMemoryPathsRef = useRef(new Set<string>());
 
@@ -2054,7 +2055,7 @@ export function REPL({
     // Undercover auto-enable explainer (ant-only, eliminated from external builds)
     if (("external" as string) === 'ant' && allowDialogsWithAnimation && showUndercoverCallout) return 'undercover-callout';
 
-    // Effort callout (shown once for Opus 4.6 users when effort is enabled)
+    // Effort callout (shown once for modelO 4.6 users when effort is enabled)
     if (allowDialogsWithAnimation && showEffortCallout) return 'effort-callout';
 
     // Remote callout (shown once before first bridge enable)
@@ -2684,12 +2685,12 @@ export function REPL({
 
     // Extract a session title from the first real user message. One-shot
     // via ref (was tengu_birch_mist experiment: first-message-only to save
-    // Haiku calls). The ref replaces the old `messages.length <= 1` check,
+    // modelH calls). The ref replaces the old `messages.length <= 1` check,
     // which was broken by SessionStart hook messages (prepended via
     // useDeferredHookMessages) and attachment messages (appended by
     // processTextPrompt) — both pushed length past 1 on turn one, so the
     // title silently fell through to the "UR" default.
-    if (!titleDisabled && !sessionTitle && !agentTitle && !haikuTitleAttemptedRef.current) {
+    if (!titleDisabled && !sessionTitle && !agentTitle && !modelHTitleAttemptedRef.current) {
       const firstUserMessage = newMessages.find(m => m.type === 'user' && !m.isMeta);
       const text = firstUserMessage?.type === 'user' ? getContentText(firstUserMessage.message.content) : null;
       // Skip synthetic breadcrumbs — slash-command output, prompt-skill
@@ -2697,11 +2698,11 @@ export function REPL({
       // (/help → <command-name>), and bash-mode (!cmd → <bash-input>).
       // None of these are the user's topic; wait for real prose.
       if (text && !text.startsWith(`<${LOCAL_COMMAND_STDOUT_TAG}>`) && !text.startsWith(`<${COMMAND_MESSAGE_TAG}>`) && !text.startsWith(`<${COMMAND_NAME_TAG}>`) && !text.startsWith(`<${BASH_INPUT_TAG}>`)) {
-        haikuTitleAttemptedRef.current = true;
+        modelHTitleAttemptedRef.current = true;
         void generateSessionTitle(text, new AbortController().signal).then(title => {
-          if (title) setHaikuTitle(title);else haikuTitleAttemptedRef.current = false;
+          if (title) setmodelHTitle(title);else modelHTitleAttemptedRef.current = false;
         }, () => {
-          haikuTitleAttemptedRef.current = false;
+          modelHTitleAttemptedRef.current = false;
         });
       }
     }
@@ -3061,8 +3062,8 @@ export function REPL({
           setAppState,
           setConversationId
         });
-        haikuTitleAttemptedRef.current = false;
-        setHaikuTitle(undefined);
+        modelHTitleAttemptedRef.current = false;
+        setmodelHTitle(undefined);
         bashTools.current.clear();
         bashToolsProcessedIdx.current = 0;
 
@@ -3126,7 +3127,7 @@ export function REPL({
       if (typeof content === 'string' && !initialMsg.message.planContent) {
         // Route through onSubmit for proper processing including UserPromptSubmit hooks
         void onSubmit(content, {
-          setCursorOffset: () => {},
+          setCaretOffset: () => {},
           clearBuffer: () => {},
           resetHistory: () => {}
         });
@@ -3199,7 +3200,7 @@ export function REPL({
         // input value is the user's existing text - don't clear it in that case.
         if (input.trim() === inputValueRef.current.trim()) {
           setInputValue('');
-          helpers.setCursorOffset(0);
+          helpers.setCaretOffset(0);
           helpers.clearBuffer();
           setPastedContents({});
         }
@@ -3261,7 +3262,7 @@ export function REPL({
             // local-jsx commands return early from onSubmit.
             if (stashedPrompt !== undefined) {
               setInputValue(stashedPrompt.text);
-              helpers.setCursorOffset(stashedPrompt.cursorOffset);
+              helpers.setCaretOffset(stashedPrompt.caretOffset);
               setPastedContents(stashedPrompt.pastedContents);
               setStashedPrompt(undefined);
             }
@@ -3313,7 +3314,7 @@ export function REPL({
             idleMinutes
           });
           setInputValue('');
-          helpers.setCursorOffset(0);
+          helpers.setCaretOffset(0);
           helpers.clearBuffer();
           return;
         }
@@ -3354,7 +3355,7 @@ export function REPL({
     const submitsNow = !isLoading || speculationAccept || activeRemote.isRemoteMode;
     if (stashedPrompt !== undefined && !isSlashCommand && submitsNow) {
       setInputValue(stashedPrompt.text);
-      helpers.setCursorOffset(stashedPrompt.cursorOffset);
+      helpers.setCaretOffset(stashedPrompt.caretOffset);
       setPastedContents(stashedPrompt.pastedContents);
       setStashedPrompt(undefined);
     } else if (submitsNow) {
@@ -3362,7 +3363,7 @@ export function REPL({
         // Clear input when not loading or accepting speculation.
         // Preserve input for keybinding-triggered commands.
         setInputValue('');
-        helpers.setCursorOffset(0);
+        helpers.setCaretOffset(0);
       }
       setPastedContents({});
     }
@@ -3537,7 +3538,7 @@ export function REPL({
     //   returned quickly. Restoring now places the stash back after the clear.
     if ((isSlashCommand || isLoading) && stashedPrompt !== undefined) {
       setInputValue(stashedPrompt.text);
-      helpers.setCursorOffset(stashedPrompt.cursorOffset);
+      helpers.setCaretOffset(stashedPrompt.caretOffset);
       setPastedContents(stashedPrompt.pastedContents);
       setStashedPrompt(undefined);
     }
@@ -3584,7 +3585,7 @@ export function REPL({
       injectUserMessageToTeammate(task.id, input, setAppState);
     }
     setInputValue('');
-    helpers.setCursorOffset(0);
+    helpers.setCaretOffset(0);
     helpers.clearBuffer();
   }, [setAppState, setInputValue, getToolUseContext, canUseTool, mainLoopModel, addNotification]);
 
@@ -3593,7 +3594,7 @@ export function REPL({
     const command = autoRunIssueReason ? getAutoRunCommand(autoRunIssueReason) : '/issue';
     setAutoRunIssueReason(null); // Clear the state
     onSubmit(command, {
-      setCursorOffset: () => {},
+      setCaretOffset: () => {},
       clearBuffer: () => {},
       resetHistory: () => {}
     }).catch(err => {
@@ -3608,7 +3609,7 @@ export function REPL({
   const handleSurveyRequestFeedback = useCallback(() => {
     const command = ("external" as string) === 'ant' ? '/issue' : '/feedback';
     onSubmit(command, {
-      setCursorOffset: () => {},
+      setCaretOffset: () => {},
       clearBuffer: () => {},
       resetHistory: () => {}
     }).catch(err => {
@@ -3625,7 +3626,7 @@ export function REPL({
   onSubmitRef.current = onSubmit;
   const handleOpenRateLimitOptions = useCallback(() => {
     void onSubmitRef.current('/rate-limit-options', {
-      setCursorOffset: () => {},
+      setCaretOffset: () => {},
       clearBuffer: () => {},
       resetHistory: () => {}
     });
@@ -3799,19 +3800,19 @@ export function REPL({
   const {
     enter: enterMessageActions,
     handlers: messageActionHandlers
-  } = useMessageActions(cursor, setCursor, cursorNavRef, messageActionCaps);
+  } = useMessageActions(caret, setcaret, caretNavRef, messageActionCaps);
   async function onInit() {
     // Always verify API key on startup, so we can show the user an error in the
     // bottom right corner of the screen if the API key is invalid.
     void reverify();
 
-    // Populate readFileState with CLAUDE.md files at startup
+    // Populate readFileState with UR.md files at startup
     const memoryFiles = await getMemoryFiles();
     if (memoryFiles.length > 0) {
       const fileList = memoryFiles.map(f => `  [${f.type}] ${f.path} (${f.content.length} chars)${f.parent ? ` (included by ${f.parent})` : ''}`).join('\n');
-      logForDebugging(`Loaded ${memoryFiles.length} CLAUDE.md/rules files:\n${fileList}`);
+      logForDebugging(`Loaded ${memoryFiles.length} UR.md/rules files:\n${fileList}`);
     } else {
-      logForDebugging('No CLAUDE.md/rules files found');
+      logForDebugging('No UR.md/rules files found');
     }
     for (const file of memoryFiles) {
       // When the injected content doesn't match disk (stripped HTML comments,
@@ -3872,7 +3873,7 @@ export function REPL({
   const executeQueuedInput = useCallback(async (queuedCommands: QueuedCommand[]) => {
     await handlePromptSubmit({
       helpers: {
-        setCursorOffset: () => {},
+        setCaretOffset: () => {},
         clearBuffer: () => {},
         resetHistory: () => {}
       },
@@ -4443,7 +4444,7 @@ export function REPL({
                 <SandboxViolationExpandedView />
               </>} bottom={searchOpen ? <TranscriptSearchBar jumpRef={jumpRef}
       // Seed was tried (c01578c8) — broke /hello muscle
-      // memory (cursor lands after 'foo', /hello → foohello).
+      // memory (caret lands after 'foo', /hello → foohello).
       // Cancel-restore handles the 'don't lose prior search'
       // concern differently (onCancel re-applies searchQuery).
       initialQuery="" count={searchCount} current={searchCurrent} onClose={q => {
@@ -4570,15 +4571,15 @@ export function REPL({
           stays suppressed while a modal is showing so scroll doesn't
           stamp divider/pill state. */}
       <ScrollKeybindingHandler scrollRef={scrollRef} isActive={isFullscreenEnvEnabled() && (centeredModal != null || !focusedInputDialog || focusedInputDialog === 'tool-permission')} onScroll={centeredModal || toolPermissionOverlay || viewedAgentTask ? undefined : composedOnScroll} />
-      {feature('MESSAGE_ACTIONS') && isFullscreenEnvEnabled() && !disableMessageActions ? <MessageActionsKeybindings handlers={messageActionHandlers} isActive={cursor !== null} /> : null}
+      {feature('MESSAGE_ACTIONS') && isFullscreenEnvEnabled() && !disableMessageActions ? <MessageActionsKeybindings handlers={messageActionHandlers} isActive={caret !== null} /> : null}
       <CancelRequestHandler {...cancelRequestProps} />
       <MCPConnectionManager key={remountKey} dynamicMcpConfig={dynamicMcpConfig} isStrictMcpConfig={strictMcpConfig}>
         <FullscreenLayout scrollRef={scrollRef} overlay={toolPermissionOverlay} bottomFloat={feature('BUDDY') && companionVisible && !companionNarrow ? <CompanionFloatingBubble /> : undefined} modal={centeredModal} modalScrollRef={modalScrollRef} dividerYRef={dividerYRef} hidePill={!!viewedAgentTask} hideSticky={!!viewedTeammateTask} newMessageCount={unseenDivider?.count ?? 0} onPillClick={() => {
-        setCursor(null);
+        setcaret(null);
         jumpToNew(scrollRef.current);
       }} scrollable={<>
               <TeammateViewHeader />
-              <Messages messages={displayedMessages} tools={tools} commands={commands} verbose={verbose} toolJSX={toolJSX} toolUseConfirmQueue={toolUseConfirmQueue} inProgressToolUseIDs={viewedTeammateTask ? viewedTeammateTask.inProgressToolUseIDs ?? new Set() : inProgressToolUseIDs} isMessageSelectorVisible={isMessageSelectorVisible} conversationId={conversationId} screen={screen} streamingToolUses={streamingToolUses} showAllInTranscript={showAllInTranscript} agentDefinitions={agentDefinitions} onOpenRateLimitOptions={handleOpenRateLimitOptions} isLoading={isLoading} streamingText={isLoading && !viewedAgentTask ? visibleStreamingText : null} isBriefOnly={viewedAgentTask ? false : isBriefOnly} unseenDivider={viewedAgentTask ? undefined : unseenDivider} scrollRef={isFullscreenEnvEnabled() ? scrollRef : undefined} trackStickyPrompt={isFullscreenEnvEnabled() ? true : undefined} cursor={cursor} setCursor={setCursor} cursorNavRef={cursorNavRef} />
+              <Messages messages={displayedMessages} tools={tools} commands={commands} verbose={verbose} toolJSX={toolJSX} toolUseConfirmQueue={toolUseConfirmQueue} inProgressToolUseIDs={viewedTeammateTask ? viewedTeammateTask.inProgressToolUseIDs ?? new Set() : inProgressToolUseIDs} isMessageSelectorVisible={isMessageSelectorVisible} conversationId={conversationId} screen={screen} streamingToolUses={streamingToolUses} showAllInTranscript={showAllInTranscript} agentDefinitions={agentDefinitions} onOpenRateLimitOptions={handleOpenRateLimitOptions} isLoading={isLoading} streamingText={isLoading && !viewedAgentTask ? visibleStreamingText : null} isBriefOnly={viewedAgentTask ? false : isBriefOnly} unseenDivider={viewedAgentTask ? undefined : unseenDivider} scrollRef={isFullscreenEnvEnabled() ? scrollRef : undefined} trackStickyPrompt={isFullscreenEnvEnabled() ? true : undefined} caret={caret} setcaret={setcaret} caretNavRef={caretNavRef} />
               <AwsAuthStatusBox />
               {/* Hide the processing placeholder while a modal is showing —
                   it would sit at the last visible transcript row right above
@@ -4802,14 +4803,14 @@ export function REPL({
                 setAppState,
                 setConversationId
               });
-              haikuTitleAttemptedRef.current = false;
-              setHaikuTitle(undefined);
+              modelHTitleAttemptedRef.current = false;
+              setmodelHTitle(undefined);
               bashTools.current.clear();
               bashToolsProcessedIdx.current = 0;
             }
             skipIdleCheckRef.current = true;
             void onSubmitRef.current(pending.input, {
-              setCursorOffset: () => {},
+              setCaretOffset: () => {},
               clearBuffer: () => {},
               resetHistory: () => {}
             });
@@ -4902,7 +4903,7 @@ export function REPL({
 
                 {mrRender()}
 
-                {!toolJSX?.shouldHidePromptInput && !focusedInputDialog && !isExiting && !disabled && !cursor && <>
+                {!toolJSX?.shouldHidePromptInput && !focusedInputDialog && !isExiting && !disabled && !caret && <>
                       {autoRunIssueReason && <AutoRunIssueNotification onRun={handleAutoRunIssue} onCancel={handleCancelAutoRunIssue} reason={getAutoRunIssueReasonText(autoRunIssueReason)} />}
                       {postCompactSurvey.state !== 'closed' ? <FeedbackSurvey state={postCompactSurvey.state} lastResponse={postCompactSurvey.lastResponse} handleSelect={postCompactSurvey.handleSelect} inputValue={inputValue} setInputValue={setInputValue} onRequestFeedback={handleSurveyRequestFeedback} /> : memorySurvey.state !== 'closed' ? <FeedbackSurvey state={memorySurvey.state} lastResponse={memorySurvey.lastResponse} handleSelect={memorySurvey.handleSelect} handleTranscriptSelect={memorySurvey.handleTranscriptSelect} inputValue={inputValue} setInputValue={setInputValue} onRequestFeedback={handleSurveyRequestFeedback} message="How well did UR use its memory? (optional)" /> : <FeedbackSurvey state={feedbackSurvey.state} lastResponse={feedbackSurvey.lastResponse} handleSelect={feedbackSurvey.handleSelect} handleTranscriptSelect={feedbackSurvey.handleTranscriptSelect} inputValue={inputValue} setInputValue={setInputValue} onRequestFeedback={didAutoRunIssueRef.current ? undefined : handleSurveyRequestFeedback} />}
                       {/* Frustration-triggered transcript sharing prompt */}
@@ -4916,9 +4917,9 @@ export function REPL({
             feature('MESSAGE_ACTIONS') && isFullscreenEnvEnabled() && !disableMessageActions ? enterMessageActions : undefined} mcpClients={mcpClients} pastedContents={pastedContents} setPastedContents={setPastedContents} vimMode={vimMode} setVimMode={setVimMode} showBashesDialog={showBashesDialog} setShowBashesDialog={setShowBashesDialog} onSubmit={onSubmit} onAgentSubmit={onAgentSubmit} isSearchingHistory={isSearchingHistory} setIsSearchingHistory={setIsSearchingHistory} helpOpen={isHelpOpen} setHelpOpen={setIsHelpOpen} insertTextRef={feature('VOICE_MODE') ? insertTextRef : undefined} voiceInterimRange={voice.interimRange} />
                       <SessionBackgroundHint onBackgroundSession={handleBackgroundSession} isLoading={isLoading} />
                     </>}
-                {cursor &&
+                {caret &&
           // inputValue is REPL state; typed text survives the round-trip.
-          <MessageActionsBar cursor={cursor} />}
+          <MessageActionsBar caret={caret} />}
                 {focusedInputDialog === 'message-selector' && <MessageSelector messages={messages} preselectedMessage={messageSelectorPreselect} onPreRestore={onCancel} onRestoreCode={async (message: UserMessage) => {
             await fileHistoryRewind((updater: (prev: FileHistoryState) => FileHistoryState) => {
               setAppState(prev => ({

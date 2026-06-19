@@ -8,7 +8,7 @@ type Props = {
   isTerminalFocused: boolean;
   prefix?: string;
   width?: number | string;
-  cursorOffset?: number;
+  caretOffset?: number;
   borderless?: boolean;
 };
 export function SearchBox(t0) {
@@ -20,13 +20,13 @@ export function SearchBox(t0) {
     isTerminalFocused,
     prefix: t2,
     width,
-    cursorOffset,
+    caretOffset,
     borderless: t3
   } = t0;
   const placeholder = t1 === undefined ? "Search\u2026" : t1;
   const prefix = t2 === undefined ? "\u2315" : t2;
   const borderless = t3 === undefined ? false : t3;
-  const offset = cursorOffset ?? query.length;
+  const offset = caretOffset ?? query.length;
   const t4 = borderless ? undefined : "round";
   const t5 = isFocused ? "suggestion" : undefined;
   const t6 = !isFocused;

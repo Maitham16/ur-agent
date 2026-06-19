@@ -11,7 +11,7 @@ import { csi } from './csi.js'
  * DEC private mode numbers
  */
 export const DEC = {
-  CURSOR_VISIBLE: 25,
+  caret_VISIBLE: 25,
   ALT_SCREEN: 47,
   ALT_SCREEN_CLEAR: 1049,
   MOUSE_NORMAL: 1000,
@@ -40,8 +40,8 @@ export const EBP = decset(DEC.BRACKETED_PASTE)
 export const DBP = decreset(DEC.BRACKETED_PASTE)
 export const EFE = decset(DEC.FOCUS_EVENTS)
 export const DFE = decreset(DEC.FOCUS_EVENTS)
-export const SHOW_CURSOR = decset(DEC.CURSOR_VISIBLE)
-export const HIDE_CURSOR = decreset(DEC.CURSOR_VISIBLE)
+export const SHOW_caret = decset(DEC.caret_VISIBLE)
+export const HIDE_caret = decreset(DEC.caret_VISIBLE)
 export const ENTER_ALT_SCREEN = decset(DEC.ALT_SCREEN_CLEAR)
 export const EXIT_ALT_SCREEN = decreset(DEC.ALT_SCREEN_CLEAR)
 // Mouse tracking: 1000 reports button press/release/wheel, 1002 adds drag

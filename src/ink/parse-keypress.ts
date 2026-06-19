@@ -44,11 +44,11 @@ const DA2_RE = /^\x1b\[>([\d;]*)c$/
 // (private ? marker distinguishes from CSI u key events)
 // eslint-disable-next-line no-control-regex
 const KITTY_FLAGS_RE = /^\x1b\[\?(\d+)u$/
-// DECXCPR cursor position: CSI ? row ; col R
+// DECXCPR caret position: CSI ? row ; col R
 // The ? marker disambiguates from modified F3 keys (Shift+F3 = CSI 1;2 R,
 // Ctrl+F3 = CSI 1;5 R, etc.) — plain CSI row;col R is genuinely ambiguous.
 // eslint-disable-next-line no-control-regex
-const CURSOR_POSITION_RE = /^\x1b\[\?(\d+);(\d+)R$/
+const caret_POSITION_RE = /^\x1b\[\?(\d+);(\d+)R$/
 // OSC response: OSC code ; data (BEL|ST)
 // eslint-disable-next-line no-control-regex
 const OSC_RESPONSE_RE = /^\x1b\](\d+);(.*?)(?:\x07|\x1b\\)$/s
@@ -128,8 +128,8 @@ export type TerminalResponse =
   | { type: 'da2'; params: number[] }
   /** Kitty keyboard protocol: current flags (answer to CSI ? u) */
   | { type: 'kittyKeyboard'; flags: number }
-  /** DSR: cursor position report (answer to CSI 6 n) */
-  | { type: 'cursorPosition'; row: number; col: number }
+  /** DSR: caret position report (answer to CSI 6 n) */
+  | { type: 'caretPosition'; row: number; col: number }
   /** OSC response: generic operating-system-command reply (e.g. OSC 11 bg color) */
   | { type: 'osc'; code: number; data: string }
   /** XTVERSION: terminal name/version string (answer to CSI > 0 q).
@@ -170,9 +170,9 @@ function parseTerminalResponse(s: string): TerminalResponse | null {
       return { type: 'kittyKeyboard', flags: parseInt(m[1]!, 10) }
     }
 
-    if ((m = CURSOR_POSITION_RE.exec(s))) {
+    if ((m = caret_POSITION_RE.exec(s))) {
       return {
-        type: 'cursorPosition',
+        type: 'caretPosition',
         row: parseInt(m[1]!, 10),
         col: parseInt(m[2]!, 10),
       }

@@ -16,8 +16,8 @@ export function useHistorySearch(
   onAcceptHistory: (entry: HistoryEntry) => void,
   currentInput: string,
   onInputChange: (input: string) => void,
-  onCursorChange: (cursorOffset: number) => void,
-  currentCursorOffset: number,
+  oncaretChange: (caretOffset: number) => void,
+  currentcaretOffset: number,
   onModeChange: (mode: PromptInputMode) => void,
   currentMode: PromptInputMode,
   isSearching: boolean,
@@ -34,7 +34,7 @@ export function useHistorySearch(
   const [historyQuery, setHistoryQuery] = useState('')
   const [historyFailedMatch, setHistoryFailedMatch] = useState(false)
   const [originalInput, setOriginalInput] = useState('')
-  const [originalCursorOffset, setOriginalCursorOffset] = useState(0)
+  const [originalcaretOffset, setOriginalcaretOffset] = useState(0)
   const [originalMode, setOriginalMode] = useState<PromptInputMode>('prompt')
   const [originalPastedContents, setOriginalPastedContents] = useState<
     HistoryEntry['pastedContents']
@@ -62,7 +62,7 @@ export function useHistorySearch(
     setHistoryQuery('')
     setHistoryFailedMatch(false)
     setOriginalInput('')
-    setOriginalCursorOffset(0)
+    setOriginalcaretOffset(0)
     setOriginalMode('prompt')
     setOriginalPastedContents({})
     setHistoryMatch(undefined)
@@ -82,7 +82,7 @@ export function useHistorySearch(
         setHistoryMatch(undefined)
         setHistoryFailedMatch(false)
         onInputChange(originalInput)
-        onCursorChange(originalCursorOffset)
+        oncaretChange(originalcaretOffset)
         onModeChange(originalMode)
         setPastedContents(originalPastedContents)
         return
@@ -122,10 +122,10 @@ export function useHistorySearch(
           onInputChange(display)
           setPastedContents(item.value.pastedContents)
 
-          // Position cursor relative to the clean value, not the display
+          // Position caret relative to the clean value, not the display
           const value = getValueFromInput(display)
           const cleanMatchPosition = value.lastIndexOf(historyQuery)
-          onCursorChange(
+          oncaretChange(
             cleanMatchPosition !== -1 ? cleanMatchPosition : matchPosition,
           )
           return
@@ -137,11 +137,11 @@ export function useHistorySearch(
       historyQuery,
       closeHistoryReader,
       onInputChange,
-      onCursorChange,
+      oncaretChange,
       onModeChange,
       setPastedContents,
       originalInput,
-      originalCursorOffset,
+      originalcaretOffset,
       originalMode,
       originalPastedContents,
     ],
@@ -151,7 +151,7 @@ export function useHistorySearch(
   const handleStartSearch = useCallback(() => {
     setIsSearching(true)
     setOriginalInput(currentInput)
-    setOriginalCursorOffset(currentCursorOffset)
+    setOriginalcaretOffset(currentcaretOffset)
     setOriginalMode(currentMode)
     setOriginalPastedContents(currentPastedContents)
     historyReader.current = makeHistoryReader()
@@ -159,7 +159,7 @@ export function useHistorySearch(
   }, [
     setIsSearching,
     currentInput,
-    currentCursorOffset,
+    currentcaretOffset,
     currentMode,
     currentPastedContents,
   ])
@@ -194,15 +194,15 @@ export function useHistorySearch(
   // Handler: Cancel search and restore original input
   const handleCancel = useCallback(() => {
     onInputChange(originalInput)
-    onCursorChange(originalCursorOffset)
+    oncaretChange(originalcaretOffset)
     setPastedContents(originalPastedContents)
     reset()
   }, [
     onInputChange,
-    onCursorChange,
+    oncaretChange,
     setPastedContents,
     originalInput,
-    originalCursorOffset,
+    originalcaretOffset,
     originalPastedContents,
     reset,
   ])

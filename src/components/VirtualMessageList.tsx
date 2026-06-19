@@ -93,8 +93,8 @@ type Props = {
   trackStickyPrompt?: boolean;
   selectedIndex?: number;
   /** Nav handle lives here because height measurement lives here. */
-  cursorNavRef?: React.Ref<MessageActionsNav>;
-  setCursor?: (c: MessageActionsState | null) => void;
+  caretNavRef?: React.Ref<MessageActionsNav>;
+  setcaret?: (c: MessageActionsState | null) => void;
   jumpRef?: RefObject<JumpHandle | null>;
   /** Fires when search matches change (query edit, n/N). current is
    *  1-based for "3/47" display; 0 means no matches. */
@@ -191,7 +191,7 @@ type VirtualItemProps = {
 // which lets JIT inline them. The bigger win is inside: MessageRow.memo
 // bails for unchanged msgs, skipping marked.lexer + formatToken.
 //
-// NOT React.memo'd — renderItem captures changing state (cursor, selectedIdx,
+// NOT React.memo'd — renderItem captures changing state (caret, selectedIdx,
 // verbose). Memoing with a comparator that ignores renderItem would use a
 // STALE closure on bail (wrong selection highlight, stale verbose). Including
 // renderItem in the comparator defeats memo since it's fresh each render.
@@ -299,8 +299,8 @@ export function VirtualMessageList({
   extractSearchText = defaultExtractSearchText,
   trackStickyPrompt,
   selectedIndex,
-  cursorNavRef,
-  setCursor,
+  caretNavRef,
+  setcaret,
   jumpRef,
   onSearchMatchesChange,
   scanElement,
@@ -343,8 +343,8 @@ export function VirtualMessageList({
     if (h === 0) return false;
     return isNavigableMessage(messages[i]!);
   }, [getItemHeight, messages]);
-  useImperativeHandle(cursorNavRef, (): MessageActionsNav => {
-    const select = (m: NavigableMessage) => setCursor?.({
+  useImperativeHandle(caretNavRef, (): MessageActionsNav => {
+    const select = (m: NavigableMessage) => setcaret?.({
       uuid: m.uuid,
       msgType: m.type,
       expanded: false,
@@ -362,15 +362,15 @@ export function VirtualMessageList({
     };
     const isUser = (i: number) => isVisible(i) && messages[i]!.type === 'user';
     return {
-      // Entry via shift+↑ = same semantic as in-cursor shift+↑ (prevUser).
-      enterCursor: () => scan(messages.length - 1, -1, isUser),
+      // Entry via shift+↑ = same semantic as in-caret shift+↑ (prevUser).
+      entercaret: () => scan(messages.length - 1, -1, isUser),
       navigatePrev: () => scan(selIdx - 1, -1),
       navigateNext: () => {
         if (scan(selIdx + 1, 1)) return;
         // Past last visible → exit + repin. Last message's TOP is at viewport
         // top (selection-scroll effect); its BOTTOM may be below the fold.
         scrollRef.current?.scrollToBottom();
-        setCursor?.(null);
+        setcaret?.(null);
       },
       // type:'user' only — queued_command attachments look like prompts but have no raw UserMessage to rewind to.
       navigatePrevUser: () => scan(selIdx - 1, -1, isUser),
@@ -379,7 +379,7 @@ export function VirtualMessageList({
       navigateBottom: () => scan(messages.length - 1, -1),
       getSelected: () => selIdx >= 0 ? messages[selIdx] ?? null : null
     };
-  }, [messages, selectedIndex, setCursor, isVisible]);
+  }, [messages, selectedIndex, setcaret, isVisible]);
   // Two-phase jump + search engine. Read-through-ref so the handle stays
   // stable across renders — offsets/messages identity changes every render,
   // can't go in useImperativeHandle deps without recreating the handle.
@@ -400,7 +400,7 @@ export function VirtualMessageList({
     scrollToIndex
   };
 
-  // Keep cursor-selected message visible. offsets rebuilds every render
+  // Keep caret-selected message visible. offsets rebuilds every render
   // — as a bare dep this re-pinned on every mousewheel tick. Read through
   // jumpState instead; past-overscan jumps land via scrollToIndex, next
   // nav is precise.

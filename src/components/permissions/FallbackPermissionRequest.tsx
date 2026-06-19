@@ -9,7 +9,7 @@ import { truncateToLines } from '../../utils/stringUtils.js';
 import { logUnaryEvent } from '../../utils/unaryLogging.js';
 import { type UnaryEvent, usePermissionRequestLogging } from './hooks.js';
 import { PermissionDialog } from './PermissionDialog.js';
-import { PermissionPrompt, type PermissionPromptOption, type ToolAnalyticsContext } from './PermissionPrompt.js';
+import { URPromptDialog, type URPromptOption, type ToolAnalyticsContext } from './URPromptDialog.js';
 import type { PermissionRequestProps } from './PermissionRequest.js';
 import { PermissionRuleExplanation } from './PermissionRuleExplanation.js';
 type FallbackOptionValue = 'yes' | 'yes-dont-ask-again' | 'no';
@@ -300,7 +300,7 @@ export function FallbackPermissionRequest(t0) {
   }
   let t18;
   if ($[46] !== handleCancel || $[47] !== handleSelect || $[48] !== options || $[49] !== toolAnalyticsContext) {
-    t18 = <PermissionPrompt options={options} onSelect={handleSelect} onCancel={handleCancel} toolAnalyticsContext={toolAnalyticsContext} />;
+    t18 = <URPromptDialog options={options} onSelect={handleSelect} onCancel={handleCancel} />;
     $[46] = handleCancel;
     $[47] = handleSelect;
     $[48] = options;

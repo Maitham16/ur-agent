@@ -1,4 +1,4 @@
-import type { ToolResultBlockParam } from '@anthropic-ai/sdk/resources/messages/messages.mjs';
+import type { ToolResultBlockParam } from '@urhq-ai/sdk/resources/messages/messages.mjs';
 import * as React from 'react';
 import { stripUnderlineAnsi } from 'src/components/shell/OutputLine.js';
 import { extractTag } from 'src/utils/messages.js';
@@ -31,7 +31,7 @@ export function formatFallbackToolUseError(
   }
 
   const extractedError = extractTag(result, 'tool_use_error') ?? result;
-  // Remove sandbox_violations tags from error display (Claude still sees them in the tool result).
+  // Remove sandbox_violations tags from error display (UR still sees them in the tool result).
   const withoutSandboxViolations = removeSandboxViolationTags(extractedError);
   // Strip <error> tags but keep their contents (tags are for the model, not the UI).
   const withoutErrorTags = withoutSandboxViolations.replace(/<\/?error>/g, '');

@@ -1,7 +1,6 @@
 // @ts-nocheck
 import * as React from 'react';
-import { getOauthProfileFromApiKey } from 'src/services/oauth/getOauthProfile.js';
-import { isURAISubscriber } from 'src/utils/auth.js';
+const getOauthProfileFromApiKey = () => null;import { isURAISubscriber } from 'src/utils/auth.js';
 import { Text } from '../../ink.js';
 import { logEvent } from '../../services/analytics/index.js';
 import { getGlobalConfig, saveGlobalConfig } from '../../utils/config.js';
@@ -50,10 +49,10 @@ async function getExistingURSubscription(): Promise<'Max' | 'Pro' | null> {
   if (!profile) {
     return null;
   }
-  if (profile.account.has_claude_max) {
+  if (profile.account.has_ur_max) {
     return 'Max';
   }
-  if (profile.account.has_claude_pro) {
+  if (profile.account.has_ur_pro) {
     return 'Pro';
   }
   return null;

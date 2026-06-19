@@ -295,7 +295,7 @@ export type InternalEvent = {
 
 type ListInternalEventsResponse = {
   data: InternalEvent[]
-  next_cursor?: string
+  next_caret?: string
 }
 
 type WorkerStateResponse = {
@@ -624,7 +624,7 @@ export class CCRClient {
           headers: {
             ...authHeaders,
             'Content-Type': 'application/json',
-            'anthropic-version': '2023-06-01',
+            'urhq-version': '2023-06-01',
             'User-Agent': getURCodeUserAgent(),
           },
           validateStatus: alwaysValidStatus,
@@ -923,15 +923,15 @@ export class CCRClient {
     if (Object.keys(authHeaders).length === 0) return null
 
     const allEvents: InternalEvent[] = []
-    let cursor: string | undefined
+    let caret: string | undefined
 
     do {
       const url = new URL(`${this.sessionBaseUrl}${path}`)
       for (const [k, v] of Object.entries(params)) {
         url.searchParams.set(k, v)
       }
-      if (cursor) {
-        url.searchParams.set('cursor', cursor)
+      if (caret) {
+        url.searchParams.set('caret', caret)
       }
 
       const page = await this.getWithRetry<ListInternalEventsResponse>(
@@ -942,8 +942,8 @@ export class CCRClient {
       if (!page) return null
 
       allEvents.push(...(page.data ?? []))
-      cursor = page.next_cursor
-    } while (cursor)
+      caret = page.next_caret
+    } while (caret)
 
     logForDebugging(
       `CCRClient: Read ${allEvents.length} internal events from ${path}${params.subagents ? ' (subagents)' : ''}`,
@@ -966,7 +966,7 @@ export class CCRClient {
         response = await this.http.get<T>(url, {
           headers: {
             ...authHeaders,
-            'anthropic-version': '2023-06-01',
+            'urhq-version': '2023-06-01',
             'User-Agent': getURCodeUserAgent(),
           },
           validateStatus: alwaysValidStatus,

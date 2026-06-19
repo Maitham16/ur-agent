@@ -8,7 +8,7 @@
 import type {
   ToolResultBlockParam,
   ToolUseBlock,
-} from '@anthropic-ai/sdk/resources'
+} from '@urhq-ai/sdk/resources'
 import type { SDKMessage } from '../../entrypoints/agentSdkTypes.js'
 import { EXIT_PLAN_MODE_V2_TOOL_NAME } from '../../tools/ExitPlanModeTool/constants.js'
 import { logForDebugging } from '../debug.js'
@@ -204,7 +204,7 @@ export async function pollForApprovedExitPlanMode(
 ): Promise<PollResult> {
   const deadline = Date.now() + timeoutMs
   const scanner = new ExitPlanModeScanner()
-  let cursor: string | null = null
+  let caret: string | null = null
   let failures = 0
   let lastPhase: UltraplanPhase = 'running'
 
@@ -222,9 +222,9 @@ export async function pollForApprovedExitPlanMode(
       // Metadata fetch (session_status) is the needs_input signal —
       // threadstore doesn't persist result(success) turn-end events, so
       // idle status is the only authoritative "remote is waiting" marker.
-      const resp = await pollRemoteSessionEvents(sessionId, cursor)
+      const resp = await pollRemoteSessionEvents(sessionId, caret)
       newEvents = resp.newEvents
-      cursor = resp.lastEventId
+      caret = resp.lastEventId
       sessionStatus = resp.sessionStatus
       failures = 0
     } catch (e) {

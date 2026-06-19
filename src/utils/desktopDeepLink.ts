@@ -33,7 +33,7 @@ function isDevMode(): boolean {
  * In dev mode: ur-dev://resume?session={sessionId}&cwd={cwd}
  */
 function buildDesktopDeepLink(sessionId: string): string {
-  const protocol = isDevMode() ? 'claude-dev' : 'claude'
+  const protocol = isDevMode() ? 'ur-dev' : 'ur'
   const url = new URL(`${protocol}://resume`)
   url.searchParams.set('session', sessionId)
   url.searchParams.set('cwd', getCwd())
@@ -57,21 +57,21 @@ async function isDesktopInstalled(): Promise<boolean> {
 
   if (platform === 'darwin') {
     // Check for UR.app in /Applications
-    return pathExists('/Applications/Claude.app')
+    return pathExists('/Applications/UR.app')
   } else if (platform === 'linux') {
     // Check if xdg-mime can find a handler for ur://
     // Note: xdg-mime returns exit code 0 even with no handler, so check stdout too
     const { code, stdout } = await execFileNoThrow('xdg-mime', [
       'query',
       'default',
-      'x-scheme-handler/claude',
+      'x-scheme-handler/ur',
     ])
     return code === 0 && stdout.trim().length > 0
   } else if (platform === 'win32') {
     // On Windows, try to query the registry for the protocol handler
     const { code } = await execFileNoThrow('reg', [
       'query',
-      'HKEY_CLASSES_ROOT\\claude',
+      'HKEY_CLASSES_ROOT\\ur',
       '/ve',
     ])
     return code === 0
@@ -92,7 +92,7 @@ async function getDesktopVersion(): Promise<string | null> {
   if (platform === 'darwin') {
     const { code, stdout } = await execFileNoThrow('defaults', [
       'read',
-      '/Applications/Claude.app/Contents/Info.plist',
+      '/Applications/UR.app/Contents/Info.plist',
       'CFBundleShortVersionString',
     ])
     if (code !== 0) {
@@ -105,7 +105,7 @@ async function getDesktopVersion(): Promise<string | null> {
     if (!localAppData) {
       return null
     }
-    const installDir = join(localAppData, 'AnthropicClaude')
+    const installDir = join(localAppData, 'URHQUR')
     try {
       const entries = await readdir(installDir)
       const versions = entries
@@ -216,7 +216,7 @@ export async function openCurrentSessionInDesktop(): Promise<{
     return {
       success: false,
       error:
-        'UR Desktop is not installed. Install it from https://claude.ai/download',
+        'UR Desktop is not installed. Install it from https://ur.ai/download',
     }
   }
 

@@ -31,7 +31,7 @@ import { getAllInProcessTeammateTasks } from '../tasks/InProcessTeammateTask/InP
 import { getEffortSuffix } from '../utils/effort.js';
 import { getMainLoopModel } from '../utils/model/model.js';
 import { getViewedTeammateTask } from '../state/selectors.js';
-import { TEARDROP_ASTERISK } from '../constants/figures.js';
+import { UR_HOUSE_SYMBOL } from '../constants/figures.js';
 import figures from 'figures';
 import { getCurrentTurnTokenBudget, getTurnOutputTokens } from '../bootstrap/state.js';
 import { TeammateSpinnerTree } from './Spinner/TeammateSpinnerTree.js';
@@ -211,7 +211,7 @@ function SpinnerWithVerbInner({
   // the ref. The tree is only shown when teammates are running; teammate
   // progress updates to s.tasks trigger re-renders that keep this fresh.
   const leaderTokenCount = Math.round(responseLengthRef.current / 4);
-  const defaultColor: keyof Theme = 'claude';
+  const defaultColor: keyof Theme = 'ur';
   const defaultShimmerColor = 'urShimmer';
   const messageColor = overrideColor ?? defaultColor;
   const shimmerColor = overrideShimmerColor ?? defaultShimmerColor;
@@ -233,7 +233,7 @@ function SpinnerWithVerbInner({
     return <Box flexDirection="column" width="100%" alignItems="flex-start">
         <Box flexDirection="row" flexWrap="wrap" marginTop={1} width="100%">
           <Text dimColor>
-            {TEARDROP_ASTERISK} Idle
+            {UR_HOUSE_SYMBOL} Idle
             {!allIdle && ' · teammates running'}
           </Text>
         </Box>
@@ -243,7 +243,7 @@ function SpinnerWithVerbInner({
 
   // When viewing an idle teammate, show static idle display instead of animated spinner
   if (foregroundedTeammate?.isIdle) {
-    const idleText = allIdle ? `${TEARDROP_ASTERISK} Worked for ${formatDuration(Date.now() - foregroundedTeammate.startTime)}` : `${TEARDROP_ASTERISK} Idle`;
+    const idleText = allIdle ? `${UR_HOUSE_SYMBOL} Worked for ${formatDuration(Date.now() - foregroundedTeammate.startTime)}` : `${UR_HOUSE_SYMBOL} Idle`;
     return <Box flexDirection="column" width="100%" alignItems="flex-start">
         <Box flexDirection="row" flexWrap="wrap" marginTop={1} width="100%">
           <Text dimColor>{idleText}</Text>

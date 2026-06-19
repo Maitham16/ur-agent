@@ -1,8 +1,7 @@
 // @ts-nocheck
 import * as React from 'react';
 import type { LocalJSXCommandContext } from '../../commands.js';
-import { getOauthProfileFromOauthToken } from '../../services/oauth/getOauthProfile.js';
-import type { LocalJSXCommandOnDone } from '../../types/command.js';
+const getOauthProfileFromOauthToken = () => null;import type { LocalJSXCommandOnDone } from '../../types/command.js';
 import { getURAIOAuthTokens, isURAISubscriber } from '../../utils/auth.js';
 import { openBrowser } from '../../utils/browser.js';
 import { logError } from '../../utils/log.js';
@@ -14,17 +13,17 @@ export async function call(onDone: LocalJSXCommandOnDone, context: LocalJSXComma
       const tokens = getURAIOAuthTokens();
       let isMax20x = false;
       if (tokens?.subscriptionType && tokens?.rateLimitTier) {
-        isMax20x = tokens.subscriptionType === 'max' && tokens.rateLimitTier === 'default_claude_max_20x';
+        isMax20x = tokens.subscriptionType === 'max' && tokens.rateLimitTier === 'default_ur_max_20x';
       } else if (tokens?.accessToken) {
         const profile = await getOauthProfileFromOauthToken(tokens.accessToken);
-        isMax20x = profile?.organization?.organization_type === 'claude_max' && profile?.organization?.rate_limit_tier === 'default_claude_max_20x';
+        isMax20x = profile?.organization?.organization_type === 'ur_max' && profile?.organization?.rate_limit_tier === 'default_ur_max_20x';
       }
       if (isMax20x) {
         setTimeout(onDone, 0, 'You are already on the highest Max subscription plan. For additional usage, run /login to switch to an API usage-billed account.');
         return null;
       }
     }
-    const url = 'https://claude.ai/upgrade/max';
+    const url = 'https://ur.ai/upgrade/max';
     await openBrowser(url);
     return <Login startingMessage={'Starting new login following /upgrade. Exit with Ctrl-C to use existing account.'} onDone={success => {
       context.onChangeAPIKey();
@@ -32,7 +31,7 @@ export async function call(onDone: LocalJSXCommandOnDone, context: LocalJSXComma
     }} />;
   } catch (error) {
     logError(error as Error);
-    setTimeout(onDone, 0, 'Failed to open browser. Please visit https://claude.ai/upgrade/max to upgrade.');
+    setTimeout(onDone, 0, 'Failed to open browser. Please visit https://ur.ai/upgrade/max to upgrade.');
   }
   return null;
 }

@@ -26,8 +26,8 @@ export { Parser } from './termio/parser.js'
 export type {
   Action,
   Color,
-  CursorAction,
-  CursorDirection,
+  caretAction,
+  caretDirection,
   EraseAction,
   Grapheme,
   LinkAction,

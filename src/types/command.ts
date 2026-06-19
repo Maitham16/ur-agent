@@ -1,4 +1,4 @@
-import type { ContentBlockParam } from '@anthropic-ai/sdk/resources/index.mjs'
+import type { ContentBlockParam } from '@urhq-ai/sdk/resources/index.mjs'
 import type { UUID } from 'crypto'
 import type { CanUseToolFn } from '../hooks/useCanUseTool.js'
 import type { CompactionResult } from '../services/compact/compact.js'
@@ -163,13 +163,13 @@ type LocalJSXCommand = {
  * of the listed auth types. See meetsAvailabilityRequirement() in commands.ts.
  *
  * Example: `availability: ['ur-ai', 'console']` shows the command to
- * ur.ai subscribers and direct Console API key users (api.anthropic.com),
+ * ur.ai subscribers and direct Console API key users (api.urhq.com),
  * but hides it from Bedrock/Vertex/Foundry users and custom base URL users.
  */
 export type CommandAvailability =
   // ur.ai OAuth subscriber (Pro/Max/Team/Enterprise via ur.ai)
-  | 'claude-ai'
-  // Console API key user (direct api.anthropic.com, not via ur.ai OAuth)
+  | 'ur-ai'
+  // Console API key user (direct api.urhq.com, not via ur.ai OAuth)
   | 'console'
 
 export type CommandBase = {

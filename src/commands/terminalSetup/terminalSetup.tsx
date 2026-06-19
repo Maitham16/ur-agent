@@ -43,7 +43,7 @@ function isVSCodeRemoteSSH(): boolean {
 
   // Check both env vars - VSCODE_GIT_ASKPASS_MAIN is more reliable when git extension
   // is active, and PATH is a fallback. Omit path separator for Windows compatibility.
-  return askpassMain.includes('.vscode-server') || askpassMain.includes('.cursor-server') || askpassMain.includes('.windsurf-server') || path.includes('.vscode-server') || path.includes('.cursor-server') || path.includes('.windsurf-server');
+  return askpassMain.includes('.vscode-server') || askpassMain.includes('.caret-server') || askpassMain.includes('.windsurf-server') || path.includes('.vscode-server') || path.includes('.caret-server') || path.includes('.windsurf-server');
 }
 export function getNativeCSIuTerminalDisplayName(): string | null {
   if (!env.terminal || !(env.terminal in NATIVE_CSIU_TERMINALS)) {
@@ -75,7 +75,7 @@ export function shouldOfferTerminalSetup(): boolean {
   // iTerm2, WezTerm, Ghostty, Kitty, and Warp natively support CSI u / Kitty
   // keyboard protocol, which UR already parses. No setup needed for
   // these terminals.
-  return platform() === 'darwin' && env.terminal === 'Apple_Terminal' || env.terminal === 'vscode' || env.terminal === 'cursor' || env.terminal === 'windsurf' || env.terminal === 'alacritty' || env.terminal === 'zed';
+  return platform() === 'darwin' && env.terminal === 'Apple_Terminal' || env.terminal === 'vscode' || env.terminal === 'caret' || env.terminal === 'windsurf' || env.terminal === 'alacritty' || env.terminal === 'zed';
 }
 export async function setupTerminal(theme: ThemeName): Promise<string> {
   let result = '';
@@ -86,8 +86,8 @@ export async function setupTerminal(theme: ThemeName): Promise<string> {
     case 'vscode':
       result = await installBindingsForVSCodeTerminal('VSCode', theme);
       break;
-    case 'cursor':
-      result = await installBindingsForVSCodeTerminal('Cursor', theme);
+    case 'caret':
+      result = await installBindingsForVSCodeTerminal('caret', theme);
       break;
     case 'windsurf':
       result = await installBindingsForVSCodeTerminal('Windsurf', theme);
@@ -102,7 +102,7 @@ export async function setupTerminal(theme: ThemeName): Promise<string> {
       break;
   }
   saveGlobalConfig(current => {
-    if (['vscode', 'cursor', 'windsurf', 'alacritty', 'zed'].includes(env.terminal ?? '')) {
+    if (['vscode', 'caret', 'windsurf', 'alacritty', 'zed'].includes(env.terminal ?? '')) {
       if (current.shiftEnterKeyBindingInstalled === true) return current;
       return {
         ...current,
@@ -172,7 +172,7 @@ ${chalk.dim('Note: You can already use backslash (\\\\) + return to add newlines
 To set up the shortcut (optional):
 1. Exit tmux/screen temporarily
 2. Run /terminal-setup directly in one of these terminals:
-${platformTerminals}   • IDE: VSCode, Cursor, Windsurf, Zed
+${platformTerminals}   • IDE: VSCode, caret, Windsurf, Zed
    • Other: Alacritty
 3. Return to tmux/screen - settings will persist
 
@@ -192,7 +192,7 @@ type VSCodeKeybinding = {
   };
   when: string;
 };
-async function installBindingsForVSCodeTerminal(editor: 'VSCode' | 'Cursor' | 'Windsurf' = 'VSCode', theme: ThemeName): Promise<string> {
+async function installBindingsForVSCodeTerminal(editor: 'VSCode' | 'caret' | 'Windsurf' = 'VSCode', theme: ThemeName): Promise<string> {
   // Check if we're running in a VSCode Remote SSH session
   // In this case, keybindings need to be installed on the LOCAL machine
   if (isVSCodeRemoteSSH()) {

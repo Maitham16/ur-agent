@@ -1,74 +1,32 @@
-// Reconstructed permissive OAuth types matching observed usage.
 
-export interface OAuthTokens {
-  accessToken?: string
-  refreshToken?: string
-  expiresAt?: number
-  scopes?: string[]
-  subscriptionType?: SubscriptionType | string
-  rateLimitTier?: RateLimitTier | string
-  [key: string]: any
-}
-
-export interface OAuthTokenExchangeResponse {
-  access_token?: string
-  refresh_token?: string
-  expires_in?: number
-  scope?: string
-  scopes?: string[]
-  token_type?: string
-  [key: string]: any
-}
-
-export interface OAuthProfileResponse {
-  account?: {
-    uuid?: string
-    email_address?: string
-    email?: string
-    full_name?: string
-    display_name?: string
-    created_at?: string
-    [key: string]: any
-  }
-  organization?: {
-    uuid?: string
-    name?: string
-    organization_type?: string
-    billing_type?: BillingType | string
-    rate_limit_tier?: RateLimitTier | string
-    has_extra_usage_enabled?: boolean
-    subscription_created_at?: string
-    [key: string]: any
-  }
-  [key: string]: any
-}
-
-export type BillingType = string
-export type RateLimitTier = string
-export type SubscriptionType = string
-
-export interface UserRolesResponse {
-  roles?: string[]
-  [key: string]: any
-}
-
-export interface ReferralCampaign {
-  id?: string
-  name?: string
-  [key: string]: any
-}
-
-export interface ReferralEligibilityResponse {
-  eligible?: boolean
-  [key: string]: any
-}
-
-export interface ReferralRedemptionsResponse {
-  redemptions?: unknown[]
-  [key: string]: any
-}
-
-export interface ReferrerRewardInfo {
-  amount?: number
-  [key: string]: any
-}
+export const logOTelEvent = (...args: any[]) => {};
+export const redactIfDisabled = (...args: any[]) => {};
+export const startInteractionSpan = (...args: any[]) => ({ end: () => {} });
+export const endInteractionSpan = (...args: any[]) => {};
+export const recordPluginAction = (...args: any[]) => {};
+export const recordSkillLoaded = (...args: any[]) => {};
+export const logPluginLoadErrors = (...args: any[]) => {};
+export const logPluginsEnabledForSession = (...args: any[]) => {};
+export const logSkillsLoaded = (...args: any[]) => {};
+export const getOAuthToken = (...args: any[]) => null;
+export const initiateOAuth = (...args: any[]) => null;
+export const AuthProvider = (...args: any[]) => null;
+export const checkRateLimit = (...args: any[]) => null;
+export const logEvent = (...args: any[]) => {};
+export const FeedbackSurvey = (...args: any[]) => null;
+export const useFeedbackSurvey = (...args: any[]): any => ({});
+export const useMemorySurvey = (...args: any[]): any => ({});
+export const usePostCompactSurvey = (...args: any[]): any => ({ handleSelect: () => {} });
+export const FeedbackSurveyView = (...args: any[]) => null;
+export const isValidResponseInput = (...args: any[]) => false;
+export type FeedbackSurveyResponse = any;
+export const uploadBrief = (...args: any[]) => null;
+export const uploadTranscript = (...args: any[]) => null;
+export const trackBetaSession = (...args: any[]) => null;
+export const getTelemetryAttributes = (...args: any[]) => ({});
+export const initializeTelemetry = (...args: any[]) => null;
+export const isBetaTracingEnabled = (...args: any[]) => false;
+export const populateOAuthAccountInfoIfNeeded = (...args: any[]) => null;
+export const getOauthConfig = (...args: any[]) => null;
+export const Login = (props: any) => null;
+export default () => null;

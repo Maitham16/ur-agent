@@ -17,7 +17,7 @@ export function LanguagePicker(t0) {
     onCancel
   } = t0;
   const [language, setLanguage] = useState(initialLanguage);
-  const [cursorOffset, setCursorOffset] = useState((initialLanguage ?? "").length);
+  const [caretOffset, setcaretOffset] = useState((initialLanguage ?? "").length);
   let t1;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
     t1 = {
@@ -57,9 +57,9 @@ export function LanguagePicker(t0) {
   }
   const t5 = language ?? "";
   let t6;
-  if ($[6] !== cursorOffset || $[7] !== handleSubmit || $[8] !== t5) {
-    t6 = <Box flexDirection="row" gap={1}>{t4}<TextInput value={t5} onChange={setLanguage} onSubmit={handleSubmit} focus={true} showCursor={true} placeholder={`e.g., Japanese, 日本語, Español${figures.ellipsis}`} columns={60} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} /></Box>;
-    $[6] = cursorOffset;
+  if ($[6] !== caretOffset || $[7] !== handleSubmit || $[8] !== t5) {
+    t6 = <Box flexDirection="row" gap={1}>{t4}<TextInput value={t5} onChange={setLanguage} onSubmit={handleSubmit} focus={true} showCaret={true} placeholder={`e.g., Japanese, 日本語, Español${figures.ellipsis}`} columns={60} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} /></Box>;
+    $[6] = caretOffset;
     $[7] = handleSubmit;
     $[8] = t5;
     $[9] = t6;

@@ -15,7 +15,7 @@ import { attachAnalyticsSink, stripProtoFields } from './index.js'
 import { isSinkKilled } from './sinkKillswitch.js'
 
 // Local type matching the logEvent metadata signature
-type LogEventMetadata = { [key: string]: boolean | number | undefined }
+type LogEventMetadata = Record<string, boolean | number | string | undefined>
 
 const DATADOG_GATE_NAME = 'tengu_log_datadog_events'
 
@@ -63,12 +63,12 @@ function logEventImpl(eventName: string, metadata: LogEventMetadata): void {
   if (shouldTrackDatadog()) {
     // Datadog is a general-access backend — strip _PROTO_* keys
     // (unredacted PII-tagged values meant only for the 1P privileged column).
-    void trackDatadogEvent(eventName, stripProtoFields(metadataWithSampleRate))
+    void trackDatadogEvent(eventName, stripProtoFields(metadataWithSampleRate) as any)
   }
 
   // 1P receives the full payload including _PROTO_* — the exporter
   // destructures and routes those keys to proto fields itself.
-  logEventTo1P(eventName, metadataWithSampleRate)
+  logEventTo1P(eventName, metadataWithSampleRate as any)
 }
 
 /**

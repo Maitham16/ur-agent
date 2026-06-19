@@ -19,7 +19,7 @@ export function DescriptionStep() {
     wizardData
   } = useWizard();
   const [whenToUse, setWhenToUse] = useState(wizardData.whenToUse || "");
-  const [cursorOffset, setCursorOffset] = useState(whenToUse.length);
+  const [caretOffset, setcaretOffset] = useState(whenToUse.length);
   const [error, setError] = useState(null);
   let t0;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
@@ -37,7 +37,7 @@ export function DescriptionStep() {
       const result = await editPromptInEditor(whenToUse);
       if (result.content !== null) {
         setWhenToUse(result.content);
-        setCursorOffset(result.content.length);
+        setcaretOffset(result.content.length);
       }
     };
     $[1] = whenToUse;
@@ -92,9 +92,9 @@ export function DescriptionStep() {
     t5 = $[8];
   }
   let t6;
-  if ($[9] !== cursorOffset || $[10] !== handleSubmit || $[11] !== whenToUse) {
-    t6 = <Box marginTop={1}><TextInput value={whenToUse} onChange={setWhenToUse} onSubmit={handleSubmit} placeholder="e.g., use this agent after you're done writing code..." columns={80} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} focus={true} showCursor={true} /></Box>;
-    $[9] = cursorOffset;
+  if ($[9] !== caretOffset || $[10] !== handleSubmit || $[11] !== whenToUse) {
+    t6 = <Box marginTop={1}><TextInput value={whenToUse} onChange={setWhenToUse} onSubmit={handleSubmit} placeholder="e.g., use this agent after you're done writing code..." columns={80} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} focus={true} showCaret={true} /></Box>;
+    $[9] = caretOffset;
     $[10] = handleSubmit;
     $[11] = whenToUse;
     $[12] = t6;

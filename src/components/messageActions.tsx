@@ -197,7 +197,7 @@ export type MessageActionsState = {
   toolName?: string;
 };
 export type MessageActionsNav = {
-  enterCursor: () => void;
+  entercaret: () => void;
   navigatePrev: () => void;
   navigateNext: () => void;
   navigatePrevUser: () => void;
@@ -215,13 +215,13 @@ export function useSelectedMessageBg() {
 }
 
 // Can't call useKeybindings here — hook runs outside <KeybindingSetup> provider. Returns handlers instead.
-export function useMessageActions(cursor: MessageActionsState | null, setCursor: React.Dispatch<React.SetStateAction<MessageActionsState | null>>, navRef: RefObject<MessageActionsNav | null>, caps: MessageActionCaps): {
+export function useMessageActions(caret: MessageActionsState | null, setcaret: React.Dispatch<React.SetStateAction<MessageActionsState | null>>, navRef: RefObject<MessageActionsNav | null>, caps: MessageActionCaps): {
   enter: () => void;
   handlers: Record<string, () => void>;
 } {
   // Refs keep handlers stable — no useKeybindings re-register per message append.
-  const cursorRef = useRef(cursor);
-  cursorRef.current = cursor;
+  const caretRef = useRef(caret);
+  caretRef.current = caret;
   const capsRef = useRef(caps);
   capsRef.current = caps;
   const handlers = useMemo(() => {
@@ -232,22 +232,22 @@ export function useMessageActions(cursor: MessageActionsState | null, setCursor:
       'messageActions:nextUser': () => navRef.current?.navigateNextUser(),
       'messageActions:top': () => navRef.current?.navigateTop(),
       'messageActions:bottom': () => navRef.current?.navigateBottom(),
-      'messageActions:escape': () => setCursor(c => c?.expanded ? {
+      'messageActions:escape': () => setcaret(c => c?.expanded ? {
         ...c,
         expanded: false
       } : null),
       // ctrl+c skips the collapse step — from expanded-during-streaming, two-stage
       // would mean 3 presses to interrupt (collapse→null→cancel).
-      'messageActions:ctrlc': () => setCursor(null)
+      'messageActions:ctrlc': () => setcaret(null)
     };
     for (const key of new Set(MESSAGE_ACTIONS.map(a_1 => a_1.key))) {
       h[`messageActions:${key}`] = () => {
-        const c_0 = cursorRef.current;
+        const c_0 = caretRef.current;
         if (!c_0) return;
         const a_0 = MESSAGE_ACTIONS.find(a => a.key === key && isApplicable(a, c_0));
         if (!a_0) return;
         if (a_0.stays) {
-          setCursor(c_1 => c_1 ? {
+          setcaret(c_1 => c_1 ? {
             ...c_1,
             expanded: !c_1.expanded
           } : null);
@@ -256,14 +256,14 @@ export function useMessageActions(cursor: MessageActionsState | null, setCursor:
         const m = navRef.current?.getSelected();
         if (!m) return;
         (a_0.run as (m: NavigableMessage, c_0: MessageActionCaps) => void)(m, capsRef.current);
-        setCursor(null);
+        setcaret(null);
       };
     }
     return h;
-  }, [setCursor, navRef]);
+  }, [setcaret, navRef]);
   const enter = useCallback(() => {
     logEvent('tengu_message_actions_enter', {});
-    navRef.current?.enterCursor();
+    navRef.current?.entercaret();
   }, [navRef]);
   return {
     enter,
@@ -297,7 +297,7 @@ export function MessageActionsKeybindings(t0) {
 export function MessageActionsBar(t0) {
   const $ = _c(28);
   const {
-    cursor
+    caret
   } = t0;
   let T0;
   let T1;
@@ -308,8 +308,8 @@ export function MessageActionsBar(t0) {
   let t5;
   let t6;
   let t7;
-  if ($[0] !== cursor) {
-    const applicable = MESSAGE_ACTIONS.filter(a => isApplicable(a, cursor));
+  if ($[0] !== caret) {
+    const applicable = MESSAGE_ACTIONS.filter(a => isApplicable(a, caret));
     T1 = Box;
     t4 = "column";
     t5 = 0;
@@ -324,10 +324,10 @@ export function MessageActionsBar(t0) {
     t1 = 2;
     t2 = 1;
     t3 = applicable.map((a_0, i) => {
-      const label = typeof a_0.label === "function" ? a_0.label(cursor) : a_0.label;
+      const label = typeof a_0.label === "function" ? a_0.label(caret) : a_0.label;
       return <React.Fragment key={a_0.key}>{i > 0 && <Text dimColor={true}> · </Text>}<Text bold={true} dimColor={false}>{a_0.key}</Text><Text dimColor={true}> {label}</Text></React.Fragment>;
     });
-    $[0] = cursor;
+    $[0] = caret;
     $[1] = T0;
     $[2] = T1;
     $[3] = t1;

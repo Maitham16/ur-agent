@@ -40,12 +40,12 @@ type Props<T> = {
    */
   onOpenEditor?: (currentValue: string, setValue: (value: string) => void) => void;
   /**
-   * When true, automatically reset cursor to end of line when:
+   * When true, automatically reset caret to end of line when:
    * - Option becomes focused
    * - Input value changes
-   * This prevents cursor position bugs when the input value updates asynchronously.
+   * This prevents caret position bugs when the input value updates asynchronously.
    */
-  resetCursorOnUpdate?: boolean;
+  resetcaretOnUpdate?: boolean;
   /**
    * Optional callback when an image is pasted into the input.
    */
@@ -93,7 +93,7 @@ export function SelectInputOption(t0) {
     children,
     showLabel: t1,
     onOpenEditor,
-    resetCursorOnUpdate: t2,
+    resetcaretOnUpdate: t2,
     onImagePaste,
     pastedContents,
     onRemoveImage,
@@ -103,7 +103,7 @@ export function SelectInputOption(t0) {
     onSelectedImageIndexChange
   } = t0;
   const showLabelProp = t1 === undefined ? false : t1;
-  const resetCursorOnUpdate = t2 === undefined ? false : t2;
+  const resetcaretOnUpdate = t2 === undefined ? false : t2;
   const selectedImageIndex = t3 === undefined ? 0 : t3;
   let t4;
   if ($[0] !== pastedContents) {
@@ -115,32 +115,32 @@ export function SelectInputOption(t0) {
   }
   const imageAttachments = t4;
   const showLabel = showLabelProp || option.showLabelWithValue === true;
-  const [cursorOffset, setCursorOffset] = useState(inputValue.length);
+  const [caretOffset, setcaretOffset] = useState(inputValue.length);
   const isUserEditing = useRef(false);
   let t5;
-  if ($[2] !== inputValue.length || $[3] !== isFocused || $[4] !== resetCursorOnUpdate) {
+  if ($[2] !== inputValue.length || $[3] !== isFocused || $[4] !== resetcaretOnUpdate) {
     t5 = () => {
-      if (resetCursorOnUpdate && isFocused) {
+      if (resetcaretOnUpdate && isFocused) {
         if (isUserEditing.current) {
           isUserEditing.current = false;
         } else {
-          setCursorOffset(inputValue.length);
+          setcaretOffset(inputValue.length);
         }
       }
     };
     $[2] = inputValue.length;
     $[3] = isFocused;
-    $[4] = resetCursorOnUpdate;
+    $[4] = resetcaretOnUpdate;
     $[5] = t5;
   } else {
     t5 = $[5];
   }
   let t6;
-  if ($[6] !== inputValue || $[7] !== isFocused || $[8] !== resetCursorOnUpdate) {
-    t6 = [resetCursorOnUpdate, isFocused, inputValue];
+  if ($[6] !== inputValue || $[7] !== isFocused || $[8] !== resetcaretOnUpdate) {
+    t6 = [resetcaretOnUpdate, isFocused, inputValue];
     $[6] = inputValue;
     $[7] = isFocused;
-    $[8] = resetCursorOnUpdate;
+    $[8] = resetcaretOnUpdate;
     $[9] = t6;
   } else {
     t6 = $[9];
@@ -374,33 +374,33 @@ export function SelectInputOption(t0) {
     t31 = $[58];
   }
   let t32;
-  if ($[59] !== cursorOffset || $[60] !== imagesSelected || $[61] !== inputValue || $[62] !== isFocused || $[63] !== onExit || $[64] !== onImagePaste || $[65] !== onInputChange || $[66] !== onSubmit || $[67] !== option || $[68] !== showLabel) {
+  if ($[59] !== caretOffset || $[60] !== imagesSelected || $[61] !== inputValue || $[62] !== isFocused || $[63] !== onExit || $[64] !== onImagePaste || $[65] !== onInputChange || $[66] !== onSubmit || $[67] !== option || $[68] !== showLabel) {
     t32 = showLabel ? <><Text color={isFocused ? "suggestion" : undefined}>{option.label}</Text>{isFocused ? <><Text color="suggestion">{option.labelValueSeparator ?? ", "}</Text><TextInput value={inputValue} onChange={value => {
           isUserEditing.current = true;
           onInputChange(value);
           option.onChange(value);
-        }} onSubmit={onSubmit} onExit={onExit} placeholder={option.placeholder} focus={!imagesSelected} showCursor={true} multiline={true} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} columns={80} onImagePaste={onImagePaste} onPaste={pastedText => {
+        }} onSubmit={onSubmit} onExit={onExit} placeholder={option.placeholder} focus={!imagesSelected} showCaret={true} multiline={true} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} columns={80} onImagePaste={onImagePaste} onPaste={pastedText => {
           isUserEditing.current = true;
-          const before = inputValue.slice(0, cursorOffset);
-          const after = inputValue.slice(cursorOffset);
+          const before = inputValue.slice(0, caretOffset);
+          const after = inputValue.slice(caretOffset);
           const newValue = before + pastedText + after;
           onInputChange(newValue);
           option.onChange(newValue);
-          setCursorOffset(before.length + pastedText.length);
+          setcaretOffset(before.length + pastedText.length);
         }} /></> : inputValue && <Text>{option.labelValueSeparator ?? ", "}{inputValue}</Text>}</> : isFocused ? <TextInput value={inputValue} onChange={value_0 => {
       isUserEditing.current = true;
       onInputChange(value_0);
       option.onChange(value_0);
-    }} onSubmit={onSubmit} onExit={onExit} placeholder={option.placeholder || (typeof option.label === "string" ? option.label : undefined)} focus={!imagesSelected} showCursor={true} multiline={true} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} columns={80} onImagePaste={onImagePaste} onPaste={pastedText_0 => {
+    }} onSubmit={onSubmit} onExit={onExit} placeholder={option.placeholder || (typeof option.label === "string" ? option.label : undefined)} focus={!imagesSelected} showCaret={true} multiline={true} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} columns={80} onImagePaste={onImagePaste} onPaste={pastedText_0 => {
       isUserEditing.current = true;
-      const before_0 = inputValue.slice(0, cursorOffset);
-      const after_0 = inputValue.slice(cursorOffset);
+      const before_0 = inputValue.slice(0, caretOffset);
+      const after_0 = inputValue.slice(caretOffset);
       const newValue_0 = before_0 + pastedText_0 + after_0;
       onInputChange(newValue_0);
       option.onChange(newValue_0);
-      setCursorOffset(before_0.length + pastedText_0.length);
+      setcaretOffset(before_0.length + pastedText_0.length);
     }} /> : <Text color={inputValue ? undefined : "inactive"}>{inputValue || option.placeholder || option.label}</Text>;
-    $[59] = cursorOffset;
+    $[59] = caretOffset;
     $[60] = imagesSelected;
     $[61] = inputValue;
     $[62] = isFocused;
@@ -427,7 +427,7 @@ export function SelectInputOption(t0) {
   }
   let t34;
   if ($[75] !== isFocused || $[76] !== isSelected || $[77] !== shouldShowDownArrow || $[78] !== shouldShowUpArrow || $[79] !== t33) {
-    t34 = <SelectOption isFocused={isFocused} isSelected={isSelected} shouldShowDownArrow={shouldShowDownArrow} shouldShowUpArrow={shouldShowUpArrow} declareCursor={false}>{t33}</SelectOption>;
+    t34 = <SelectOption isFocused={isFocused} isSelected={isSelected} shouldShowDownArrow={shouldShowDownArrow} shouldShowUpArrow={shouldShowUpArrow} declareCaret={false}>{t33}</SelectOption>;
     $[75] = isFocused;
     $[76] = isSelected;
     $[77] = shouldShowDownArrow;

@@ -425,23 +425,23 @@ function isGrowthBookEnabled(): boolean {
 }
 
 /**
- * Hostname of ANTHROPIC_BASE_URL when it points at a non-UR proxy.
+ * Hostname of URHQ_BASE_URL when it points at a non-UR proxy.
  *
  * Enterprise-proxy deployments (Epic, Marble, etc.) typically use
- * apiKeyHelper auth, which means isAnthropicAuthEnabled() returns false and
+ * apiKeyHelper auth, which means isURHQAuthEnabled() returns false and
  * organizationUUID/accountUUID/email are all absent from GrowthBook
  * attributes. Without this, there's no stable attribute to target them on
- * — only per-device IDs. See src/utils/auth.ts isAnthropicAuthEnabled().
+ * — only per-device IDs. See src/utils/auth.ts isURHQAuthEnabled().
  *
- * Returns undefined for unset/default (api.anthropic.com) so the attribute
+ * Returns undefined for unset/default (api.urhq.com) so the attribute
  * is absent for direct-API users. Hostname only — no path/query/creds.
  */
 export function getApiBaseUrlHost(): string | undefined {
-  const baseUrl = process.env.ANTHROPIC_BASE_URL
+  const baseUrl = process.env.URHQ_BASE_URL
   if (!baseUrl) return undefined
   try {
     const host = new URL(baseUrl).host
-    if (host === 'api.anthropic.com') return undefined
+    if (host === 'api.urhq.com') return undefined
     return host
   } catch {
     return undefined
@@ -454,7 +454,7 @@ export function getApiBaseUrlHost(): string | undefined {
 function getUserAttributes(): GrowthBookUserAttributes {
   const user = getUserForGrowthBook()
 
-  // For ants, always try to include email from OAuth config even if ANTHROPIC_API_KEY is set.
+  // For ants, always try to include email from OAuth config even if UR_API_KEY is set.
   // This ensures GrowthBook targeting by email works regardless of auth method.
   let email = user.email
   if (!email && process.env.USER_TYPE === 'ant') {
@@ -502,8 +502,8 @@ const getGrowthBookClient = memoize(
     }
     const baseUrl =
       process.env.USER_TYPE === 'ant'
-        ? process.env.UR_CODE_GB_BASE_URL || 'https://api.anthropic.com/'
-        : 'https://api.anthropic.com/'
+        ? process.env.UR_CODE_GB_BASE_URL || 'https://api.urhq.com/'
+        : 'https://api.urhq.com/'
 
     // Skip auth if trust hasn't been established yet
     // This prevents executing apiKeyHelper commands before the trust dialog

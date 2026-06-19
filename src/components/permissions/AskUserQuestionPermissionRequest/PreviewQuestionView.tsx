@@ -30,7 +30,7 @@ type Props = {
   onCancel: () => void;
   onTabPrev?: () => void;
   onTabNext?: () => void;
-  onRespondToClaude: () => void;
+  onRespondToUR: () => void;
   onFinishPlanInterview: () => void;
 };
 
@@ -53,14 +53,14 @@ export function PreviewQuestionView({
   onCancel,
   onTabPrev,
   onTabNext,
-  onRespondToClaude,
+  onRespondToUR,
   onFinishPlanInterview
 }: Props): React.ReactNode {
   const isInPlanMode = useAppState(s => s.toolPermissionContext.mode) === 'plan';
   const [isFooterFocused, setIsFooterFocused] = useState(false);
   const [footerIndex, setFooterIndex] = useState(0);
   const [isInNotesInput, setIsInNotesInput] = useState(false);
-  const [cursorOffset, setCursorOffset] = useState(0);
+  const [caretOffset, setcaretOffset] = useState(0);
   const editor = getExternalEditor();
   const editorName = editor ? toIDEDisplayName(editor) : null;
   const questionText = question.question;
@@ -173,7 +173,7 @@ export function PreviewQuestionView({
       if (e.key === 'return') {
         e.preventDefault();
         if (footerIndex === 0) {
-          onRespondToClaude();
+          onRespondToUR();
         } else {
           onFinishPlanInterview();
         }
@@ -226,7 +226,7 @@ export function PreviewQuestionView({
         handleNavigate(idx_0);
       }
     }
-  }, [isFooterFocused, footerIndex, isInPlanMode, isInNotesInput, focusedIndex, allOptions.length, handleUpFromFooter, handleDownFromPreview, handleNavigate, handleSelectOption, handleNotesExit, onRespondToClaude, onFinishPlanInterview, onCancel, onTextInputFocus]);
+  }, [isFooterFocused, footerIndex, isInPlanMode, isInNotesInput, focusedIndex, allOptions.length, handleUpFromFooter, handleDownFromPreview, handleNavigate, handleSelectOption, handleNotesExit, onRespondToUR, onFinishPlanInterview, onCancel, onTextInputFocus]);
   const previewContent = focusedOption?.preview || null;
 
   // The right panel's available width is terminal minus the left panel and gap.
@@ -289,7 +289,7 @@ export function PreviewQuestionView({
                 onUpdateQuestionState(questionText, {
                   textInputValue: value
                 }, false);
-              }} onSubmit={handleNotesExit} onExit={handleNotesExit} focus={true} showCursor={true} columns={60} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} /> : <Text dimColor italic>
+              }} onSubmit={handleNotesExit} onExit={handleNotesExit} focus={true} showCaret={true} columns={60} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} /> : <Text dimColor italic>
                     {notesValue || 'press n to add notes'}
                   </Text>}
               </Box>

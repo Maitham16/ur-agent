@@ -8,7 +8,7 @@ import { useTerminalSize } from '../../hooks/useTerminalSize.js';
 import type { KeyboardEvent } from '../../ink/events/keyboard-event.js';
 import { setClipboard } from '../../ink/termio/osc.js';
 import { Box, Link, Text } from '../../ink.js';
-import { OAuthService } from '../../services/oauth/index.js';
+type OAuthService = any;
 import { saveOAuthTokensIfNeeded } from '../../utils/auth.js';
 import { logError } from '../../utils/log.js';
 interface OAuthFlowStepProps {
@@ -43,7 +43,7 @@ export function OAuthFlowStep({
   });
   const [oauthService] = useState(() => new OAuthService());
   const [pastedCode, setPastedCode] = useState('');
-  const [cursorOffset, setCursorOffset] = useState(0);
+  const [caretOffset, setcaretOffset] = useState(0);
   const [showPastePrompt, setShowPastePrompt] = useState(false);
   const [urlCopied, setUrlCopied] = useState(false);
   const timersRef = useRef<Set<NodeJS.Timeout>>(new Set());
@@ -56,7 +56,7 @@ export function OAuthFlowStep({
     e.preventDefault();
     if (e.key === 'return' && oauthStatus.toRetry) {
       setPastedCode('');
-      setCursorOffset(0);
+      setcaretOffset(0);
       setOAuthStatus({
         state: 'about_to_retry',
         nextState: oauthStatus.toRetry
@@ -214,7 +214,7 @@ export function OAuthFlowStep({
 
             {showPastePrompt && <Box>
                 <Text>{PASTE_HERE_MSG}</Text>
-                <TextInput value={pastedCode} onChange={setPastedCode} onSubmit={(value_0: string) => handleSubmitCode(value_0, oauthStatus.url)} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} columns={textInputColumns} />
+                <TextInput value={pastedCode} onChange={setPastedCode} onSubmit={(value_0: string) => handleSubmitCode(value_0, oauthStatus.url)} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} columns={textInputColumns} />
               </Box>}
           </Box>;
       case 'processing':

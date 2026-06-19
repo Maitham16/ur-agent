@@ -261,7 +261,7 @@ export const DEFAULT_BINDINGS: KeybindingBlock[] = [
       enter: 'messageSelector:select',
     },
   },
-  // PromptInput unmounts while cursor active — no key conflict.
+  // PromptInput unmounts while caret active — no key conflict.
   ...(feature('MESSAGE_ACTIONS')
     ? [
         {

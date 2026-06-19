@@ -20,7 +20,7 @@ import { isBridgeEnabled } from '../../bridge/bridgeEnabled.js';
 import { ThemePicker } from '../ThemePicker.js';
 import { useAppState, useSetAppState, useAppStateStore } from '../../state/AppState.js';
 import { ModelPicker } from '../ModelPicker.js';
-import { modelDisplayString, isOpus1mMergeEnabled } from '../../utils/model/model.js';
+import { modelDisplayString, ismodelO1mMergeEnabled } from '../../utils/model/model.js';
 import { isBilledAsExtraUsage } from '../../utils/extraUsage.js';
 import { AgentMdExternalIncludesDialog } from '../AgentMdExternalIncludesDialog.js';
 import { ChannelDowngradeDialog, type ChannelDowngradeChoice } from '../ChannelDowngradeDialog.js';
@@ -179,7 +179,7 @@ export function Config({
   const {
     query: searchQuery,
     setQuery: setSearchQuery,
-    cursorOffset: searchCursorOffset
+    caretOffset: searchcaretOffset
   } = useSearchInput({
     isActive: isSearchMode && showSubmenu === null && !headerFocused,
     onExit: () => setIsSearchMode(false),
@@ -213,7 +213,7 @@ export function Config({
       mainLoopModelForSession: null
     }));
     setChanges(prev_0 => {
-      const valStr = modelDisplayString(value) + (isBilledAsExtraUsage(value, false, isOpus1mMergeEnabled()) ? ' · Billed as extra usage' : '');
+      const valStr = modelDisplayString(value) + (isBilledAsExtraUsage(value, false, ismodelO1mMergeEnabled()) ? ' · Billed as extra usage' : '');
       if ('model' in prev_0) {
         const {
           model,
@@ -886,7 +886,7 @@ export function Config({
         ...getGlobalConfig(),
         urInChromeDefaultEnabled: enabled_5
       });
-      logEvent('tengu_claude_in_chrome_setting_changed', {
+      logEvent('tengu_ur_in_chrome_setting_changed', {
         enabled: enabled_5
       });
     }
@@ -976,7 +976,7 @@ export function Config({
     }
   }] : []), ...(shouldShowExternalIncludesToggle ? [{
     id: 'showExternalIncludesDialog',
-    label: 'External CLAUDE.md includes',
+    label: 'External UR.md includes',
     value: (() => {
       const projectConfig = getCurrentProjectConfig();
       if (projectConfig.hasAgentMdExternalIncludesApproved) {
@@ -989,16 +989,16 @@ export function Config({
     onChange() {
       // Will be handled by toggleSetting function
     }
-  }] : []), ...(process.env.ANTHROPIC_API_KEY && !isRunningOnHomespace() ? [{
+  }] : []), ...(process.env.UR_API_KEY && !isRunningOnHomespace() ? [{
     id: 'apiKey',
     label: <Text>
                 Use custom API key:{' '}
                 <Text bold>
-                  {normalizeApiKeyForConfig(process.env.ANTHROPIC_API_KEY)}
+                  {normalizeApiKeyForConfig(process.env.UR_API_KEY)}
                 </Text>
               </Text>,
     searchText: 'Use custom API key',
-    value: Boolean(process.env.ANTHROPIC_API_KEY && globalConfig.customApiKeyResponses?.approved?.includes(normalizeApiKeyForConfig(process.env.ANTHROPIC_API_KEY))),
+    value: Boolean(process.env.UR_API_KEY && globalConfig.customApiKeyResponses?.approved?.includes(normalizeApiKeyForConfig(process.env.UR_API_KEY))),
     type: 'boolean' as const,
     onChange(useCustomKey: boolean) {
       saveGlobalConfig(current_22 => {
@@ -1023,8 +1023,8 @@ export function Config({
             rejected: []
           };
         }
-        if (process.env.ANTHROPIC_API_KEY) {
-          const truncatedKey = normalizeApiKeyForConfig(process.env.ANTHROPIC_API_KEY);
+        if (process.env.UR_API_KEY) {
+          const truncatedKey = normalizeApiKeyForConfig(process.env.UR_API_KEY);
           if (useCustomKey) {
             updated.customApiKeyResponses = {
               ...updated.customApiKeyResponses,
@@ -1101,15 +1101,15 @@ export function Config({
       return `Set ${key} to ${chalk.bold(value_2)}`;
     });
     // Check for API key changes
-    // On homespace, ANTHROPIC_API_KEY is preserved in process.env for child
+    // On homespace, UR_API_KEY is preserved in process.env for child
     // processes but ignored by UR itself (see auth.ts).
-    const effectiveApiKey = isRunningOnHomespace() ? undefined : process.env.ANTHROPIC_API_KEY;
+    const effectiveApiKey = isRunningOnHomespace() ? undefined : process.env.UR_API_KEY;
     const initialUsingCustomKey = Boolean(effectiveApiKey && initialConfig.current.customApiKeyResponses?.approved?.includes(normalizeApiKeyForConfig(effectiveApiKey)));
     const currentUsingCustomKey = Boolean(effectiveApiKey && globalConfig.customApiKeyResponses?.approved?.includes(normalizeApiKeyForConfig(effectiveApiKey)));
     if (initialUsingCustomKey !== currentUsingCustomKey) {
       formattedChanges.push(`${currentUsingCustomKey ? 'Enabled' : 'Disabled'} custom API key`);
       logEvent('tengu_config_changed', {
-        key: 'env.ANTHROPIC_API_KEY' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
+        key: 'env.UR_API_KEY' as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
         value: currentUsingCustomKey as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
       });
     }
@@ -1489,7 +1489,7 @@ export function Config({
         setTabsHidden(false);
         // First-open-then-Enter from unset: picker highlights "Default"
         // (initial=null) and confirming would write null, silently
-        // switching Opus-fallback → follow-leader. Treat as no-op.
+        // switching modelO-fallback → follow-leader. Treat as no-op.
         if (globalConfig.teammateDefaultModel === undefined && model_1 === null) {
           return;
         }
@@ -1653,7 +1653,7 @@ export function Config({
         minimum_version_set: choice === 'stay'
       });
     }} /> : <Box flexDirection="column" gap={1} marginY={insideModal ? undefined : 1}>
-          <SearchBox query={searchQuery} isFocused={isSearchMode && !headerFocused} isTerminalFocused={isTerminalFocused} cursorOffset={searchCursorOffset} placeholder="Search settings…" />
+          <SearchBox query={searchQuery} isFocused={isSearchMode && !headerFocused} isTerminalFocused={isTerminalFocused} caretOffset={searchcaretOffset} placeholder="Search settings…" />
           <Box flexDirection="column">
             {filteredSettingsItems.length === 0 ? <Text dimColor italic>
                 No settings match &quot;{searchQuery}&quot;

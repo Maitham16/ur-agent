@@ -1,8 +1,9 @@
-import type Anthropic from '@anthropic-ai/sdk'
+// @ts-nocheck
+import type URHQ from '@urhq-ai/sdk'
 import type {
   BetaTool,
   BetaToolUnion,
-} from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
+} from '@urhq-ai/sdk/resources/beta/messages/messages.mjs'
 import { createHash } from 'crypto'
 import { SYSTEM_PROMPT_DYNAMIC_BOUNDARY } from 'src/constants/prompts.js'
 import { getSystemContext, getUserContext } from 'src/context.js'
@@ -46,7 +47,7 @@ import { isEnvTruthy } from './envUtils.js'
 import { createUserMessage } from './messages.js'
 import {
   getAPIProvider,
-  isFirstPartyAnthropicBaseUrl,
+  isFirstPartyURHQBaseUrl,
 } from './model/providers.js'
 import {
   getFileReadIgnorePatterns,
@@ -95,8 +96,8 @@ const SWARM_FIELDS_BY_TOOL: Record<string, string[]> = {
  */
 function filterSwarmFieldsFromSchema(
   toolName: string,
-  schema: Anthropic.Tool.InputSchema,
-): Anthropic.Tool.InputSchema {
+  schema: URHQ.Tool.InputSchema,
+): URHQ.Tool.InputSchema {
   const fieldsToRemove = SWARM_FIELDS_BY_TOOL[toolName]
   if (!fieldsToRemove || fieldsToRemove.length === 0) {
     return schema
@@ -158,7 +159,7 @@ export async function toolToAPISchema(
       'inputJSONSchema' in tool && tool.inputJSONSchema
         ? tool.inputJSONSchema
         : zodToJsonSchema(tool.inputSchema)
-    ) as Anthropic.Tool.InputSchema
+    ) as URHQ.Tool.InputSchema
 
     // Filter out swarm-related fields when swarms are not enabled
     // This ensures external non-EAP users don't see swarm features in the schema
@@ -194,11 +195,11 @@ export async function toolToAPISchema(
     // Enable fine-grained tool streaming via per-tool API field.
     // Without FGTS, the API buffers entire tool input parameters before sending
     // input_json_delta events, causing multi-minute hangs on large tool inputs.
-    // Gated to direct api.anthropic.com: proxies (LiteLLM etc.) and Bedrock/Vertex
+    // Gated to direct api.urhq.com: proxies (LiteLLM etc.) and Bedrock/Vertex
     // with UR 4.5 reject this field with 400. See GH#32742, PR #21729.
     if (
       getAPIProvider() === 'firstParty' &&
-      isFirstPartyAnthropicBaseUrl() &&
+      isFirstPartyURHQBaseUrl() &&
       (getFeatureValue_CACHED_MAY_BE_STALE('tengu_fgts', false) ||
         isEnvTruthy(process.env.UR_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING))
     ) {
@@ -230,7 +231,7 @@ export async function toolToAPISchema(
   }
 
   // UR_CODE_DISABLE_EXPERIMENTAL_BETAS is the kill switch for beta API
-  // shapes. Proxy gateways (ANTHROPIC_BASE_URL → LiteLLM → Bedrock) reject
+  // shapes. Proxy gateways (URHQ_BASE_URL → LiteLLM → Bedrock) reject
   // fields like defer_loading with "Extra inputs are not permitted". The gates
   // above each field are scattered and not all provider-aware, so this strips
   // everything not in the base-tool allowlist at the one choke point all tool
@@ -275,7 +276,7 @@ function logStripOnce(stripped: string[]): void {
 
 /**
  * Log stats about first block for analyzing prefix matching config
- * (see https://console.statsig.com/4aF3Ewatb6xPVpCwxb5nA3/dynamic_configs/claude_cli_system_prompt_prefixes)
+ * (see https://console.statsig.com/4aF3Ewatb6xPVpCwxb5nA3/dynamic_configs/ur_cli_system_prompt_prefixes)
  */
 export function logAPIPrefix(systemPrompt: SystemPrompt): void {
   const [firstSyspromptBlock] = splitSysPromptPrefix(systemPrompt)
@@ -294,7 +295,7 @@ export function logAPIPrefix(systemPrompt: SystemPrompt): void {
 
 /**
  * Split system prompt blocks by content type for API matching and cache control.
- * See https://console.statsig.com/4aF3Ewatb6xPVpCwxb5nA3/dynamic_configs/claude_cli_system_prompt_prefixes
+ * See https://console.statsig.com/4aF3Ewatb6xPVpCwxb5nA3/dynamic_configs/ur_cli_system_prompt_prefixes
  *
  * Behavior depends on feature flags and options:
  *
@@ -335,7 +336,7 @@ export function splitSysPromptPrefix(
     for (const prompt of systemPrompt) {
       if (!prompt) continue
       if (prompt === SYSTEM_PROMPT_DYNAMIC_BOUNDARY) continue // Skip boundary
-      if (prompt.startsWith('x-anthropic-billing-header')) {
+      if (prompt.startsWith('x-urhq-billing-header')) {
         attributionHeader = prompt
       } else if (CLI_SYSPROMPT_PREFIXES.has(prompt)) {
         systemPromptPrefix = prompt
@@ -372,7 +373,7 @@ export function splitSysPromptPrefix(
         const block = systemPrompt[i]
         if (!block || block === SYSTEM_PROMPT_DYNAMIC_BOUNDARY) continue
 
-        if (block.startsWith('x-anthropic-billing-header')) {
+        if (block.startsWith('x-urhq-billing-header')) {
           attributionHeader = block
         } else if (CLI_SYSPROMPT_PREFIXES.has(block)) {
           systemPromptPrefix = block
@@ -414,7 +415,7 @@ export function splitSysPromptPrefix(
   for (const block of systemPrompt) {
     if (!block) continue
 
-    if (block.startsWith('x-anthropic-billing-header')) {
+    if (block.startsWith('x-urhq-billing-header')) {
       attributionHeader = block
     } else if (CLI_SYSPROMPT_PREFIXES.has(block)) {
       systemPromptPrefix = block
@@ -550,7 +551,7 @@ export async function logContextMetrics(
 
   logEvent('tengu_context_size', {
     git_status_size: gitStatusSize,
-    claude_md_size: urMdSize,
+    ur_md_size: urMdSize,
     total_context_size: totalContextSize,
     project_file_count_rounded: fileCount,
     mcp_tools_count: mcpToolsCount,

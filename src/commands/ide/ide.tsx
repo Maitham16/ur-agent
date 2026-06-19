@@ -129,7 +129,7 @@ function IDEScreen(t0) {
   }
   let t5;
   if ($[17] !== availableIDEs.length) {
-    t5 = availableIDEs.length === 0 && <Text dimColor={true}>{isSupportedJetBrainsTerminal() ? "No available IDEs detected. Please install the plugin and restart your IDE:\nhttps://docs.claude.com/s/ur-jetbrains" : "No available IDEs detected. Make sure your IDE has the UR extension or plugin installed and is running."}</Text>;
+    t5 = availableIDEs.length === 0 && <Text dimColor={true}>{isSupportedJetBrainsTerminal() ? "No available IDEs detected. Please install the plugin and restart your IDE:\nhttps://docs.ur.com/s/ur-jetbrains" : "No available IDEs detected. Make sure your IDE has the UR extension or plugin installed and is running."}</Text>;
     $[17] = availableIDEs.length;
     $[18] = t5;
   } else {
@@ -449,7 +449,7 @@ export async function call(onDone: (result?: string, options?: {
       }
 
       // Try to open the project in the selected IDE
-      if (selectedIDE.name.toLowerCase().includes('vscode') || selectedIDE.name.toLowerCase().includes('cursor') || selectedIDE.name.toLowerCase().includes('windsurf')) {
+      if (selectedIDE.name.toLowerCase().includes('vscode') || selectedIDE.name.toLowerCase().includes('caret') || selectedIDE.name.toLowerCase().includes('windsurf')) {
         // VS Code-based IDEs
         const {
           code

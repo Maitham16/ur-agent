@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { APIUserAbortError } from '@anthropic-ai/sdk';
+import { APIUserAbortError } from '@urhq-ai/sdk';
 import React, { type ReactNode, useCallback, useRef, useState } from 'react';
 import { useMainLoopModel } from '../../../../hooks/useMainLoopModel.js';
 import { Box, Text } from '../../../../ink.js';
@@ -24,7 +24,7 @@ export function GenerateStep(): ReactNode {
   const [prompt, setPrompt] = useState(wizardData.generationPrompt || '');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cursorOffset, setCursorOffset] = useState(prompt.length);
+  const [caretOffset, setcaretOffset] = useState(prompt.length);
   const model = useMainLoopModel();
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -47,7 +47,7 @@ export function GenerateStep(): ReactNode {
     const result = await editPromptInEditor(prompt);
     if (result.content !== null) {
       setPrompt(result.content);
-      setCursorOffset(result.content.length);
+      setcaretOffset(result.content.length);
     }
   }, [prompt]);
   useKeybinding('chat:externalEditor', handleExternalEditor, {
@@ -137,7 +137,7 @@ export function GenerateStep(): ReactNode {
         {error && <Box marginBottom={1}>
             <Text color="error">{error}</Text>
           </Box>}
-        <TextInput value={prompt} onChange={setPrompt} onSubmit={handleGenerate} placeholder="e.g., Help me write unit tests for my code..." columns={80} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} focus showCursor />
+        <TextInput value={prompt} onChange={setPrompt} onSubmit={handleGenerate} placeholder="e.g., Help me write unit tests for my code..." columns={80} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} focus showCaret />
       </Box>
     </WizardDialogLayout>;
 }

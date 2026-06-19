@@ -22,7 +22,7 @@ export function ChooseRepoStep(t0) {
     onSubmit,
     onToggleUseCurrentRepo
   } = t0;
-  const [cursorOffset, setCursorOffset] = useState(0);
+  const [caretOffset, setcaretOffset] = useState(0);
   const [showEmptyError, setShowEmptyError] = useState(false);
   const terminalSize = useTerminalSize();
   const textInputColumns = terminalSize.columns;
@@ -153,13 +153,13 @@ export function ChooseRepoStep(t0) {
     t15 = $[28];
   }
   let t16;
-  if ($[29] !== currentRepo || $[30] !== cursorOffset || $[31] !== handleSubmit || $[32] !== onRepoUrlChange || $[33] !== repoUrl || $[34] !== textInputColumns || $[35] !== useCurrentRepo) {
+  if ($[29] !== currentRepo || $[30] !== caretOffset || $[31] !== handleSubmit || $[32] !== onRepoUrlChange || $[33] !== repoUrl || $[34] !== textInputColumns || $[35] !== useCurrentRepo) {
     t16 = (!useCurrentRepo || !currentRepo) && <Box marginLeft={2} marginBottom={1}><TextInput value={repoUrl} onChange={value => {
         onRepoUrlChange(value);
         setShowEmptyError(false);
-      }} onSubmit={handleSubmit} focus={true} placeholder={"Enter a repo as owner/repo\u2026"} columns={textInputColumns} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} showCursor={true} /></Box>;
+      }} onSubmit={handleSubmit} focus={true} placeholder={"Enter a repo as owner/repo\u2026"} columns={textInputColumns} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} showCaret={true} /></Box>;
     $[29] = currentRepo;
-    $[30] = cursorOffset;
+    $[30] = caretOffset;
     $[31] = handleSubmit;
     $[32] = onRepoUrlChange;
     $[33] = repoUrl;

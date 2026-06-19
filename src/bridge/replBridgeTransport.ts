@@ -37,7 +37,7 @@ export type ReplBridgeTransport = {
    * the entire session history from seq 0).
    *
    * v1 returns 0 — Session-Ingress WS doesn't use SSE sequence numbers;
-   * replay-on-reconnect is handled by the server-side message cursor.
+   * replay-on-reconnect is handled by the server-side message caret.
    */
   getLastSequenceNum(): number
   /**

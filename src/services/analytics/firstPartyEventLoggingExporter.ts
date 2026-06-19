@@ -110,13 +110,13 @@ export class FirstPartyEventLoggingExporter implements LogRecordExporter {
       schedule?: (fn: () => Promise<void>, delayMs: number) => () => void
     } = {},
   ) {
-    // Default: prod, except when ANTHROPIC_BASE_URL is explicitly staging.
+    // Default: prod, except when URHQ_BASE_URL is explicitly staging.
     // Overridable via tengu_1p_event_batch_config.baseUrl.
     const baseUrl =
       options.baseUrl ||
-      (process.env.ANTHROPIC_BASE_URL === 'https://api-staging.anthropic.com'
-        ? 'https://api-staging.anthropic.com'
-        : 'https://api.anthropic.com')
+      (process.env.URHQ_BASE_URL === 'https://api-staging.urhq.com'
+        ? 'https://api-staging.urhq.com'
+        : 'https://api.urhq.com')
 
     this.endpoint = `${baseUrl}${options.path || '/api/event_logging/batch'}`
 
@@ -312,7 +312,7 @@ export class FirstPartyEventLoggingExporter implements LogRecordExporter {
       // Filter for event logs only (by scope name)
       const eventLogs = logs.filter(
         log =>
-          log.instrumentationScope?.name === 'com.anthropic.ur.events',
+          log.instrumentationScope?.name === 'com.urhq.ur.events',
       )
 
       if (eventLogs.length === 0) {

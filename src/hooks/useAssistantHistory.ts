@@ -78,9 +78,9 @@ export function useAssistantHistory({
 }: Props): Result {
   const enabled = config?.viewerOnly === true
 
-  // Cursor state: ref-only (no re-render on cursor change). `null` = no
+  // caret state: ref-only (no re-render on caret change). `null` = no
   // older pages. `undefined` = initial page not fetched yet.
-  const cursorRef = useRef<string | null | undefined>(undefined)
+  const caretRef = useRef<string | null | undefined>(undefined)
   const ctxRef = useRef<HistoryAuthCtx | null>(null)
   const inflightRef = useRef(false)
 
@@ -116,7 +116,7 @@ export function useAssistantHistory({
   const prepend = useCallback(
     (page: HistoryPage, isInitial: boolean) => {
       const msgs = pageToMessages(page)
-      cursorRef.current = page.hasMore ? page.firstId : null
+      caretRef.current = page.hasMore ? page.firstId : null
 
       if (!isInitial) {
         const s = scrollRef.current
@@ -163,9 +163,9 @@ export function useAssistantHistory({
 
   const loadOlder = useCallback(async () => {
     if (!enabled || inflightRef.current) return
-    const cursor = cursorRef.current
+    const caret = caretRef.current
     const ctx = ctxRef.current
-    if (!cursor || !ctx) return // null=exhausted, undefined=initial pending
+    if (!caret || !ctx) return // null=exhausted, undefined=initial pending
     inflightRef.current = true
     // Swap sentinel to "loading…" — O(1) slice since sentinel is at index 0.
     setMessages(prev => {
@@ -174,10 +174,10 @@ export function useAssistantHistory({
       return [mkSentinel(SENTINEL_LOADING), ...base]
     })
     try {
-      const page = await fetchOlderEvents(ctx, cursor)
+      const page = await fetchOlderEvents(ctx, caret)
       if (!page) {
         // Fetch failed — revert sentinel back to "start" placeholder so the user
-        // can retry on next scroll-up. Cursor is preserved (not nulled out).
+        // can retry on next scroll-up. caret is preserved (not nulled out).
         setMessages(prev => {
           const base =
             prev[0]?.uuid === sentinelUuidRef.current ? prev.slice(1) : prev
@@ -219,7 +219,7 @@ export function useAssistantHistory({
   useEffect(() => {
     if (
       fillBudgetRef.current <= 0 ||
-      !cursorRef.current ||
+      !caretRef.current ||
       inflightRef.current
     ) {
       return

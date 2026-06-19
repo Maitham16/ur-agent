@@ -53,7 +53,7 @@ export function workspaceInfo(cwd: string): string {
 export async function urDoctor(cwd: string): Promise<string> {
   const lines: string[] = ['UR doctor', '', osInfo(), '']
 
-  const host = process.env.OLLAMA_HOST || 'http://localhost:11434'
+  const host = 'http://localhost:11434'
   let ollama: string
   try {
     const res = await fetch(`${host}/api/tags`, { signal: AbortSignal.timeout(1500) })

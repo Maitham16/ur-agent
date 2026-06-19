@@ -11,7 +11,8 @@ import { shouldShowAlwaysAllowOptions } from '../../../utils/permissions/permiss
 import { logUnaryEvent } from '../../../utils/unaryLogging.js';
 import { type UnaryEvent, usePermissionRequestLogging } from '../hooks.js';
 import { PermissionDialog } from '../PermissionDialog.js';
-import { PermissionPrompt, type PermissionPromptOption, type ToolAnalyticsContext } from '../PermissionPrompt.js';
+import { URPromptDialog, type URPromptOption } from '../URPromptDialog.js';
+import type { ToolAnalyticsContext } from '../URPromptDialog.js';
 import type { PermissionRequestProps } from '../PermissionRequest.js';
 import { PermissionRuleExplanation } from '../PermissionRuleExplanation.js';
 type SkillOptionValue = 'yes' | 'yes-exact' | 'yes-prefix' | 'no';
@@ -327,7 +328,7 @@ export function SkillPermissionRequest(props) {
   }
   let t17;
   if ($[38] !== handleCancel || $[39] !== handleSelect || $[40] !== options || $[41] !== toolAnalyticsContext) {
-    t17 = <PermissionPrompt options={options} onSelect={handleSelect} onCancel={handleCancel} toolAnalyticsContext={toolAnalyticsContext} />;
+    t17 = <URPromptDialog options={options} onSelect={handleSelect} onCancel={handleCancel} />;
     $[38] = handleCancel;
     $[39] = handleSelect;
     $[40] = options;

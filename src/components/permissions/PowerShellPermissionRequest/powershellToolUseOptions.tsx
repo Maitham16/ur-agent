@@ -59,7 +59,7 @@ export function powershellToolUseOptions({
         allowEmptySubmitToCancel: true,
         showLabelWithValue: true,
         labelValueSeparator: ': ',
-        resetCursorOnUpdate: true
+        resetcaretOnUpdate: true
       });
     } else {
       const label = generateShellSuggestionsLabel(suggestions, POWERSHELL_TOOL_NAME);

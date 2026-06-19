@@ -19,7 +19,7 @@ export function PromptStep() {
     wizardData
   } = useWizard();
   const [systemPrompt, setSystemPrompt] = useState(wizardData.systemPrompt || "");
-  const [cursorOffset, setCursorOffset] = useState(systemPrompt.length);
+  const [caretOffset, setcaretOffset] = useState(systemPrompt.length);
   const [error, setError] = useState(null);
   let t0;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
@@ -37,7 +37,7 @@ export function PromptStep() {
       const result = await editPromptInEditor(systemPrompt);
       if (result.content !== null) {
         setSystemPrompt(result.content);
-        setCursorOffset(result.content.length);
+        setcaretOffset(result.content.length);
       }
     };
     $[1] = systemPrompt;
@@ -97,9 +97,9 @@ export function PromptStep() {
     t6 = $[10];
   }
   let t7;
-  if ($[11] !== cursorOffset || $[12] !== handleSubmit || $[13] !== systemPrompt) {
-    t7 = <Box marginTop={1}><TextInput value={systemPrompt} onChange={setSystemPrompt} onSubmit={handleSubmit} placeholder="You are a helpful code reviewer who..." columns={80} cursorOffset={cursorOffset} onChangeCursorOffset={setCursorOffset} focus={true} showCursor={true} /></Box>;
-    $[11] = cursorOffset;
+  if ($[11] !== caretOffset || $[12] !== handleSubmit || $[13] !== systemPrompt) {
+    t7 = <Box marginTop={1}><TextInput value={systemPrompt} onChange={setSystemPrompt} onSubmit={handleSubmit} placeholder="You are a helpful code reviewer who..." columns={80} caretOffset={caretOffset} onChangeCaretOffset={setcaretOffset} focus={true} showCaret={true} /></Box>;
+    $[11] = caretOffset;
     $[12] = handleSubmit;
     $[13] = systemPrompt;
     $[14] = t7;

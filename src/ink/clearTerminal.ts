@@ -4,14 +4,14 @@
  */
 
 import {
-  CURSOR_HOME,
+  caret_HOME,
   csi,
   ERASE_SCREEN,
   ERASE_SCROLLBACK,
 } from './termio/csi.js'
 
-// HVP (Horizontal Vertical Position) - legacy Windows cursor home
-const CURSOR_HOME_WINDOWS = csi(0, 'f')
+// HVP (Horizontal Vertical Position) - legacy Windows caret home
+const caret_HOME_WINDOWS = csi(0, 'f')
 
 function isWindowsTerminal(): boolean {
   return process.platform === 'win32' && !!process.env.WT_SESSION
@@ -59,13 +59,13 @@ function isModernWindowsTerminal(): boolean {
 export function getClearTerminalSequence(): string {
   if (process.platform === 'win32') {
     if (isModernWindowsTerminal()) {
-      return ERASE_SCREEN + ERASE_SCROLLBACK + CURSOR_HOME
+      return ERASE_SCREEN + ERASE_SCROLLBACK + caret_HOME
     } else {
       // Legacy Windows console - can't clear scrollback
-      return ERASE_SCREEN + CURSOR_HOME_WINDOWS
+      return ERASE_SCREEN + caret_HOME_WINDOWS
     }
   }
-  return ERASE_SCREEN + ERASE_SCROLLBACK + CURSOR_HOME
+  return ERASE_SCREEN + ERASE_SCROLLBACK + caret_HOME
 }
 
 /**

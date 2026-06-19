@@ -10,7 +10,7 @@ export const HISTORY_PAGE_SIZE = 100
 export type HistoryPage = {
   /** Chronological order within the page. */
   events: SDKMessage[]
-  /** Oldest event ID in this page → before_id cursor for next-older page. */
+  /** Oldest event ID in this page → before_id caret for next-older page. */
   firstId: string | null
   /** true = older events exist. */
   hasMore: boolean
@@ -37,7 +37,7 @@ export async function createHistoryAuthCtx(
     baseUrl: `${getOauthConfig().BASE_API_URL}/v1/sessions/${sessionId}/events`,
     headers: {
       ...getOAuthHeaders(accessToken),
-      'anthropic-beta': 'ccr-byoc-2025-07-29',
+      'urhq-beta': 'ccr-byoc-2025-07-29',
       'x-organization-uuid': orgUUID,
     },
   }
@@ -78,7 +78,7 @@ export async function fetchLatestEvents(
   return fetchPage(ctx, { limit, anchor_to_latest: true }, 'fetchLatestEvents')
 }
 
-/** Older page: events immediately before `beforeId` cursor. */
+/** Older page: events immediately before `beforeId` caret. */
 export async function fetchOlderEvents(
   ctx: HistoryAuthCtx,
   beforeId: string,

@@ -128,7 +128,7 @@ export function extractTitleText(m: Message): string | undefined {
  * Parse an ingress WebSocket message and route it to the appropriate handler.
  * Ignores messages whose UUID is in recentPostedUUIDs (echoes of what we sent)
  * or in recentInboundUUIDs (re-deliveries we've already forwarded — e.g.
- * server replayed history after a transport swap lost the seq-num cursor).
+ * server replayed history after a transport swap lost the seq-num caret).
  */
 export function handleIngressMessage(
   data: string,

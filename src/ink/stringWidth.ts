@@ -205,7 +205,7 @@ function isZeroWidth(codePoint: number): boolean {
 // Note: complex-script graphemes like Devanagari क्ष (ka+virama+ZWJ+ssa) render
 // as a single ligature glyph but occupy 2 terminal cells (wcwidth sums the base
 // consonants). Bun.stringWidth=2 matches terminal cell allocation, which is what
-// we need for cursor positioning — the JS fallback's grapheme-cluster width of 1
+// we need for caret positioning — the JS fallback's grapheme-cluster width of 1
 // would desync Ink's layout from the terminal.
 //
 // Bun.stringWidth is resolved once at module scope rather than checked on every

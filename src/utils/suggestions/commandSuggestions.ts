@@ -104,36 +104,36 @@ export type MidInputSlashCommand = {
 
 /**
  * Finds a slash command token that appears mid-input (not at position 0).
- * A mid-input slash command is a "/" preceded by whitespace, where the cursor
+ * A mid-input slash command is a "/" preceded by whitespace, where the caret
  * is at or after the "/".
  *
  * @param input The full input string
- * @param cursorOffset The current cursor position
+ * @param caretOffset The current caret position
  * @returns The mid-input slash command info, or null if not found
  */
 export function findMidInputSlashCommand(
   input: string,
-  cursorOffset: number,
+  caretOffset: number,
 ): MidInputSlashCommand | null {
   // If input starts with "/", this is start-of-input case (handled elsewhere)
   if (input.startsWith('/')) {
     return null
   }
 
-  // Look backwards from cursor to find a "/" preceded by whitespace
-  const beforeCursor = input.slice(0, cursorOffset)
+  // Look backwards from caret to find a "/" preceded by whitespace
+  const beforecaret = input.slice(0, caretOffset)
 
-  // Find the last "/" in the text before cursor
+  // Find the last "/" in the text before caret
   // Pattern: whitespace followed by "/" then optional alphanumeric/dash characters.
   // Lookbehind (?<=\s) is avoided — it defeats YARR JIT in JSC, and the
   // interpreter scans O(n) even with the $ anchor. Capture the whitespace
   // instead and offset match.index by 1.
-  const match = beforeCursor.match(/\s\/([a-zA-Z0-9_:-]*)$/)
+  const match = beforecaret.match(/\s\/([a-zA-Z0-9_:-]*)$/)
   if (!match || match.index === undefined) {
     return null
   }
 
-  // Get the full token (may extend past cursor)
+  // Get the full token (may extend past caret)
   const slashPos = match.index + 1
   const textAfterSlash = input.slice(slashPos + 1)
 
@@ -141,8 +141,8 @@ export function findMidInputSlashCommand(
   const commandMatch = textAfterSlash.match(/^[a-zA-Z0-9_:-]*/)
   const fullCommand = commandMatch ? commandMatch[0] : ''
 
-  // If cursor is past the command (after a space), don't show ghost text
-  if (cursorOffset > slashPos + 1 + fullCommand.length) {
+  // If caret is past the command (after a space), don't show ghost text
+  if (caretOffset > slashPos + 1 + fullCommand.length) {
     return null
   }
 
@@ -505,7 +505,7 @@ export function applyCommandSuggestion(
   shouldExecute: boolean,
   commands: Command[],
   onInputChange: (value: string) => void,
-  setCursorOffset: (offset: number) => void,
+  setcaretOffset: (offset: number) => void,
   onSubmit: (value: string, isSubmittingSlashCommand?: boolean) => void,
 ): void {
   // Extract command name and object from string or SuggestionItem metadata
@@ -525,7 +525,7 @@ export function applyCommandSuggestion(
   // Format the command input with trailing space
   const newInput = formatCommand(commandName)
   onInputChange(newInput)
-  setCursorOffset(newInput.length)
+  setcaretOffset(newInput.length)
 
   // Execute command if requested and it takes no arguments
   if (shouldExecute && commandObj) {
@@ -538,7 +538,7 @@ export function applyCommandSuggestion(
   }
 }
 
-// Helper function at bottom of file per CLAUDE.md
+// Helper function at bottom of file per UR.md
 function cleanWord(word: string) {
   return word.toLowerCase().replace(/[^a-z0-9]/g, '')
 }
