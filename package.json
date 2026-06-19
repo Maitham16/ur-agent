@@ -89,9 +89,9 @@
     "picomatch": "^4.0.0",
     "proper-lockfile": "^4.1.2",
     "qrcode": "^1.5.4",
-    "react": "^19.3.0-canary-705268dc-20260409",
+    "react": "^19.2.7",
     "react-compiler-runtime": "^1.0.0",
-    "react-reconciler": "^0.34.0-canary-705268dc-20260409",
+    "react-reconciler": "^0.33.0",
     "semver": "^7.6.0",
     "shell-quote": "^1.8.0",
     "signal-exit": "^4.1.0",
@@ -127,13 +127,5 @@
     "bun-types": "^1.2.0",
     "playwright": "^1.61.0",
     "typescript": "^5.7.0"
-  },
-  "overrides": {
-    "react-compiler-runtime": {
-      "react": "$react"
-    },
-    "usehooks-ts": {
-      "react": "$react"
-    }
   }
 }
