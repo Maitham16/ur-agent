@@ -1,5 +1,18 @@
 # UR Agent
 
+> **This repository is archived.**
+
+UR Agent is now a modern Bun/TypeScript terminal coding agent with top-tier features designed to compete with leading coding agents. It supports project context, slash commands, MCP servers, plugins, skills, custom agents, and advanced agent workflows.
+
+This repository contains an old implementation from the early development phase. Since then, UR Agent has been fully redesigned and rebuilt with an independent architecture, moving far away from the original core. For this reason, this repository is no longer maintained and is kept only for historical reference.
+
+The active version is available here:
+
+**https://github.com/Maitham16/UR-mapek**
+
+======================================================================================================
+# UR Agent
+
 UR is a Bun/TypeScript terminal coding agent. It starts an interactive session by default, can run once in print mode for scripts, and supports project context, slash commands, MCP servers, plugins, skills, and custom agents.
 
 The package installs a global `ur` command from this GitHub repository. The launcher requires Bun and sets an Ollama-compatible default model if no model is provided.
