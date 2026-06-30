@@ -1,3 +1,56 @@
+# 🚨 UR Agent — Archived Repository 🚨
+
+<p align="center">
+  <img src="https://img.shields.io/badge/STATUS-ARCHIVED-red?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/MAINTENANCE-STOPPED-critical?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/NEW_VERSION-AVAILABLE-blue?style=for-the-badge" />
+</p>
+
+---
+
+> [!CAUTION]
+>
+> ## This repository is archived and no longer maintained.
+>
+> UR Agent has moved to a new official repository.
+> Please do **not** use this repository for the latest version.
+
+---
+
+## 🚀 UR Agent Has Moved
+
+UR Agent is now a **modern Bun/TypeScript terminal coding agent** with **top-tier features** designed to compete with leading coding agents.
+
+It includes:
+
+* **Project context**
+* **Slash commands**
+* **MCP server integration**
+* **Plugins**
+* **Skills**
+* **Custom agents**
+* **Advanced agent workflows**
+
+---
+
+## ⚠️ About This Repository
+
+This repository contains an **old implementation** from the early development phase.
+
+Since then, UR Agent has been **fully redesigned**, **rebuilt from scratch**, and moved to an **independent architecture** far away from the original core.
+
+For this reason, this repository is kept only for **historical reference**.
+
+---
+
+## ✅ Active Repository
+
+Use the new official repository for the latest version, updates, documentation, and active development:
+
+# 👉 https://github.com/Maitham16/UR-mapek
+
+======================================================================================================
+
 # UR Agent
 
 ![Archived](https://img.shields.io/badge/status-ARCHIVED-red?style=for-the-badge)
